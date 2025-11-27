@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons"; 
 import { forgotPassword } from "../api/api";
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -13,16 +16,22 @@ const ForgotPasswordScreen = () => {
   const handleSendOtp = async () => {
     setMessage("");
 
-    const res = await forgotPassword({ email });
-
-    //  CHECK IF ERROR MESSAGE (backend returns 400 with message)
-    if (res?.error || res?.message === "Invalid email format" || res?.message === "User not found") {
+    if (!email.trim()) {
       setSuccess(false);
-      setMessage(res.message || "Something went wrong!");
-      return; // STOP navigation
+      setMessage("Email is required");
+      return;
     }
 
-    //  SUCCESS CASE
+    const res = await forgotPassword({ email });
+
+    console.log("Forgot Password Response:", res);
+
+    if (!res?.success) {
+      setSuccess(false);
+      setMessage(res?.message || "Something went wrong!");
+      return;
+    }
+
     setSuccess(true);
     setMessage(res.message);
 
@@ -32,52 +41,47 @@ const ForgotPasswordScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
 
-      {/* CLOSE BUTTON TOP RIGHT */}
-      <Pressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
-        <Ionicons name="close" size={26} color="white" />
-      </Pressable>
+        <Pressable onPress={() => navigation.goBack()} style={[styles.closeBtn, { top: insets.top + 5 }]}>
+          <Ionicons name="close" size={26} color="white" />
+        </Pressable>
 
-      <Text style={styles.title}>Enter your email to reset password</Text>
+        <Text style={styles.title}>Enter your email to reset password</Text>
 
-      {/* EMAIL INPUT */}
-      <View style={styles.inputRow}>
-        <Ionicons
-          name="mail-outline"
-          size={18}
-          color="#808080"
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.inputField}
-          placeholder="Email"
-          placeholderTextColor="#808080"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.inputRow}>
+          <Ionicons name="mail-outline" size={18} color="#808080" style={styles.icon} />
+          <TextInput
+            style={styles.inputField}
+            placeholder="Email"
+            placeholderTextColor="#808080"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        {message.length > 0 && (
+          <Text style={[styles.msg, success ? styles.success : styles.error]}>
+            {message}
+          </Text>
+        )}
+
+        <Pressable style={styles.button} onPress={handleSendOtp}>
+          <Text style={styles.buttonText}>Send OTP</Text>
+        </Pressable>
+
       </View>
-
-      {/* Message Box */}
-      {message.length > 0 && (
-        <Text style={[styles.msg, success ? styles.success : styles.error]}>
-          {message}
-        </Text>
-      )}
-
-      <Pressable style={styles.button} onPress={handleSendOtp}>
-        <Text style={styles.buttonText}>Send OTP</Text>
-      </Pressable>
-      
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#000" },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -88,8 +92,7 @@ const styles = StyleSheet.create({
 
   closeBtn: {
     position: "absolute",
-    top: 15,
-    right: 15,
+    right: 20,
     padding: 5,
   },
 
@@ -119,9 +122,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  icon: {
-    marginRight: 10,
-  },
+  icon: { marginRight: 10 },
 
   inputField: {
     flex: 1,

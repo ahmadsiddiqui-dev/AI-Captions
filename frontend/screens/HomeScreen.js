@@ -10,15 +10,15 @@ import {
   PermissionsAndroid,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
-  // ASK PERMISSION
   const requestGalleryPermission = async () => {
     try {
       if (Platform.OS === "android") {
@@ -36,16 +36,14 @@ const HomeScreen = () => {
     }
   };
 
-  // IMAGE PICKER — with navigation
   const pickImage = async () => {
     const granted = await requestGalleryPermission();
     if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
 
     launchImageLibrary(
-      { mediaType: "photo", selectionLimit: 5 }, // allow 5 photos
+      { mediaType: "photo", selectionLimit: 5 },
       (response) => {
         if (response.assets) {
-          // Navigate to caption generator with selected images
           navigation.navigate("CaptionGeneratorScreen", {
             selectedImages: response.assets,
           });
@@ -54,7 +52,6 @@ const HomeScreen = () => {
     );
   };
 
-  // HEARTBEAT ANIMATION
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -80,8 +77,8 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.container}>
 
       {/* SETTINGS ICON */}
-      <View style={styles.topRight}>
-        <Pressable onPress={() => navigation.navigate("Settings")}>
+      <View style={[styles.topRight, { top: insets.top + 10 }]}>
+        <Pressable onPress={() => navigation.push("Settings")}>
           <Ionicons name="cog-outline" size={30} color="#b3b1b1ff" />
         </Pressable>
       </View>
@@ -109,8 +106,7 @@ const HomeScreen = () => {
         </Animated.View>
 
         <Text style={styles.policy}>
-          We temporarily process your photos{"\n"}and delete them once your
-          caption is ready.
+          We temporarily process your photos{"\n"}and delete them once your caption is ready.
         </Text>
 
         <Pressable
@@ -134,7 +130,6 @@ const styles = StyleSheet.create({
 
   topRight: {
     position: "absolute",
-    top: 40,
     right: 20,
     zIndex: 20,
     backgroundColor: "#3b3b3bff",
@@ -148,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    marginTop: 50,
+    marginTop: 40,
   },
 
   ovalImage: {

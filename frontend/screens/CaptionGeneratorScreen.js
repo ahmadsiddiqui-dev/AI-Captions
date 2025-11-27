@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
-  Pressable,
   StyleSheet,
+  Pressable,
   ScrollView,
+  TextInput,
   Image,
   ActivityIndicator,
   LayoutAnimation,
   UIManager,
   Platform,
-  Dimensions,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,20 +19,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
 
-// Enable smooth animation on Android
+// Enable smooth animation
 if (Platform.OS === "android") {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental &&
     UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
 }
 
-const BASE_URL = "http://10.0.1.7:8000/api/captions";
+const BASE_URL = "https://ai-captions.onrender.com/api/captions";
 
 const LANGUAGES = ["English", "Spanish", "Hindi", "Arabic", "French"];
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(360, SCREEN_WIDTH - 64); // responsive card size
-const CARD_HEIGHT = Math.round(CARD_WIDTH * 0.7);
 
 const CaptionGeneratorScreen = () => {
   const navigation = useNavigation();
@@ -44,7 +38,7 @@ const CaptionGeneratorScreen = () => {
 
   const [message, setMessage] = useState("");
   const [lengthOption, setLengthOption] = useState("medium");
-  const [moodOption, setMoodOption] = useState("neutral");
+  const [moodOption, setMoodOption] = useState("professional");
 
   const [useEmoji, setUseEmoji] = useState(true);
   const [emojiCount, setEmojiCount] = useState(1);
@@ -61,14 +55,10 @@ const CaptionGeneratorScreen = () => {
 
   const [copiedIndex, setCopiedIndex] = useState(-1);
 
-  // ---------------- PICK IMAGES ----------------
   const addPhotos = () => {
     if (images.length >= 5) return;
     launchImageLibrary(
-      {
-        selectionLimit: 5 - images.length,
-        mediaType: "photo",
-      },
+      { selectionLimit: 5 - images.length, mediaType: "photo" },
       (res) => {
         if (res.assets) {
           setImages([...images, ...res.assets]);
@@ -102,9 +92,7 @@ const CaptionGeneratorScreen = () => {
     message: message.trim(),
   });
 
-  // ---------------- GENERATE CAPTIONS ----------------
   const generateCaptions = async () => {
-    // NEW LOGIC ✔
     if (images.length === 0 && message.trim().length === 0) {
       setError("Please add a photo or write a message to generate a caption.");
       return;
@@ -118,15 +106,13 @@ const CaptionGeneratorScreen = () => {
       const token = await AsyncStorage.getItem("token");
       const form = new FormData();
 
-      if (images.length > 0) {
-        images.forEach((img, idx) => {
-          form.append("images", {
-            uri: img.uri,
-            name: img.fileName || `photo_${idx}.jpg`,
-            type: img.type || "image/jpeg",
-          });
+      images.forEach((img, i) => {
+        form.append("images", {
+          uri: img.uri,
+          name: img.fileName || `photo_${i}.jpg`,
+          type: img.type || "image/jpeg",
         });
-      }
+      });
 
       form.append("options", JSON.stringify(buildOptions()));
 
@@ -144,25 +130,18 @@ const CaptionGeneratorScreen = () => {
         return;
       }
 
-      const final = [];
-      final.push(data.captions[0] || { text: "" });
-      final.push(data.captions[1] || data.captions[0] || { text: "" });
-
-      setCaptions(final);
-
-      if (images.length > 0) setImages([]);
-
-      setLoading(false);
-    } catch (err) {
+      setCaptions(data.captions);
+      images.length > 0 && setImages([]);
+    } catch {
       setError("Server error");
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={26} color="white" />
@@ -171,15 +150,11 @@ const CaptionGeneratorScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
-        {/* Image Row */}
+        {/* IMAGES */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
-
-          {/* + Add Button */}
           <Pressable style={styles.addBox} onPress={addPhotos}>
             <Ionicons name="add" size={32} color="white" />
           </Pressable>
-
           {images.map((img, i) => (
             <View key={i} style={styles.imageBox}>
               <Image source={{ uri: img.uri }} style={styles.image} />
@@ -190,7 +165,7 @@ const CaptionGeneratorScreen = () => {
           ))}
         </ScrollView>
 
-        {/* Message */}
+        {/* MESSAGE */}
         <Text style={styles.label}>Message (optional)</Text>
         <TextInput
           placeholder="Describe your photo..."
@@ -201,7 +176,29 @@ const CaptionGeneratorScreen = () => {
           multiline
         />
 
-        {/* Length */}
+        {/* CAPTIONS (unchanged) */}
+        {captions.length > 0 &&
+          captions.map((c, idx) => (
+            <View key={idx} style={styles.captionCard}>
+              <Text style={styles.captionTitle}>Caption {idx + 1}</Text>
+              <Text style={styles.captionText}>{c.text}</Text>
+              <Pressable
+                style={[styles.copyBtn, copiedIndex === idx && { backgroundColor: "#4caf50" }]}
+                onPress={() => copyToClipboard(c.text, idx)}
+              >
+                <Ionicons
+                  name={copiedIndex === idx ? "checkmark" : "copy-outline"}
+                  size={18}
+                  color="white"
+                />
+                <Text style={styles.copyText}>
+                  {copiedIndex === idx ? "Copied" : "Copy"}
+                </Text>
+              </Pressable>
+            </View>
+          ))}
+
+        {/* LENGTH */}
         <Text style={styles.label}>Caption Length</Text>
         <View style={styles.rowWrap}>
           {["short", "medium", "long"].map((v) => (
@@ -210,74 +207,83 @@ const CaptionGeneratorScreen = () => {
               onPress={() => setLengthOption(v)}
               style={[styles.pill, lengthOption === v && styles.pillActive]}
             >
-              <Text style={lengthOption === v ? styles.textActive : styles.textInactive}>
-                {v}
-              </Text>
+              <Text style={lengthOption === v ? styles.textActive : styles.textInactive}>{v}</Text>
             </Pressable>
           ))}
         </View>
 
-        {/* Mood */}
-        <Text style={styles.label}>Caption Mood</Text>
+        {/* MOOD */}
+        <Text style={styles.label}>Mood</Text>
         <View style={styles.rowWrap}>
-          {["neutral", "funny", "romantic", "professional", "sad"].map((v) => (
+          {[
+            "professional",
+            "funny",
+            "romantic",
+            "sad",
+            "inspiring",
+            "travel",
+            "savage",
+            "aesthetic",
+          ].map((v) => (
             <Pressable
               key={v}
               onPress={() => setMoodOption(v)}
               style={[styles.pill, moodOption === v && styles.pillActive]}
             >
-              <Text style={moodOption === v ? styles.textActive : styles.textInactive}>
-                {v}
-              </Text>
+              <Text style={moodOption === v ? styles.textActive : styles.textInactive}>{v}</Text>
             </Pressable>
           ))}
         </View>
 
-        {/* Emojis */}
+        {/* EMOJI */}
         <Text style={styles.label}>Emojis</Text>
-        <View style={styles.rowBetween}>
-          <Pressable onPress={() => setUseEmoji(!useEmoji)}>
-            <Text style={{ color: useEmoji ? "#7da8ff" : "#777" }}>
-              {useEmoji ? "Enabled" : "Disabled"}
-            </Text>
+        <View style={styles.rowWrap}>
+          {[1, 2, 3, 4, 5].map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => {
+                setUseEmoji(true);
+                setEmojiCount(v);
+              }}
+              style={[styles.pill, useEmoji && emojiCount === v && styles.pillActive]}
+            >
+              <Text style={useEmoji && emojiCount === v ? styles.textActive : styles.textInactive}>
+                {v}
+              </Text>
+            </Pressable>
+          ))}
+          <Pressable onPress={() => setUseEmoji(false)}
+            style={[styles.pill, !useEmoji && styles.pillActive]}>
+            <Text style={!useEmoji ? styles.textActive : styles.textInactive}>OFF</Text>
           </Pressable>
-
-          {useEmoji && (
-            <View style={styles.counter}>
-              <Pressable onPress={() => setEmojiCount(Math.max(0, emojiCount - 1))}>
-                <Ionicons name="remove-circle-outline" size={22} color="#7da8ff" />
-              </Pressable>
-              <Text style={styles.counterText}>{emojiCount}</Text>
-              <Pressable onPress={() => setEmojiCount(Math.min(5, emojiCount + 1))}>
-                <Ionicons name="add-circle-outline" size={22} color="#7da8ff" />
-              </Pressable>
-            </View>
-          )}
         </View>
 
-        {/* Hashtags */}
+        {/* HASHTAGS */}
         <Text style={styles.label}>Hashtags</Text>
-        <View style={styles.rowBetween}>
-          <Pressable onPress={() => setUseHashtags(!useHashtags)}>
-            <Text style={{ color: useHashtags ? "#7da8ff" : "#777" }}>
-              {useHashtags ? "Enabled" : "Disabled"}
-            </Text>
+        <View style={styles.rowWrap}>
+          {[3, 5, 8, 10].map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => {
+                setUseHashtags(true);
+                setHashtagCount(v);
+              }}
+              style={[styles.pill, useHashtags && hashtagCount === v && styles.pillActive]}
+            >
+              <Text
+                style={useHashtags && hashtagCount === v ? styles.textActive : styles.textInactive}
+              >
+                {v}
+              </Text>
+            </Pressable>
+          ))}
+          <Pressable onPress={() => setUseHashtags(false)}
+            style={[styles.pill, !useHashtags && styles.pillActive]}>
+            <Text style={!useHashtags ? styles.textActive : styles.textInactive}>OFF</Text>
           </Pressable>
-
-          {useHashtags && (
-            <View style={styles.counter}>
-              <Pressable onPress={() => setHashtagCount(Math.max(0, hashtagCount - 1))}>
-                <Ionicons name="remove-circle-outline" size={22} color="#7da8ff" />
-              </Pressable>
-              <Text style={styles.counterText}>{hashtagCount}</Text>
-              <Pressable onPress={() => setHashtagCount(Math.min(10, hashtagCount + 1))}>
-                <Ionicons name="add-circle-outline" size={22} color="#7da8ff" />
-              </Pressable>
-            </View>
-          )}
         </View>
 
-        {/* Language Dropdown */}
+        {/* LANGUAGE 🚀 — ADDED BACK EXACTLY */}
         <Text style={styles.label}>Language</Text>
         <Pressable
           style={styles.dropdown}
@@ -308,7 +314,10 @@ const CaptionGeneratorScreen = () => {
           </View>
         )}
 
-        {/* Generate Button */}
+        {/* ERROR */}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        {/* GENERATE */}
         <Pressable style={styles.generateBtn} onPress={generateCaptions} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="white" />
@@ -320,51 +329,6 @@ const CaptionGeneratorScreen = () => {
           )}
         </Pressable>
 
-        {/* Errors */}
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        {/* Captions - HORIZONTAL CARDS */}
-        {captions.length > 0 && (
-          <View style={styles.cardsWrapper}>
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.cardsScroll}
-            >
-              {captions.map((c, idx) => (
-                <View key={idx} style={[styles.captionCard, { width: CARD_WIDTH, height: CARD_HEIGHT }]}>
-                  <View style={styles.cardInner}>
-                    <Text style={styles.captionTitle}>Caption {idx + 1}</Text>
-                    <Text style={styles.captionText} numberOfLines={10}>
-                      {c.text}
-                    </Text>
-                  </View>
-
-                  <View style={styles.cardFooter}>
-                    <Pressable
-                      style={[
-                        styles.copyBtn,
-                        copiedIndex === idx && { backgroundColor: "#4caf50" },
-                      ]}
-                      onPress={() => copyToClipboard(c.text, idx)}
-                    >
-                      <Ionicons
-                        name={copiedIndex === idx ? "checkmark" : "copy-outline"}
-                        size={18}
-                        color="white"
-                      />
-                      <Text style={styles.copyText}>
-                        {copiedIndex === idx ? " Copied" : " Copy"}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
         <View style={{ height: 80 }} />
       </ScrollView>
     </SafeAreaView>
@@ -373,11 +337,9 @@ const CaptionGeneratorScreen = () => {
 
 export default CaptionGeneratorScreen;
 
-/* -------------------------------- STYLES BELOW -------------------------------- */
-
+/* STYLES - unchanged */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -385,13 +347,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#222",
     borderBottomWidth: 0.3,
   },
-
   headerTitle: { color: "white", marginLeft: 10, fontSize: 18, fontWeight: "600" },
-
   scroll: { padding: 16 },
-
   imageRow: { flexDirection: "row", marginBottom: 10 },
-
   addBox: {
     width: 90,
     height: 90,
@@ -403,7 +361,6 @@ const styles = StyleSheet.create({
     borderColor: "#444",
     borderWidth: 1,
   },
-
   imageBox: {
     width: 90,
     height: 90,
@@ -412,9 +369,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-
   image: { width: "100%", height: "100%" },
-
   removeBtn: {
     position: "absolute",
     top: 4,
@@ -426,9 +381,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   label: { color: "#aaa", marginTop: 14, marginBottom: 6 },
-
   input: {
     backgroundColor: "#1a1a1a",
     padding: 12,
@@ -436,9 +389,26 @@ const styles = StyleSheet.create({
     color: "white",
     minHeight: 70,
   },
-
+  captionCard: {
+    backgroundColor: "#2a2a2c",
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 15,
+  },
+  captionTitle: { color: "#bbb", marginBottom: 6, fontSize: 14 },
+  captionText: { color: "white", fontSize: 15, lineHeight: 22 },
+  copyBtn: {
+    flexDirection: "row",
+    backgroundColor: "#7da8ff",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  copyText: { color: "white", marginLeft: 8, fontWeight: "600" },
+  error: { color: "#ff5c5c", marginTop: 10, textAlign: "center" },
   rowWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-
   pill: {
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -448,13 +418,6 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: "#7da8ff" },
   textActive: { color: "white" },
   textInactive: { color: "#999" },
-
-  rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-
-  counter: { flexDirection: "row", alignItems: "center" },
-
-  counterText: { color: "white", fontSize: 16, marginHorizontal: 10 },
-
   dropdown: {
     backgroundColor: "#1a1a1a",
     padding: 12,
@@ -463,7 +426,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   dropdownText: { color: "white", fontSize: 16 },
-
   dropdownList: {
     backgroundColor: "#1a1a1a",
     borderRadius: 12,
@@ -472,65 +434,15 @@ const styles = StyleSheet.create({
   },
   dropdownItem: { padding: 12 },
   dropdownItemText: { color: "white" },
-
   generateBtn: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#8d69e0",
     paddingVertical: 12,
     borderRadius: 14,
-    marginTop: 20,
+    marginTop: 30,
+    gap: 5,
   },
   generateText: { color: "white", fontSize: 16 },
-
-  error: { color: "#ff5c5c", marginTop: 10, textAlign: "center" },
-
-  /* Cards wrapper */
-  cardsWrapper: {
-    marginTop: 18,
-  },
-  cardsScroll: {
-    paddingHorizontal: 16,
-    // keeps cards centered
-    alignItems: "center",
-  },
-
-  captionCard: {
-    backgroundColor: "#121212",
-    padding: 16,
-    borderRadius: 14,
-    marginRight: 14,
-    // shadow for iOS
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    // elevation for Android
-    elevation: 6,
-    justifyContent: "space-between",
-  },
-
-  cardInner: {
-    flex: 1,
-  },
-
-  captionTitle: { color: "#bbb", marginBottom: 8, fontSize: 13 },
-
-  captionText: { color: "white", fontSize: 16, lineHeight: 22 },
-
-  cardFooter: {
-    marginTop: 12,
-    alignItems: "flex-start",
-  },
-
-  copyBtn: {
-    flexDirection: "row",
-    backgroundColor: "#7da8ff",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-
-  copyText: { color: "white", marginLeft: 8, fontWeight: "600" },
 });

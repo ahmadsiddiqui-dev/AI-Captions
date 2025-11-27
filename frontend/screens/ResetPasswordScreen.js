@@ -9,17 +9,22 @@ import {
   Platform,
   UIManager,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { resetPassword, resendOtp } from "../api/api";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const ResetPasswordScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets(); 
   const email = route.params?.email;
 
   const [otp, setOtp] = useState("");
@@ -39,7 +44,6 @@ const ResetPasswordScreen = () => {
       setCanResend(true);
       return;
     }
-
     const interval = setInterval(() => setTimer((t) => t - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
@@ -64,54 +68,43 @@ const ResetPasswordScreen = () => {
       setMessage("OTP is required");
       return;
     }
-
     if (!/^\d{6}$/.test(otp)) {
       setSuccess(false);
       setMessage("Enter a valid OTP");
       return;
     }
-
     if (!newPassword.trim()) {
       setSuccess(false);
       setMessage("Password is required");
       return;
     }
-
     if (!passwordRule.test(newPassword)) {
       setSuccess(false);
       setMessage("Password must follow requirements");
       return;
     }
 
-    // ✅ CHECK WITH BACKEND IF PASSWORD IS SAME AS OLD PASSWORD
     const tempCheck = await resetPassword({ email, otp, newPassword });
-    if (tempCheck?.message === "New password cannot be same as old password") {
-      setSuccess(false);
-      setMessage(tempCheck.message);
-      return;
-    }
-
-    const res = tempCheck;
 
     if (
-      res?.message === "Invalid email format" ||
-      res?.message === "Invalid or expired OTP" ||
-      res?.message === "Password must follow requirements." ||
-      res?.error
+      tempCheck?.message === "New password cannot be same as old password" ||
+      tempCheck?.message === "Invalid email format" ||
+      tempCheck?.message === "Invalid or expired OTP" ||
+      tempCheck?.message === "Password must follow requirements." ||
+      tempCheck?.error
     ) {
       setSuccess(false);
-      setMessage(res.message || "Failed to reset password");
+      setMessage(tempCheck.message || "Failed to reset password");
       return;
     }
 
-    if (res?.message === "Password reset successful!") {
+    if (tempCheck?.message === "Password reset successful!") {
       setSuccess(true);
-      setMessage(res.message);
+      setMessage(tempCheck.message);
 
       setTimeout(() => {
         navigation.navigate("Login");
       }, 1000);
-
       return;
     }
 
@@ -123,146 +116,143 @@ const ResetPasswordScreen = () => {
     if (!canResend) return;
 
     const res = await resendOtp({ email });
-
     setSuccess(true);
     setMessage(res.message || "OTP resent");
-
     setTimer(20);
     setCanResend(false);
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
-        <Ionicons name="close" size={28} color="white" />
-      </Pressable>
-
-      <Text style={styles.title}>Reset Password for {email}</Text>
-
-      <View style={styles.inputRow}>
-        <Ionicons name="key-outline" size={18} color="#808080" style={styles.icon} />
-        <TextInput
-          style={[styles.inputField, { flex: 1 }]}
-          placeholder="Enter OTP"
-          placeholderTextColor="#808080"
-          keyboardType="number-pad"
-          maxLength={6}
-          value={otp}
-          onChangeText={setOtp}
-        />
-
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <Pressable
-          onPress={handleResend}
-          disabled={!canResend}
-          style={{ opacity: canResend ? 1 : 0.4, paddingLeft: 8 }}
+          onPress={() => navigation.goBack()}
+          style={[styles.closeBtn, { top: insets.top + 5 }]} 
         >
-          <Ionicons
-            name="refresh-outline"
-            size={22}
-            color={canResend ? "#7da8ff" : "#555"}
-          />
-          {!canResend && (
-            <Text style={{ color: "#777", fontSize: 11, textAlign: "center" }}>
-              {timer}s
-            </Text>
-          )}
+          <Ionicons name="close" size={28} color="white" />
         </Pressable>
-      </View>
 
-      <View style={styles.inputRow}>
-        <Ionicons name="lock-closed-outline" size={18} color="#808080" style={styles.icon} />
+        <Text style={styles.title}>Reset Password for {email}</Text>
 
-        <TextInput
-          style={[styles.inputField, { flex: 1 }]}
-          placeholder="New Password"
-          placeholderTextColor="#808080"
-          secureTextEntry={!showPass}
-          value={newPassword}
-          onChangeText={setNewPassword}
-        />
-
-        <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
-          <Ionicons
-            name={showPass ? "eye-off-outline" : "eye-outline"}
-            size={21}
-            color="#b5b5b5"
+        <View style={styles.inputRow}>
+          <Ionicons name="key-outline" size={18} color="#808080" style={styles.icon} />
+          <TextInput
+            style={[styles.inputField, { flex: 1 }]}
+            placeholder="Enter OTP"
+            placeholderTextColor="#808080"
+            keyboardType="number-pad"
+            maxLength={6}
+            value={otp}
+            onChangeText={setOtp}
           />
-        </Pressable>
-      </View>
 
-      {strength !== "" && (
-        <Text
-          style={[
-            styles.strength,
-            strength === "Weak"
-              ? { color: "#FF453A" }
-              : strength === "Medium"
-              ? { color: "#FFA500" }
-              : { color: "#32D74B" },
-          ]}
-        >
-          Strength: {strength}
-        </Text>
-      )}
+          <Pressable
+            onPress={handleResend}
+            disabled={!canResend}
+            style={{ opacity: canResend ? 1 : 0.4, paddingLeft: 8 }}
+          >
+            <Ionicons
+              name="refresh-outline"
+              size={22}
+              color={canResend ? "#7da8ff" : "#555"}
+            />
+            {!canResend && (
+              <Text style={{ color: "#777", fontSize: 11, textAlign: "center" }}>
+                {timer}s
+              </Text>
+            )}
+          </Pressable>
+        </View>
 
-      <Pressable
-        onPress={() => {
-          LayoutAnimation.easeInEaseOut();
-          setShowRequirements(!showRequirements);
-        }}
-        style={styles.dropdownHeader}
-      >
-        <Text style={styles.dropdownText}>
-          {showRequirements ? "Hide Requirements" : "Show Requirements"}
-        </Text>
-        <Ionicons
-          name={showRequirements ? "chevron-up" : "chevron-down"}
-          size={20}
-          color="#7da8ff"
-        />
-      </Pressable>
+        <View style={styles.inputRow}>
+          <Ionicons name="lock-closed-outline" size={18} color="#808080" style={styles.icon} />
 
-      {showRequirements && (
-        <View style={styles.requireBox}>
-          <Text style={[styles.reqItem, newPassword.length >= 8 && { color: "#32D74B" }]}>
-            {newPassword.length >= 8 ? "✓" : "✗"} 8+ characters
-          </Text>
+          <TextInput
+            style={[styles.inputField, { flex: 1 }]}
+            placeholder="New Password"
+            placeholderTextColor="#808080"
+            secureTextEntry={!showPass}
+            value={newPassword}
+            onChangeText={setNewPassword}
+          />
 
-          <Text style={[styles.reqItem, /[A-Z]/.test(newPassword) && { color: "#32D74B" }]}>
-            {/[A-Z]/.test(newPassword) ? "✓" : "✗"} One uppercase letter
-          </Text>
+          <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
+            <Ionicons
+              name={showPass ? "eye-off-outline" : "eye-outline"}
+              size={21}
+              color="#b5b5b5"
+            />
+          </Pressable>
+        </View>
 
-          <Text style={[styles.reqItem, /\d/.test(newPassword) && { color: "#32D74B" }]}>
-            {/\d/.test(newPassword) ? "✓" : "✗"} One number
-          </Text>
-
+        {strength !== "" && (
           <Text
             style={[
-              styles.reqItem,
-              /[@$!%*?&]/.test(newPassword) && { color: "#32D74B" },
+              styles.strength,
+              strength === "Weak"
+                ? { color: "#FF453A" }
+                : strength === "Medium"
+                ? { color: "#FFA500" }
+                : { color: "#32D74B" },
             ]}
           >
-            {/[@$!%*?&]/.test(newPassword) ? "✓" : "✗"} One special character
+            Strength: {strength}
           </Text>
-        </View>
-      )}
+        )}
 
-      {message.length > 0 && (
-        <Text style={[styles.msg, success ? styles.success : styles.error]}>
-          {message}
-        </Text>
-      )}
+        <Pressable
+          onPress={() => {
+            LayoutAnimation.easeInEaseOut();
+            setShowRequirements(!showRequirements);
+          }}
+          style={styles.dropdownHeader}
+        >
+          <Text style={styles.dropdownText}>
+            {showRequirements ? "Hide Requirements" : "Show Requirements"}
+          </Text>
+          <Ionicons
+            name={showRequirements ? "chevron-up" : "chevron-down"}
+            size={20}
+            color="#7da8ff"
+          />
+        </Pressable>
 
-      <Pressable style={styles.button} onPress={handleReset}>
-        <Text style={styles.buttonText}>Reset Password</Text>
-      </Pressable>
-    </View>
+        {showRequirements && (
+          <View style={styles.requireBox}>
+            <Text style={[styles.reqItem, newPassword.length >= 8 && { color: "#32D74B" }]}>
+              {newPassword.length >= 8 ? "✓" : "✗"} 8+ characters
+            </Text>
+            <Text style={[styles.reqItem, /[A-Z]/.test(newPassword) && { color: "#32D74B" }]}>
+              {/[A-Z]/.test(newPassword) ? "✓" : "✗"} One uppercase letter
+            </Text>
+            <Text style={[styles.reqItem, /\d/.test(newPassword) && { color: "#32D74B" }]}>
+              {/\d/.test(newPassword) ? "✓" : "✗"} One number
+            </Text>
+            <Text style={[styles.reqItem, /[@$!%*?&]/.test(newPassword) && { color: "#32D74B" }]}>
+              {/[@$!%*?&]/.test(newPassword) ? "✓" : "✗"} One special character
+            </Text>
+          </View>
+        )}
+
+        {message.length > 0 && (
+          <Text style={[styles.msg, success ? styles.success : styles.error]}>
+            {message}
+          </Text>
+        )}
+
+        <Pressable style={styles.button} onPress={handleReset}>
+          <Text style={styles.buttonText}>Reset Password</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default ResetPasswordScreen;
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#000" },
+
   container: {
     flex: 1,
     justifyContent: "center",
@@ -273,8 +263,7 @@ const styles = StyleSheet.create({
 
   closeBtn: {
     position: "absolute",
-    top: 15,
-    right: 15,
+    right: 20,
     padding: 5,
   },
 
@@ -315,9 +304,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
 
-  eye: {
-    paddingLeft: 10,
-  },
+  eye: { paddingLeft: 10 },
 
   strength: {
     fontSize: 14,
