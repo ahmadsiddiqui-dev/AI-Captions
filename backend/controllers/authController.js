@@ -22,13 +22,7 @@ const sendOtpEmail = async (email, otp, name, type) => {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
 });
-
-
-
 
   // DYNAMIC SUBJECT & MESSAGE
   const isRegister = type === "register";
