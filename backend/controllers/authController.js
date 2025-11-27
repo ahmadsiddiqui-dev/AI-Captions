@@ -78,7 +78,14 @@ const sendOtpEmail = async (email, otp, name, type) => {
     html: mailTemplate,
   };
 
+  try {
   await transporter.sendMail(mailOptions);
+  console.log("📨 Email sent successfully to:", email);
+} catch (error) {
+  console.log("❌ Failed to send email:", error.message);
+  throw new Error(error.message || "Email sending failed");
+}
+
 };
 
 // ===================== REGISTER =====================
