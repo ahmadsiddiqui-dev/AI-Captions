@@ -72,18 +72,20 @@ const Settings = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
 
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={26} color="white" />
+      {/* HEADER */}
+         <View style={styles.header}>
+          <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+            <Text style={styles.headerTitleb}>Back</Text>
           </Pressable>
           <Text style={styles.headerTitle}>Settings</Text>
         </View>
+      <View style={styles.container}>
+
 
         <ScrollView showsVerticalScrollIndicator={false}>
-
+        
           {/* ACCOUNT */}
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionBox}>
@@ -103,6 +105,7 @@ const Settings = () => {
                       fontSize: 16,
                       flex: 1,
                       marginLeft: 12,
+                      paddingVertical: 0,
                     }}
                   />
 
@@ -186,27 +189,28 @@ const Settings = () => {
 export default Settings;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#000" },
-  container: { flex: 1, paddingHorizontal: 16 },
-  header: { flexDirection: "row", alignItems: "center", paddingVertical: 15 },
-  backButton: { padding: 5, marginRight: 5 },
-  headerTitle: { fontSize: 22, fontWeight: "600", color: "white" },
+  safeArea: { flex: 1, backgroundColor: "#070707ff" },
+  container: { flex: 1, paddingHorizontal: 12 },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor:"#0f0f0fff",  },
+  backButton: {flexDirection: "row", alignItems: "center"},
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff",marginTop:14, paddingHorizontal: 14, },
+  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   sectionTitle: { color: "#8A8A8D", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
   sectionBox: {
-    backgroundColor: "#1c1c1e",
+    backgroundColor: "#0f0f0fff",
     borderRadius: 14,
     overflow: "hidden",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: 13,
     paddingHorizontal: 15,
     borderBottomWidth: 0.3,
-    borderBottomColor: "#2a2a2c",
+    borderBottomColor: "#37373aff",
   },
-  rowText: { flex: 1, fontSize: 16, color: "#f5f5f7", marginLeft: 12 },
-  emailText: { flex: 1, color: "#9e9e9e", fontSize: 16, opacity: 0.8, marginLeft: 12 },
+  rowText: { flex: 1, fontSize: 15, color: "#dbd8d8ff", marginLeft: 18 },
+  emailText: { flex: 1, color: "#9e9e9e", fontSize: 16, opacity: 0.8, marginLeft: 18 },
   logoutWrapper: { marginTop: 25, alignItems: "center" },
   logoutBtn: {
     backgroundColor: "#ce1f1fff",
@@ -215,5 +219,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "40%",
   },
-  logoutText: { color: "white", fontSize: 16, fontWeight: "600" },
+  logoutText: { color: "#dbd8d8ff", fontSize: 16, fontWeight: "600" },
 });

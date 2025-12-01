@@ -87,12 +87,12 @@ const handleRegister = async () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={26} color="white" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Register</Text>
-      </View>
+       <View style={styles.header}>
+                      <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+                        <Text style={styles.headerTitleb}>Register</Text>
+                      </Pressable>
+                    </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -239,18 +239,20 @@ const handleRegister = async () => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", paddingHorizontal: 16 },
-  header: { flexDirection: "row", alignItems: "center", paddingVertical: 15 },
-  backButton: { padding: 5, marginRight: 5 },
-  headerTitle: { fontSize: 22, fontWeight: "600", color: "white" },
+  container: { flex: 1, backgroundColor: "#000", paddingHorizontal: 0 },
+ header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor:"#0f0f0fff",  },
+  backButton: {flexDirection: "row", alignItems: "center"},
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff",marginTop:14, paddingHorizontal: 14, },
+  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: { flex: 1, justifyContent: "center", paddingBottom: 50 },
-  topText: { color: "white", fontSize: 22, fontWeight: "600", alignSelf: "center", marginBottom: 25 },
-  box: { backgroundColor: "#1c1c1e", borderRadius: 18, padding: 20 },
+    color: "#dbd8d8ff",
+  topText: { color: "#dbd8d8ff", fontSize: 22, fontWeight: "600", alignSelf: "center", marginBottom: 25 },
+  box: { backgroundColor: "#0f0f0fff", borderRadius: 18, padding: 20, marginHorizontal:16 },
   label: { color: "#8a8a8d", fontSize: 14, marginBottom: 6, marginTop: 10 },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c2c2e",
+    backgroundColor: "#222224ff",
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 15,
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
   passwordRow2: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c2c2e",
+    backgroundColor: "#222224ff",
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 10,
@@ -269,8 +271,8 @@ const styles = StyleSheet.create({
   strength: { fontSize: 14, marginBottom: 10 },
   dropdownHeader: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   dropdownText: { color: "#7da8ff", fontSize: 15, marginRight: 5 },
-  requireBox: { backgroundColor: "#1c1c1e", borderRadius: 10, padding: 12, marginBottom: 15 },
-  reqItem: { color: "white", fontSize: 14, marginBottom: 6 },
+  requireBox: { backgroundColor: "#222224ff", borderRadius: 10, padding: 12, marginBottom: 15 },
+  reqItem: { color: "#dbd8d8ff", fontSize: 14, marginBottom: 6 },
   button: { backgroundColor: "#7d5df8", paddingVertical: 15, borderRadius: 12, alignItems: "center", marginTop: 10, marginBottom: 20 },
   buttonText: { color: "white", fontSize: 16, fontWeight: "600" },
   errorMsg: { color: "#ff6b6b", textAlign: "center", marginBottom: 10, fontSize: 14, fontWeight: "500" },

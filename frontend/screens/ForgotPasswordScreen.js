@@ -42,11 +42,13 @@ const ForgotPasswordScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+       <View style={styles.header}>
+                        <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
+                          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+                          <Text style={styles.headerTitleb}>Back</Text>
+                        </Pressable>
+                      </View>
       <View style={styles.container}>
-
-        <Pressable onPress={() => navigation.goBack()} style={[styles.closeBtn, { top: insets.top + 5 }]}>
-          <Ionicons name="close" size={26} color="white" />
-        </Pressable>
 
         <Text style={styles.title}>Enter your email to reset password</Text>
 
@@ -81,23 +83,22 @@ const ForgotPasswordScreen = () => {
 export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#000" },
+  safeArea: { flex: 1, backgroundColor: "#070707ff" },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#000",
+    backgroundColor: "#070707ff",
   },
 
-  closeBtn: {
-    position: "absolute",
-    right: 20,
-    padding: 5,
-  },
+ header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  backButton: { flexDirection: "row", alignItems: "center" },
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
+  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
 
   title: {
-    color: "white",
+    color: "#dbd8d8ff",
     fontSize: 18,
     marginBottom: 20,
     textAlign: "center",
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c2c2e",
+    backgroundColor: "#222224ff",
     width: "80%",
     paddingHorizontal: 12,
     borderRadius: 10,

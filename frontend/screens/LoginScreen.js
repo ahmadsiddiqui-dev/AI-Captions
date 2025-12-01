@@ -12,7 +12,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginUser } from "../api/api"; 
+import { loginUser } from "../api/api";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -36,7 +36,7 @@ const LoginScreen = () => {
     }
 
     try {
-      const data = await loginUser({ email, password }); 
+      const data = await loginUser({ email, password });
 
       if (data.token) {
         await AsyncStorage.setItem("token", data.token);
@@ -57,12 +57,13 @@ const LoginScreen = () => {
   };
 
   return (
+
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={26} color="white" />
+          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Text style={styles.headerTitleb}>Login</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Login</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -152,39 +153,30 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
-    paddingHorizontal: 16,
+    backgroundColor: "#070707ff",
+    paddingHorizontal: 0,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-  },
-  backButton: {
-    padding: 5,
-    marginRight: 5,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "white",
-  },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  backButton: { flexDirection: "row", alignItems: "center" },
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
+  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: {
     flex: 1,
     justifyContent: "center",
     paddingBottom: 40,
   },
   topText: {
-    color: "white",
+    color: "#dbd8d8ff",
     fontSize: 22,
     fontWeight: "600",
     alignSelf: "center",
     marginBottom: 25,
   },
   box: {
-    backgroundColor: "#1c1c1e",
+    backgroundColor: "#0f0f0fff",
     borderRadius: 18,
     padding: 20,
+    marginHorizontal: 16
   },
   label: {
     color: "#8a8a8d",
@@ -195,7 +187,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c2c2e",
+    backgroundColor: "#222224ff",
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 15,
@@ -203,7 +195,7 @@ const styles = StyleSheet.create({
   passwordRow2: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c2c2e",
+    backgroundColor: "#222224ff",
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 15,
