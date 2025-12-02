@@ -17,13 +17,18 @@ const sendOtpEmail = async (email, otp, name, type) => {
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
+  host: process.env.BREVO_HOST,
+  port: process.env.BREVO_PORT,
+  secure: false,
   auth: {
     user: process.env.BREVO_USER,
-    pass: process.env.BREVO_SMTP_KEY,
+    pass: process.env.BREVO_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
+
 
 
   // DYNAMIC SUBJECT & MESSAGE
@@ -69,7 +74,7 @@ const transporter = nodemailer.createTransport({
   `;
 
   const mailOptions = {
-    from: `"${process.env.EMAIL_NAME || "AI Caption"}" <${process.env.EMAIL_USER}>`,
+    from: `"${process.env.EMAIL_NAME || "AI Caption"}" <${process.env.BREVO_SENDER_EMAIL}>`,
     to: email,
     subject,
     html: mailTemplate,
