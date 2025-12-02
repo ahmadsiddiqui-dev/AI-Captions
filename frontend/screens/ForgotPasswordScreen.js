@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Ionicons from "react-native-vector-icons/Ionicons"; 
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { forgotPassword } from "../api/api";
 
 const ForgotPasswordScreen = () => {
@@ -42,12 +42,12 @@ const ForgotPasswordScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-       <View style={styles.header}>
-                        <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
-                          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-                          <Text style={styles.headerTitleb}>Back</Text>
-                        </Pressable>
-                      </View>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Text style={styles.headerTitleb}>Back</Text>
+        </Pressable>
+      </View>
       <View style={styles.container}>
 
         <Text style={styles.title}>Enter your email to reset password</Text>
@@ -71,9 +71,17 @@ const ForgotPasswordScreen = () => {
           </Text>
         )}
 
-        <Pressable style={styles.button} onPress={handleSendOtp}>
+        <Pressable
+          onPress={handleSendOtp}
+          style={({ pressed }) => [
+            styles.button,
+            { transform: [{ scale: pressed ? 0.96 : 1 }] },
+            pressed && { opacity: 0.8 }
+          ]}
+        >
           <Text style={styles.buttonText}>Send OTP</Text>
         </Pressable>
+
 
       </View>
     </SafeAreaView>
@@ -92,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#070707ff",
   },
 
- header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },

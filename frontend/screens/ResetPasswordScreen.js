@@ -24,7 +24,7 @@ if (
 const ResetPasswordScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
   const email = route.params?.email;
 
   const [otp, setOtp] = useState("");
@@ -125,13 +125,13 @@ const ResetPasswordScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-              <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-                <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-                <Text style={styles.headerTitleb}>Back</Text>
-              </Pressable>
-            </View>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Text style={styles.headerTitleb}>Back</Text>
+        </Pressable>
+      </View>
       <View style={styles.container}>
-      
+
         <Text style={styles.title}>Reset Password for {email}</Text>
 
         <View style={styles.inputRow}>
@@ -192,8 +192,8 @@ const ResetPasswordScreen = () => {
               strength === "Weak"
                 ? { color: "#FF453A" }
                 : strength === "Medium"
-                ? { color: "#FFA500" }
-                : { color: "#32D74B" },
+                  ? { color: "#FFA500" }
+                  : { color: "#32D74B" },
             ]}
           >
             Strength: {strength}
@@ -240,9 +240,17 @@ const ResetPasswordScreen = () => {
           </Text>
         )}
 
-        <Pressable style={styles.button} onPress={handleReset}>
+        <Pressable
+          onPress={handleReset}
+          style={({ pressed }) => [
+            styles.button,
+            { transform: [{ scale: pressed ? 0.96 : 1 }] },
+            pressed && { opacity: 0.8 }
+          ]}
+        >
           <Text style={styles.buttonText}>Reset Password</Text>
         </Pressable>
+
       </View>
     </SafeAreaView>
   );

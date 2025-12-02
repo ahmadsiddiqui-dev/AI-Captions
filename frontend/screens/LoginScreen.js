@@ -128,11 +128,20 @@ const LoginScreen = () => {
               <Text style={styles.errorMsg}>{errorMessage}</Text>
             ) : null}
 
-            <Pressable style={styles.button} onPress={handleLogin} disabled={loading}>
+            <Pressable
+              onPress={handleLogin}
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.button,
+                !loading && pressed && { transform: [{ scale: 0.96 }], opacity: 0.8 },
+                loading && { opacity: 1 }
+              ]}
+            >
               <Text style={styles.buttonText}>
                 {loading ? "Please wait..." : "Login"}
               </Text>
             </Pressable>
+
 
             <Pressable onPress={() => navigation.navigate("Register")}>
               <Text style={styles.registerText}>

@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    marginTop: 40,
+    marginTop: 30,
   },
 
   ovalImage: {

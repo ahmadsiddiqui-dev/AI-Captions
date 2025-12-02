@@ -44,7 +44,7 @@ const Settings = () => {
     Keyboard.dismiss();
     setIsEditing(false);
 
-    updateName(tempName.trim()).catch(() => {});
+    updateName(tempName.trim()).catch(() => { });
   };
 
   const handleLogout = async () => {
@@ -74,18 +74,18 @@ const Settings = () => {
     <SafeAreaView style={styles.safeArea}>
 
       {/* HEADER */}
-         <View style={styles.header}>
-          <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-            <Text style={styles.headerTitleb}>Back</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>Settings</Text>
-        </View>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Text style={styles.headerTitleb}>Back</Text>
+        </Pressable>
+        <Text style={styles.headerTitle}>Settings</Text>
+      </View>
       <View style={styles.container}>
 
 
         <ScrollView showsVerticalScrollIndicator={false}>
-        
+
           {/* ACCOUNT */}
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionBox}>
@@ -144,7 +144,7 @@ const Settings = () => {
             )}
           </View>
 
-          {/* SUBSCRIPTION — ADDED BACK */}
+          {/* SUBSCRIPTION */}
           <Text style={styles.sectionTitle}>Subscription</Text>
           <View style={styles.sectionBox}>
             <Item title="Upgrade" icon="star-outline" />
@@ -165,7 +165,7 @@ const Settings = () => {
             />
           </View>
 
-          {/* PRIVACY & LEGAL — ADDED BACK */}
+          {/* PRIVACY & LEGAL */}
           <Text style={styles.sectionTitle}>Privacy & Legal</Text>
           <View style={styles.sectionBox}>
             <Item title="Privacy Policy" icon="shield-checkmark-outline" />
@@ -175,7 +175,13 @@ const Settings = () => {
           {/* LOGOUT */}
           {user && (
             <View style={styles.logoutWrapper}>
-              <Pressable style={styles.logoutBtn} onPress={handleLogout}>
+              <Pressable
+                onPress={handleLogout}
+                style={({ pressed }) => [
+                  styles.logoutBtn,
+                  pressed && { transform: [{ scale: 0.96 }], opacity: 0.8 }
+                ]}
+              >
                 <Text style={styles.logoutText}>Logout</Text>
               </Pressable>
             </View>
@@ -191,9 +197,9 @@ export default Settings;
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#070707ff" },
   container: { flex: 1, paddingHorizontal: 12 },
-  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor:"#0f0f0fff",  },
-  backButton: {flexDirection: "row", alignItems: "center"},
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff",marginTop:14, paddingHorizontal: 14, },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  backButton: { flexDirection: "row", alignItems: "center" },
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   sectionTitle: { color: "#8A8A8D", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
   sectionBox: {

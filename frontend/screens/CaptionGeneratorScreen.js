@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   ScrollView,
   TextInput,
   Image,
-  ActivityIndicator,
   LayoutAnimation,
   UIManager,
   Platform,
+  Animated,
   Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -30,30 +30,87 @@ const BASE_URL = "https://ai-captions.onrender.com/api/captions";
 
 const LANGUAGES = ["English", "Spanish", "Hindi", "Arabic", "French"];
 
+//  AI BUTTON MOVEMENT + PULSE
+const AIButton = ({ loading, onPress }) => {
+  const moveAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (loading) {
+      Animated.timing(moveAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.3,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      Animated.timing(moveAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      pulseAnim.setValue(1);
+    }
+  }, [loading]);
+
+  const iconTranslate = moveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-10, 0],
+  });
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={loading}
+      style={[styles.generateBtn, loading && { opacity: 0.9 }]}
+      android_ripple={{ color: "#ffffff30" }}
+    >
+      <Animated.View
+        style={{ transform: [{ translateX: iconTranslate }, { scale: pulseAnim }] }}
+      >
+        <Ionicons name="sparkles" size={25} color="white" />
+      </Animated.View>
+
+      {!loading && (
+        <Text style={styles.generateText}> Generate Captions</Text>
+      )}
+    </Pressable>
+  );
+};
+
 const CaptionGeneratorScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
   const initialImages = route.params?.selectedImages ?? [];
   const [images, setImages] = useState(initialImages);
-
   const [message, setMessage] = useState("");
   const [lengthOption, setLengthOption] = useState("Auto");
   const [moodOption, setMoodOption] = useState("Auto");
-
   const [useEmoji, setUseEmoji] = useState(true);
   const [emojiCount, setEmojiCount] = useState(1);
-
   const [useHashtags, setUseHashtags] = useState(true);
   const [hashtagCount, setHashtagCount] = useState(3);
-
   const [language, setLanguage] = useState("English");
   const [langOpen, setLangOpen] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [captions, setCaptions] = useState([]);
   const [error, setError] = useState("");
-
   const [copiedIndex, setCopiedIndex] = useState(-1);
 
   const addPhotos = () => {
@@ -95,9 +152,13 @@ const CaptionGeneratorScreen = () => {
 
   const generateCaptions = async () => {
     if (images.length === 0 && message.trim().length === 0) {
-      alert("Please add a photo or write a message to generate a caption.");
+      Alert.alert(
+        "Action Required",
+        "Please add at least one photo or enter a short description to generate captions."
+      );
       return;
     }
+
 
     setLoading(true);
     setError("");
@@ -142,22 +203,20 @@ const CaptionGeneratorScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <Pressable style={styles.backbutton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
           <Text style={styles.headerTitle}>Back</Text>
         </Pressable>
-
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {/* IMAGES */}
         <Text style={styles.labelp}>Photos</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
           <Pressable style={styles.addBox} onPress={addPhotos}>
             <Ionicons name="add" size={32} color="#134885ff" />
           </Pressable>
+
           {images.map((img, i) => (
             <View key={i} style={styles.imageBox}>
               <Image source={{ uri: img.uri }} style={styles.image} />
@@ -168,7 +227,6 @@ const CaptionGeneratorScreen = () => {
           ))}
         </ScrollView>
 
-        {/* MESSAGE */}
         <Text style={styles.label}>Message</Text>
         <Text style={styles.labelm}>This helps us come up with relevant captions</Text>
         <TextInput
@@ -180,14 +238,16 @@ const CaptionGeneratorScreen = () => {
           multiline
         />
 
-        {/* CAPTIONS (unchanged) */}
         {captions.length > 0 &&
           captions.map((c, idx) => (
             <View key={idx} style={styles.captionCard}>
               <Text style={styles.captionTitle}>Caption {idx + 1}</Text>
               <Text style={styles.captionText}>{c.text}</Text>
               <Pressable
-                style={[styles.copyBtn, copiedIndex === idx && { backgroundColor: "#4caf50" }]}
+                style={[
+                  styles.copyBtn,
+                  copiedIndex === idx && { backgroundColor: "#4caf50" },
+                ]}
                 onPress={() => copyToClipboard(c.text, idx)}
               >
                 <Ionicons
@@ -202,7 +262,6 @@ const CaptionGeneratorScreen = () => {
             </View>
           ))}
 
-        {/* LENGTH */}
         <Text style={styles.label}>Caption Length</Text>
         <View style={styles.rowWrap}>
           {["Auto", "short", "medium", "long"].map((v) => (
@@ -216,7 +275,6 @@ const CaptionGeneratorScreen = () => {
           ))}
         </View>
 
-        {/* MOOD */}
         <Text style={styles.label}>Mood</Text>
         <View style={styles.rowWrap}>
           {[
@@ -240,7 +298,6 @@ const CaptionGeneratorScreen = () => {
           ))}
         </View>
 
-        {/* EMOJI */}
         <Text style={styles.label}>Emojis</Text>
         <View style={styles.rowWrap}>
           {[1, 2, 3, 4, 5].map((v) => (
@@ -257,13 +314,14 @@ const CaptionGeneratorScreen = () => {
               </Text>
             </Pressable>
           ))}
-          <Pressable onPress={() => setUseEmoji(false)}
-            style={[styles.pill, !useEmoji && styles.pillActive]}>
+          <Pressable
+            onPress={() => setUseEmoji(false)}
+            style={[styles.pill, !useEmoji && styles.pillActive]}
+          >
             <Text style={!useEmoji ? styles.textActive : styles.textInactive}>OFF</Text>
           </Pressable>
         </View>
 
-        {/* HASHTAGS */}
         <Text style={styles.label}>Hashtags</Text>
         <View style={styles.rowWrap}>
           {[3, 5, 8, 10].map((v) => (
@@ -282,13 +340,14 @@ const CaptionGeneratorScreen = () => {
               </Text>
             </Pressable>
           ))}
-          <Pressable onPress={() => setUseHashtags(false)}
-            style={[styles.pill, !useHashtags && styles.pillActive]}>
+          <Pressable
+            onPress={() => setUseHashtags(false)}
+            style={[styles.pill, !useHashtags && styles.pillActive]}
+          >
             <Text style={!useHashtags ? styles.textActive : styles.textInactive}>OFF</Text>
           </Pressable>
         </View>
 
-        {/* LANGUAGE 🚀 — ADDED BACK EXACTLY */}
         <Text style={styles.label}>Language</Text>
         <Pressable
           style={styles.dropdown}
@@ -319,42 +378,23 @@ const CaptionGeneratorScreen = () => {
           </View>
         )}
 
-        {/* ERROR */}
         {error ? <Text style={styles.error}>{error}</Text> : null}
-
-
 
         <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* Button */}
       <View style={styles.gnrbtn}>
-        {/* GENERATE */}
-        <Pressable
-          onPress={generateCaptions}
-          disabled={loading}
-          style={({ pressed }) => [
-            styles.generateBtn,
-            pressed && { transform: [{ scale: 0.85 }], opacity: 0.8 }
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <>
-              <Ionicons name="sparkles" size={25} color="white" />
-              <Text style={styles.generateText}> Generate Captions</Text>
-            </>
-          )}
-        </Pressable>
-
+        <AIButton loading={loading} onPress={generateCaptions} />
       </View>
-    </SafeAreaView>
 
+    </SafeAreaView>
   );
 };
 
 export default CaptionGeneratorScreen;
 
-/* STYLES - unchanged */
+/* STYLES */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#070707ff" },
   header: {
@@ -368,7 +408,6 @@ const styles = StyleSheet.create({
   backbutton: {
     flexDirection: "row",
     alignItems: "center",
-
   },
   headerTitle: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   scroll: { padding: 16 },
@@ -420,13 +459,13 @@ const styles = StyleSheet.create({
     padding: 15,
     marginTop: 15,
     borderWidth: 1,
-    borderColor: "#ff5c5c"
+    borderColor: "#7AAEF5"
   },
   captionTitle: { color: "#bbb", marginBottom: 6, fontSize: 14 },
   captionText: { color: "white", fontSize: 15, lineHeight: 22 },
   copyBtn: {
     flexDirection: "row",
-    backgroundColor: "#ff5c5c",
+    backgroundColor: "#7AAEF5",
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
@@ -443,7 +482,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     borderRadius: 18,
   },
-  pillActive: { backgroundColor: "#ff5c5c" },
+  pillActive: { backgroundColor: "#7AAEF5" },
   textActive: { color: "white" },
   textInactive: { color: "#999" },
   dropdown: {
@@ -468,7 +507,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%"
-
   },
   generateBtn: {
     flexDirection: "row",
@@ -479,7 +517,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 35,
     borderRadius: 14,
     marginTop: 30,
-    gap: 10,
+    gap: 3,
   },
   generateText: { color: "white", fontSize: 16 },
 });

@@ -44,55 +44,55 @@ const RegisterScreen = () => {
   };
   const strength = getStrength();
 
-const handleRegister = async () => {
-  setErrorMessage("");
-  setLoading(true);
+  const handleRegister = async () => {
+    setErrorMessage("");
+    setLoading(true);
 
-  if (!name || !email || !password || !confirmPassword) {
-    setErrorMessage("All fields are required !");
-    setLoading(false);
-    return;
-  }
-
-  if (!passwordRule.test(password)) {
-    setErrorMessage("Password must follow requirements");
-    setLoading(false);
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    setErrorMessage("Passwords do not match");
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const data = await registerUser({ name, email, password });
-
-    if (data?.message?.toLowerCase().includes("otp")) {
+    if (!name || !email || !password || !confirmPassword) {
+      setErrorMessage("All fields are required !");
       setLoading(false);
-      navigation.navigate("OtpScreen", { email });
       return;
     }
 
-    setErrorMessage(data?.message || "Registration failed");
+    if (!passwordRule.test(password)) {
+      setErrorMessage("Password must follow requirements");
+      setLoading(false);
+      return;
+    }
 
-  } catch (err) {
-    setErrorMessage("Cannot connect to server");
-  }
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      setLoading(false);
+      return;
+    }
 
-  setLoading(false);
-};
+    try {
+      const data = await registerUser({ name, email, password });
+
+      if (data?.message?.toLowerCase().includes("otp")) {
+        setLoading(false);
+        navigation.navigate("OtpScreen", { email });
+        return;
+      }
+
+      setErrorMessage(data?.message || "Registration failed");
+
+    } catch (err) {
+      setErrorMessage("Cannot connect to server");
+    }
+
+    setLoading(false);
+  };
 
 
   return (
     <SafeAreaView style={styles.container}>
-       <View style={styles.header}>
-                      <Pressable  onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-                        <Text style={styles.headerTitleb}>Register</Text>
-                      </Pressable>
-                    </View>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Text style={styles.headerTitleb}>Register</Text>
+        </Pressable>
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -155,8 +155,8 @@ const handleRegister = async () => {
                   strength === "Weak"
                     ? { color: "#FF453A" }
                     : strength === "Medium"
-                    ? { color: "#FFA500" }
-                    : { color: "#32D74B" },
+                      ? { color: "#FFA500" }
+                      : { color: "#32D74B" },
                 ]}
               >
                 Strength: {strength}
@@ -216,11 +216,20 @@ const handleRegister = async () => {
             {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
 
             {/* CREATE ACCOUNT */}
-            <Pressable style={styles.button} onPress={handleRegister} disabled={loading}>
+            <Pressable
+              onPress={handleRegister}
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.button,
+                !loading && pressed && { transform: [{ scale: 0.96 }], opacity: 0.8 },
+                loading && { opacity: 1 }
+              ]}
+            >
               <Text style={styles.buttonText}>
                 {loading ? "Please wait..." : "Create Account"}
               </Text>
             </Pressable>
+
 
             {/* LOGIN LINK */}
             <Pressable onPress={() => navigation.navigate("Login")}>
@@ -240,14 +249,14 @@ export default RegisterScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", paddingHorizontal: 0 },
- header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor:"#0f0f0fff",  },
-  backButton: {flexDirection: "row", alignItems: "center"},
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff",marginTop:14, paddingHorizontal: 14, },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  backButton: { flexDirection: "row", alignItems: "center" },
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: { flex: 1, justifyContent: "center", paddingBottom: 50 },
-    color: "#dbd8d8ff",
+  color: "#dbd8d8ff",
   topText: { color: "#dbd8d8ff", fontSize: 22, fontWeight: "600", alignSelf: "center", marginBottom: 25 },
-  box: { backgroundColor: "#0f0f0fff", borderRadius: 18, padding: 20, marginHorizontal:16 },
+  box: { backgroundColor: "#0f0f0fff", borderRadius: 18, padding: 20, marginHorizontal: 16 },
   label: { color: "#8a8a8d", fontSize: 14, marginBottom: 6, marginTop: 10 },
   inputRow: {
     flexDirection: "row",
