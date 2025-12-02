@@ -41,5 +41,4 @@ A modern mobile application that generates creative social media captions using 
 
 ---
 
-## 📂 Folder Structure
 
