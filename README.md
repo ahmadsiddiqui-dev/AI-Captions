@@ -11,10 +11,12 @@ A modern mobile application that generates creative social media captions using 
 - 🧠 AI Caption Generation using Google Gemini Vision API
 - 😀 Mood-based styles (Funny, Romantic, Professional, etc.)
 - 🌍 Multi-language caption support
+- 😊 Emoji support with adjustable count (or turn OFF completely)
 - 🏷 Smart hashtag generation + counter
-- 🔁 Copy or Share captions directly to social apps
+- 📋 One-tap copy for captions
 - 🎨 Stunning modern UI with smooth transitions
 - 👤 Edit profile & persistent session
+- ⚙️ Advanced filters: Caption length, mood, hashtags, emojis
 
 ---
 
