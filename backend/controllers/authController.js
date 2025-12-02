@@ -77,9 +77,9 @@ const transporter = nodemailer.createTransport({
 
   try {
   await transporter.sendMail(mailOptions);
-  console.log("📨 Email sent successfully to:", email);
+  console.log("Email sent successfully to:", email);
 } catch (error) {
-  console.log("❌ Failed to send email:", error.message);
+  console.log("Failed to send email:", error.message);
   throw new Error(error.message || "Email sending failed");
 }
 
