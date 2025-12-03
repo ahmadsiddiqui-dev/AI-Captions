@@ -4,9 +4,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-/* -------------------------------------------------------
-   CONVERT IMAGES → BASE64 (Optimized with Sharp)
--------------------------------------------------------- */
+/* CONVERT IMAGES → BASE64 (Optimized with Sharp) */
 async function processImages(files) {
   const converted = [];
 
@@ -27,9 +25,7 @@ async function processImages(files) {
   return converted;
 }
 
-/* -------------------------------------------------------
-   BUILD PROMPT (For image + text OR text-only)
--------------------------------------------------------- */
+/* BUILD PROMPT (For image + text OR text-only) */
 function buildPrompt(options, hasImages) {
   return `
 You are a professional Instagram caption writer who creates natural, aesthetic, human-sounding captions.
@@ -76,9 +72,7 @@ CAPTION_TWO:
 }
 
 
-/* -------------------------------------------------------
-   PARSE AI RESPONSE
--------------------------------------------------------- */
+/* PARSE AI RESPONSE */
 function parseOutput(text) {
   const cap1 = text
     .split("CAPTION_TWO:")[0]
@@ -90,9 +84,7 @@ function parseOutput(text) {
   return [cap1, cap2];
 }
 
-/* -------------------------------------------------------
-   MAIN FUNCTION
--------------------------------------------------------- */
+/* MAIN FUNCTION */
 exports.generateWithAI = async (files, options) => {
   const hasImages = files && files.length > 0;
 
