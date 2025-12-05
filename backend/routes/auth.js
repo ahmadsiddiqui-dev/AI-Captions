@@ -8,10 +8,11 @@ const {
   logout,
   forgotPassword,
   resetPassword,
-  updateName   
+  updateName,
+  googleAuth  
 } = require("../controllers/authController");
 
-const auth = require("../middleware/auth"); 
+const auth = require("../middleware/auth");
 
 // Register user (send OTP)
 router.post("/register", register);
@@ -34,7 +35,10 @@ router.post("/forgot-password", forgotPassword);
 // Reset password
 router.post("/reset-password", resetPassword);
 
-// UPDATE NAME (NEW)
+// UPDATE NAME
 router.post("/update-name", auth, updateName);
+
+//  GOOGLE SIGN-IN 
+router.post("/google-signin", googleAuth);
 
 module.exports = router;

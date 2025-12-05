@@ -132,11 +132,26 @@ export const generateCaptions = async (formData) => {
       headers: {
         Authorization: token ? `Bearer ${token}` : undefined,
       },
-      body: formData, // multipart/form-data
+      body: formData, 
     });
 
     return await res.json();
   } catch {
     return { message: "Cannot connect to server" };
+  }
+};
+
+// ====================== GOOGLE LOGIN ======================
+export const googleAuth = async (idToken) => {
+  try {
+    const res = await fetch(`${AUTH_URL}/google-signin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+
+    return await res.json();
+  } catch (err) {
+    return { message: "Server error" };
   }
 };

@@ -347,3 +347,54 @@ exports.updateName = async (req, res) => {
     return res.status(500).json({ message: "Failed to update name", error: err.message });
   }
 };
+
+//  GOOGLE LOGIN / SIGNUP 
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+exports.googleAuth = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ message: "Missing idToken" });
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub, email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        provider: "google",
+        googleId: sub,
+        avatar: picture,
+        isVerified: true,
+        password: null, 
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Google Auth Successful",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
+
+  } catch (error) {
+    console.log("Google Auth Error:", error);
+    res.status(500).json({ message: "Failed Google Login" });
+  }
+};

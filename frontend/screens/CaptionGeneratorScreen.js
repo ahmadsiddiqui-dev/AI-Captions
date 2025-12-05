@@ -396,14 +396,14 @@ export default CaptionGeneratorScreen;
 
 /* STYLES */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#070707ff" },
+  container: { flex: 1, backgroundColor: "#1a1822ff"},
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 3,
-    backgroundColor: "#0f0f0fff",
-    borderBottomWidth: 0.3,
+    borderBottomWidth: 1,
+    borderBottomColor: "#292929ff",
   },
   backbutton: {
     flexDirection: "row",
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   addBox: {
     width: 50,
     height: 50,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1F1D29",
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -447,25 +447,25 @@ const styles = StyleSheet.create({
   labelm: { color: "#7c7b7bff", marginBottom: 6, fontSize: 13 },
   label: { color: "#dbd8d8ff", marginTop: 14, marginBottom: 6, fontSize: 14, fontWeight: 400 },
   input: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1F1D29",
     padding: 12,
     borderRadius: 12,
     color: "white",
     minHeight: 60,
   },
   captionCard: {
-    backgroundColor: "#1e1e1fff",
+    backgroundColor: "#23212FFF",
     borderRadius: 12,
     padding: 15,
     marginTop: 15,
-    borderWidth: 1,
-    borderColor: "#7AAEF5"
+    borderWidth: 2,
+    borderColor: "#2E2B3A"
   },
-  captionTitle: { color: "#bbb", marginBottom: 6, fontSize: 14 },
+  captionTitle: { color: "#CFCED6", marginBottom: 6, fontSize: 14 },
   captionText: { color: "white", fontSize: 15, lineHeight: 22 },
   copyBtn: {
     flexDirection: "row",
-    backgroundColor: "#7AAEF5",
+    backgroundColor: "#8d69e0",
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
@@ -479,14 +479,14 @@ const styles = StyleSheet.create({
   pill: {
     paddingVertical: 8,
     paddingHorizontal: 14,
-    backgroundColor: "#111",
+    backgroundColor: "#14131A",
     borderRadius: 18,
   },
-  pillActive: { backgroundColor: "#7AAEF5" },
+  pillActive: { backgroundColor: "#8d69e0" },
   textActive: { color: "white" },
   textInactive: { color: "#999" },
   dropdown: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1F1D29",
     padding: 12,
     borderRadius: 12,
     flexDirection: "row",
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   dropdownText: { color: "#dbd8d8ff", fontSize: 16 },
   dropdownList: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1F1D29",
     borderRadius: 12,
     overflow: "hidden",
     marginTop: 5,

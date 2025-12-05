@@ -87,7 +87,7 @@ const HomeScreen = () => {
       <View style={styles.imageWrapper}>
         <Image
           style={styles.ovalImage}
-          source={require("../src/images/img4.png")}
+          source={require("../src/images/img1.png")}
         />
       </View>
 
@@ -126,7 +126,7 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "black" },
+  container: { flex: 1, backgroundColor: "#1a1822ff" },
 
   topRight: {
     position: "absolute",

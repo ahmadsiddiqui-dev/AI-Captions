@@ -62,8 +62,8 @@ const Settings = () => {
     }
   };
 
-  const Item = ({ icon, title, onPress, showArrow = true }) => (
-    <Pressable style={styles.row} onPress={onPress}>
+  const Item = ({ icon, title, onPress, showArrow = true, style }) => (
+    <Pressable style={[styles.row, style]} onPress={onPress}>
       <Ionicons name={icon} size={18} color="#7da8ff" />
       <Text style={styles.rowText}>{title}</Text>
       {showArrow && <Ionicons name="chevron-forward" size={18} color="#777" />}
@@ -92,7 +92,7 @@ const Settings = () => {
             {user ? (
               <>
                 {/* Name */}
-                <View style={styles.row}>
+                <View style={styles.rows}  >
                   <Ionicons name="person-outline" size={18} color="#7da8ff" />
 
                   <TextInput
@@ -133,7 +133,13 @@ const Settings = () => {
                 <Item
                   title="Login"
                   icon="log-in-outline"
-                  onPress={() => navigation.navigate("Login")}
+                  style={{
+                    borderBottomWidth: 0.8,
+                    borderBottomColor: "#383737ff",
+                  }}
+                  onPress={() => navigation.navigate("Login")
+
+                  }
                 />
                 <Item
                   title="Register"
@@ -147,7 +153,10 @@ const Settings = () => {
           {/* SUBSCRIPTION */}
           <Text style={styles.sectionTitle}>Subscription</Text>
           <View style={styles.sectionBox}>
-            <Item title="Upgrade" icon="star-outline" />
+            <Item title="Upgrade" icon="star-outline" style={{
+              borderBottomWidth: 0.8,
+              borderBottomColor: "#383737ff",
+            }} />
             <Item title="Restore Purchases" icon="refresh-outline" />
           </View>
 
@@ -168,7 +177,10 @@ const Settings = () => {
           {/* PRIVACY & LEGAL */}
           <Text style={styles.sectionTitle}>Privacy & Legal</Text>
           <View style={styles.sectionBox}>
-            <Item title="Privacy Policy" icon="shield-checkmark-outline" />
+            <Item title="Privacy Policy" icon="shield-checkmark-outline" style={{
+              borderBottomWidth: 0.8,
+              borderBottomColor: "#383737ff",
+            }} />
             <Item title="Terms of Service" icon="document-text-outline" />
           </View>
 
@@ -195,15 +207,15 @@ const Settings = () => {
 export default Settings;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#070707ff" },
+  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
   container: { flex: 1, paddingHorizontal: 12 },
-  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, borderBottomWidth: 1, borderBottomColor: "#292929ff" },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   sectionTitle: { color: "#8A8A8D", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
   sectionBox: {
-    backgroundColor: "#0f0f0fff",
+    backgroundColor: "#1F1D29",
     borderRadius: 14,
     overflow: "hidden",
   },
@@ -212,8 +224,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 13,
     paddingHorizontal: 15,
-    borderBottomWidth: 0.3,
-    borderBottomColor: "#37373aff",
+  },
+  rows: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 13,
+    paddingHorizontal: 15,
+    borderBottomWidth: 0.8,
+    borderBottomColor: "#383737ff",
   },
   rowText: { flex: 1, fontSize: 15, color: "#dbd8d8ff", marginLeft: 18 },
   emailText: { flex: 1, color: "#9e9e9e", fontSize: 16, opacity: 0.8, marginLeft: 18 },

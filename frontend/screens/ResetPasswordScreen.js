@@ -132,6 +132,10 @@ const ResetPasswordScreen = () => {
       </View>
       <View style={styles.container}>
 
+        {/* Background Decorations */}
+        <View style={styles.bgTop} pointerEvents="none" />
+        <View style={styles.bgBottom} pointerEvents="none" />
+
         <Text style={styles.title}>Reset Password for {email}</Text>
 
         <View style={styles.inputRow}>
@@ -259,17 +263,17 @@ const ResetPasswordScreen = () => {
 export default ResetPasswordScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#070707ff" },
+  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#070707ff",
+    backgroundColor: "#1a1822ff",
   },
 
-  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
@@ -283,7 +287,7 @@ const styles = StyleSheet.create({
 
   msg: {
     fontSize: 15,
-    marginBottom: 15,
+    marginBottom: 20,
     fontWeight: "500",
     textAlign: "center",
   },
@@ -293,7 +297,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222224ff",
+    backgroundColor: "#1F1D29",
     width: "80%",
     paddingHorizontal: 12,
     borderRadius: 10,
@@ -321,7 +325,7 @@ const styles = StyleSheet.create({
   dropdownHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 15,
   },
 
   dropdownText: {
@@ -356,5 +360,25 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  bgTop: {
+    position: "absolute",
+    top: -130,
+    right: -110,
+    width: 260,
+    height: 260,
+    backgroundColor: "#35323fff",
+    borderRadius: 200,
+    opacity: 0.35,
+  },
+  bgBottom: {
+    position: "absolute",
+    bottom: -120,
+    left: -120,
+    width: 300,
+    height: 300,
+    backgroundColor: "#35323fff",
+    borderRadius: 200,
+    opacity: 0.3,
   },
 });

@@ -81,6 +81,9 @@ const OtpScreen = () => {
       </View>
       <View style={styles.container}>
 
+        {/* Background Decorations */}
+        <View style={styles.bgTop} pointerEvents="none" />
+        <View style={styles.bgBottom} pointerEvents="none" />
 
         <Text style={styles.title}>Enter OTP sent to {email}</Text>
 
@@ -130,17 +133,17 @@ const OtpScreen = () => {
 export default OtpScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#070707ff" },
+  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#070707ff",
+    backgroundColor: "#1a1822ff",
   },
 
-  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, backgroundColor: "#0f0f0fff", },
+  header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
@@ -162,7 +165,7 @@ const styles = StyleSheet.create({
   error: { color: "#FF453A" },
 
   input: {
-    backgroundColor: "#222224ff",
+    backgroundColor: "#1F1D29",
     color: "white",
     width: "80%",
     padding: 14,
@@ -190,5 +193,25 @@ const styles = StyleSheet.create({
     color: "#7da8ff",
     marginTop: 15,
     fontSize: 14,
+  },
+  bgTop: {
+    position: "absolute",
+    top: -130,
+    right: -110,
+    width: 260,
+    height: 260,
+    backgroundColor: "#35323fff",
+    borderRadius: 200,
+    opacity: 0.35,
+  },
+  bgBottom: {
+    position: "absolute",
+    bottom: -120,
+    left: -120,
+    width: 300,
+    height: 300,
+    backgroundColor: "#35323fff",
+    borderRadius: 200,
+    opacity: 0.3,
   },
 });
