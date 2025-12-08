@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // BASE URLs
-const AUTH_URL = "https://ai-captions.onrender.com/api/auth";
-const CAPTION_URL = "https://ai-captions.onrender.com/api/captions";
+const AUTH_URL = "https://my-ai-captions.onrender.com/api/auth";
+const CAPTION_URL = "https://my-ai-captions.onrender.com/api/captions";
+
 
 
 // ========== Register User ==========

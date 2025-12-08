@@ -34,7 +34,7 @@ const LoginScreen = () => {
   useEffect(() => {
   GoogleSignin.configure({
     webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
-    offlineAccess: true,
+    androidClientId: "537694548839-ksul4k4l894kco95tbhg3b1lkqh7m5dm.apps.googleusercontent.com"
   });
 }, []);
 
