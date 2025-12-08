@@ -60,7 +60,7 @@ const LoginScreen = () => {
       } else {
         setErrorMessage(data.message || "Invalid login credentials");
       }
-    } catch (error) {
+    } catch {
       setErrorMessage("Cannot connect to server");
     }
 
@@ -106,7 +106,6 @@ const LoginScreen = () => {
         </Pressable>
       </View>
 
-      {/* Background Decorations */}
       <View style={styles.bgTop} pointerEvents="none" />
       <View style={styles.bgBottom} pointerEvents="none" />
 
@@ -168,7 +167,7 @@ const LoginScreen = () => {
 
             {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
 
-            {/* LOGIN BUTTON */}
+            {/* LOGIN */}
             <Pressable
               onPress={handleLogin}
               disabled={loading}
@@ -184,7 +183,7 @@ const LoginScreen = () => {
               )}
             </Pressable>
 
-            {/* OR DIVIDER */}
+            {/* OR */}
             <Text style={styles.or}>──────── OR ────────</Text>
 
             {/* GOOGLE LOGIN */}
@@ -192,19 +191,21 @@ const LoginScreen = () => {
               onPress={handleGoogleLogin}
               style={({ pressed }) => [
                 styles.googleButton,
-                pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 }
+                pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 },
               ]}
             >
               {googleLoading ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <>
-                  <Ionicons name="logo-google" size={20} color="white" />
+                  {/* Google full color icon via emoji */}
+                  <Text style={{ fontSize: 18 }}>🟦🟥🟨🟩</Text>
                   <Text style={styles.googleText}>Continue with Google</Text>
                 </>
               )}
             </Pressable>
 
+            {/* REGISTER LINK */}
             <Pressable onPress={() => navigation.navigate("Register")}>
               <Text style={styles.registerText}>
                 Don’t have an account?{" "}
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", paddingVertical: 10, paddingHorizontal: 5 },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
-  centerWrapper: { flex: 1, justifyContent: "center", },
+  centerWrapper: { flex: 1, justifyContent: "center" },
   topText: {
     color: "#dbd8d8ff",
     fontSize: 30,
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 30,
   },
-  box: {paddingHorizontal: 20, marginHorizontal: 16,marginBottom: 20 },
+  box: { paddingHorizontal: 20, marginHorizontal: 16, marginBottom: 20 },
   inputRow: {
     flexDirection: "row",
     backgroundColor: "#1F1D29",
@@ -253,13 +254,12 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 10 },
   inputField: { flex: 1, color: "white", fontSize: 16, paddingVertical: 14 },
   eye: { paddingLeft: 10 },
-  forgot: { color: "#7da8ff", marginBottom: 20, fontSize: 14 },
+  forgot: { color: "#7da8ff", marginBottom: 10, fontSize: 14 },
   button: {
     backgroundColor: "#7d5df8",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 0,
   },
   buttonText: { color: "white", fontSize: 16, fontWeight: "600" },
   errorMsg: { color: "#ff6b6b", textAlign: "center", marginBottom: 10 },
@@ -304,5 +304,4 @@ const styles = StyleSheet.create({
     borderRadius: 200,
     opacity: 0.3,
   },
-
 });

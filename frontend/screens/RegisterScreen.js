@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
     alignItems: "left",
     paddingVertical: 10,
     paddingHorizontal: 5,
-    // backgroundColor: "#0f0f0fff",
   },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitleb: {
@@ -377,7 +376,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "600",
     alignSelf: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   box: {
     padding: 20,
@@ -412,7 +411,7 @@ const styles = StyleSheet.create({
   dropdownHeader: { flexDirection: "row", alignItems: "center", marginBottom: 5, justifyContent: "flex-end" },
   dropdownText: { color: "#7da8ff", fontSize: 15, marginRight: 5 },
   requireBox: {
-    backgroundColor: "#222224ff",
+    backgroundColor: "#1F1D29",
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
