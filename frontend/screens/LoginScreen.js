@@ -13,7 +13,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginUser, googleLogin } from "../api/api";
+import { Image } from "react-native";
+import { loginUser, googleAuth } from "../api/api";
 import {
   GoogleSignin,
   statusCodes,
@@ -31,10 +32,12 @@ const LoginScreen = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: process.env.GOOGLE_CLIENT_ID,
-    });
-  }, []);
+  GoogleSignin.configure({
+    webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
+    GOOGLE_ANDROID_CLIENT_ID: "537694548839-ksul4k4l894kco95tbhg3b1lkqh7m5dm.apps.googleusercontent.com"
+  });
+}, []);
+
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -75,7 +78,7 @@ const LoginScreen = () => {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
 
-      const res = await googleLogin(userInfo.idToken);
+      const res = await googleAuth(userInfo.idToken);
 
       if (res.token) {
         await AsyncStorage.setItem("token", res.token);
@@ -195,15 +198,20 @@ const LoginScreen = () => {
               ]}
             >
               {googleLoading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="black" />
               ) : (
                 <>
-                  {/* Google full color icon via emoji */}
-                  <Text style={{ fontSize: 18 }}>🟦🟥🟨🟩</Text>
+                  <Image
+                    source={require("../src/images/google.png")}
+                    style={{ width: 20, height: 20, marginRight: 10 }}
+                    resizeMode="contain"
+                  />
+
                   <Text style={styles.googleText}>Continue with Google</Text>
                 </>
               )}
             </Pressable>
+
 
             {/* REGISTER LINK */}
             <Pressable onPress={() => navigation.navigate("Register")}>
@@ -268,16 +276,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#4285F4",
+    backgroundColor: "white",
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#5A8FF0",
     gap: 10,
     marginBottom: 20,
   },
   googleText: {
-    color: "white",
+    color: "black",
     fontSize: 15,
     fontWeight: "600",
   },

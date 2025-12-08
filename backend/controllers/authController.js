@@ -6,7 +6,7 @@ const User = require('../models/User');
 const otpStore = new Map();
 
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '365d' });
 };
 
 // EMAIL VALIDATION REGEX
@@ -355,33 +355,44 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 exports.googleAuth = async (req, res) => {
   try {
     const { idToken } = req.body;
-    if (!idToken) return res.status(400).json({ message: "Missing idToken" });
+    if (!idToken) {
+      return res.status(400).json({ message: "Missing idToken" });
+    }
 
+    // Accept BOTH Android and Web Google Tokens
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: [
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_ANDROID_CLIENT_ID
+      ],
     });
 
     const payload = ticket.getPayload();
     const { sub, email, name, picture } = payload;
 
+    if (!email) {
+      return res.status(400).json({ message: "Google account has no email" });
+    }
+
     let user = await User.findOne({ email });
 
+    // Auto register if user does not exist ✔
     if (!user) {
       user = await User.create({
-        name,
+        name: name || "User",
         email,
         provider: "google",
         googleId: sub,
         avatar: picture,
         isVerified: true,
-        password: null, 
+        password: null
       });
     }
 
     const token = generateToken(user._id);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Google Auth Successful",
       token,
@@ -394,7 +405,7 @@ exports.googleAuth = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("Google Auth Error:", error);
-    res.status(500).json({ message: "Failed Google Login" });
+    console.log("Google Auth Error:", error?.message ?? error);
+    return res.status(500).json({ message: "Failed Google Login" });
   }
 };
