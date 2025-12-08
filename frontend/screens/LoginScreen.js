@@ -34,7 +34,7 @@ const LoginScreen = () => {
   useEffect(() => {
   GoogleSignin.configure({
     webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
-    GOOGLE_ANDROID_CLIENT_ID: "537694548839-ksul4k4l894kco95tbhg3b1lkqh7m5dm.apps.googleusercontent.com"
+    offlineAccess: true,
   });
 }, []);
 
@@ -92,7 +92,7 @@ const LoginScreen = () => {
         setErrorMessage("Google login failed");
       }
     } catch (error) {
-      console.log("Google login error:", error);
+      console.log("Google login error:", JSON.stringify(error, null, 2));
       if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
         setErrorMessage("Google login failed");
       }
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  registerText: { color: "#b5b5b5", textAlign: "center", marginTop: 10, fontSize: 15 },
+  registerText: { color: "#b5b5b5", textAlign: "center", marginTop: 0, fontSize: 15 },
   registerLink: { color: "#7da8ff", fontWeight: "600" },
 
   bgTop: {
