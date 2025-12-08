@@ -351,8 +351,8 @@ exports.updateName = async (req, res) => {
 // ===================== GOOGLE SIGN-IN =====================
 const { OAuth2Client } = require("google-auth-library");
 
-// Must verify against Android Client ID for React Native
-const client = new OAuth2Client(process.env.GOOGLE_ANDROID_CLIENT_ID);
+// Web Client ID for OAuth2Client instance
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.googleAuth = async (req, res) => {
   try {
@@ -367,7 +367,10 @@ exports.googleAuth = async (req, res) => {
 
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_ANDROID_CLIENT_ID,
+      audience: [
+        process.env.GOOGLE_CLIENT_ID,         
+        process.env.GOOGLE_ANDROID_CLIENT_ID, 
+      ],
     });
 
     const payload = ticket.getPayload();
