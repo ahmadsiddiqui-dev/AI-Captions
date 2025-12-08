@@ -359,7 +359,7 @@ exports.googleAuth = async (req, res) => {
       return res.status(400).json({ message: "Missing idToken" });
     }
 
-    // Accept BOTH Android and Web Google Tokens
+    // Accept both Web & Android Client IDs
     const ticket = await client.verifyIdToken({
       idToken,
       audience: [
@@ -369,7 +369,7 @@ exports.googleAuth = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    const { sub, email, name, picture } = payload;
+    const { sub, email, name } = payload;
 
     if (!email) {
       return res.status(400).json({ message: "Google account has no email" });
@@ -377,14 +377,13 @@ exports.googleAuth = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    // Auto register if user does not exist ✔
+    // Auto register new Google user — NO avatar ✔
     if (!user) {
       user = await User.create({
-        name: name || "User",
+        name: name || "New User",
         email,
         provider: "google",
         googleId: sub,
-        avatar: picture,
         isVerified: true,
         password: null
       });
@@ -392,20 +391,20 @@ exports.googleAuth = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Google Auth Successful",
       token,
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email,
-        avatar: user.avatar,
+        email: user.email
       },
     });
 
   } catch (error) {
-    console.log("Google Auth Error:", error?.message ?? error);
-    return res.status(500).json({ message: "Failed Google Login" });
+    console.log("Google Auth Error:", error?.message || error);
+    res.status(500).json({ message: "Failed Google Login" });
   }
 };
+
