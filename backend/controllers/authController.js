@@ -351,31 +351,23 @@ exports.updateName = async (req, res) => {
 // ===================== GOOGLE SIGN-IN =====================
 const { OAuth2Client } = require("google-auth-library");
 
-// Debug log: Check env variables are loaded correctly
-console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-console.log("GOOGLE_ANDROID_CLIENT_ID:", process.env.GOOGLE_ANDROID_CLIENT_ID);
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Must verify against Android Client ID for React Native
+const client = new OAuth2Client(process.env.GOOGLE_ANDROID_CLIENT_ID);
 
 exports.googleAuth = async (req, res) => {
   try {
     const { idToken } = req.body;
-
-    console.log("Received ID Token:", !!idToken ? "YES" : "NO"); 
+    console.log("Received ID Token:", idToken ? "YES" : "NO");
 
     if (!idToken) {
       return res.status(400).json({ message: "Missing idToken" });
     }
 
-    // Debug Token Verification
-    console.log("Verifying token...");
+    console.log("Verifying Google Token...");
 
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: [
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_ANDROID_CLIENT_ID
-      ],
+      audience: process.env.GOOGLE_ANDROID_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
@@ -384,7 +376,6 @@ exports.googleAuth = async (req, res) => {
     const { sub, email, name } = payload;
 
     if (!email) {
-      console.log("❌ No email returned by Google");
       return res.status(400).json({ message: "Google account has no email" });
     }
 
@@ -412,13 +403,12 @@ exports.googleAuth = async (req, res) => {
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
       },
     });
 
   } catch (error) {
-    console.log(" Google Auth Error:", error); // FULL ERROR
+    console.log("Google Auth Error:", error.message || error);
     return res.status(500).json({ message: "Failed Google Login" });
   }
 };
-

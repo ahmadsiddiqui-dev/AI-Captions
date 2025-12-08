@@ -34,7 +34,8 @@ const LoginScreen = () => {
   useEffect(() => {
   GoogleSignin.configure({
     webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
-    androidClientId: "537694548839-ksul4k4l894kco95tbhg3b1lkqh7m5dm.apps.googleusercontent.com"
+    offlineAccess: true
+
   });
 }, []);
 
@@ -70,35 +71,38 @@ const LoginScreen = () => {
     setLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setGoogleLoading(true);
-      setErrorMessage("");
+const handleGoogleLogin = async () => {
+  try {
+    console.log("Starting Google Login...");
+    await GoogleSignin.hasPlayServices();
 
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+    const userInfo = await GoogleSignin.signIn();
+    console.log('Google SignIn Response:', userInfo);
 
-      const res = await googleAuth(userInfo.idToken);
+    const idToken = userInfo?.data?.idToken;
+    console.log("Extracted ID Token:", idToken ? "YES" : "NO");
 
-      if (res.token) {
-        await AsyncStorage.setItem("token", res.token);
-        await AsyncStorage.setItem("user", JSON.stringify(res.user));
-
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Home" }],
-        });
-      } else {
-        setErrorMessage("Google login failed");
-      }
-    } catch (error) {
-      console.log("Google login error:", JSON.stringify(error, null, 2));
-      if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
-        setErrorMessage("Google login failed");
-      }
+    if (!idToken) {
+      console.log("ERROR: ID Token missing!");
+      alert("Google Login Failed (No ID Token)");
+      return;
     }
-    setGoogleLoading(false);
-  };
+
+    const res = await googleAuth(idToken);
+    console.log("Backend Response:", res);
+
+    if (res?.success) {
+      alert("Google Login Success!");
+    } else {
+      alert(res.message || "Google Login Failed!");
+    }
+
+  } catch (error) {
+    console.log("Google Login Error:", error);
+    alert("Google Login Failed!");
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
