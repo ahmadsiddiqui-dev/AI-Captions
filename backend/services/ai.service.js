@@ -1,7 +1,8 @@
 const sharp = require("sharp");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-console.log("Active Gemini Key 👉", process.env.GEMINI_API_KEY?.slice(0, 6));
+console.log("FULL GEMINI KEY :", process.env.GEMINI_API_KEY);
+
 
 
 // Initialize Gemini
