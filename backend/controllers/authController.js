@@ -14,22 +14,20 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ============ SEND OTP EMAIL (Dynamic HTML) ============
 const sendOtpEmail = async (email, otp, name, type) => {
-const nodemailer = require("nodemailer");
+  const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  host: process.env.BREVO_HOST,
-  port: process.env.BREVO_PORT,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASSWORD,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
-
-
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === "true", // true for 465, false for 587/25
+    auth: {
+      user: process.env.SMTP_EMAIL,
+      pass: process.env.SMTP_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
   // DYNAMIC SUBJECT & MESSAGE
   const isRegister = type === "register";
@@ -74,21 +72,21 @@ const transporter = nodemailer.createTransport({
   `;
 
   const mailOptions = {
-    from: `"${process.env.EMAIL_NAME || "AI Caption"}" <${process.env.BREVO_SENDER_EMAIL}>`,
+    from: `"${process.env.EMAIL_NAME || "AI Caption"}" <${process.env.SMTP_EMAIL}>`,
     to: email,
     subject,
     html: mailTemplate,
   };
 
   try {
-  await transporter.sendMail(mailOptions);
-  console.log("Email sent successfully to:", email);
-} catch (error) {
-  console.log("Failed to send email:", error.message);
-  throw new Error(error.message || "Email sending failed");
-}
-
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully to:", email);
+  } catch (error) {
+    console.log("Failed to send email:", error.message);
+    throw new Error(error.message || "Email sending failed");
+  }
 };
+
 
 // ===================== REGISTER =====================
 exports.register = async (req, res) => {

@@ -99,22 +99,18 @@ const RegisterScreen = () => {
 
     await GoogleSignin.hasPlayServices();
 
-    // Force account chooser UI
     await GoogleSignin.signOut();
 
     const userInfo = await GoogleSignin.signIn();
-    console.log("Google Sign-In Response:", userInfo);
 
     const idToken = userInfo?.data?.idToken;
-    console.log("Extracted ID Token:", idToken ? "YES" : "NO");
 
     if (!idToken) {
-      setErrorMessage("Google Signup Failed: Missing ID Token");
+      setErrorMessage("Google Signup Failed");
       return;
     }
 
     const res = await googleAuth(idToken);
-    console.log("Backend Response:", res);
 
     if (res.success && res.token) {
       await AsyncStorage.setItem("token", res.token);
@@ -129,9 +125,8 @@ const RegisterScreen = () => {
     }
 
   } catch (error) {
-    console.log("Google Signup Error:", error);
     if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
-      setErrorMessage("Google Signup Failed — Try again.");
+      setErrorMessage("Google Login Failed. Try again.");
     }
   }
 
@@ -325,7 +320,7 @@ const RegisterScreen = () => {
               ]}
             >
               {googleLoading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="black" />
               ) : (
                 <>
                   <Image

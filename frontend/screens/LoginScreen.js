@@ -73,7 +73,7 @@ const LoginScreen = () => {
 
 const handleGoogleLogin = async () => {
   try {
-    setErrorMessage(""); // clear previous errors
+    setErrorMessage(""); 
     setGoogleLoading(true);
 
     console.log("Starting Google Login...");
