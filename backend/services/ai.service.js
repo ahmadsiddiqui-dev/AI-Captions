@@ -1,9 +1,6 @@
 const sharp = require("sharp");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-console.log("FULL GEMINI KEY :", process.env.GEMINI_API_KEY);
-
-
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -106,7 +103,7 @@ exports.generateWithAI = async (files, options) => {
   const prompt = buildPrompt(options, hasImages);
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-1.5-flash",
   });
 
   const result = await model.generateContent([
