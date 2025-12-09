@@ -16,18 +16,24 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const sendOtpEmail = async (email, otp, name, type) => {
   const nodemailer = require("nodemailer");
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: process.env.SMTP_SECURE === "true", // true for 465, false for 587/25
-    auth: {
-      user: process.env.SMTP_EMAIL,
-      pass: process.env.SMTP_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASSWORD,
+  },
+  authMethod: "LOGIN",
+  tls: {
+    rejectUnauthorized: false,
+    minVersion: "TLSv1.2",
+  },
+  logger: true,
+  debug: true
+});
+
+
 
   // DYNAMIC SUBJECT & MESSAGE
   const isRegister = type === "register";
