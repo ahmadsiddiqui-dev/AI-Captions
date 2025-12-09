@@ -73,34 +73,48 @@ const LoginScreen = () => {
 
 const handleGoogleLogin = async () => {
   try {
+    setErrorMessage(""); // clear previous errors
+    setGoogleLoading(true);
+
     console.log("Starting Google Login...");
     await GoogleSignin.hasPlayServices();
 
+    // Force account chooser UI
+    await GoogleSignin.signOut();
+
     const userInfo = await GoogleSignin.signIn();
-    console.log('Google SignIn Response:', userInfo);
+    console.log("Google SignIn Response:", userInfo);
 
     const idToken = userInfo?.data?.idToken;
     console.log("Extracted ID Token:", idToken ? "YES" : "NO");
 
     if (!idToken) {
-      console.log("ERROR: ID Token missing!");
-      alert("Google Login Failed (No ID Token)");
+      setErrorMessage("Google login failed: missing ID Token");
+      setGoogleLoading(false);
       return;
     }
 
     const res = await googleAuth(idToken);
     console.log("Backend Response:", res);
 
-    if (res?.success) {
-      alert("Google Login Success!");
+    if (res.success) {
+      await AsyncStorage.setItem("token", res.token);
+      await AsyncStorage.setItem("user", JSON.stringify(res.user));
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
     } else {
-      alert(res.message || "Google Login Failed!");
+      setErrorMessage(res.message || "Google Login Failed");
     }
 
   } catch (error) {
     console.log("Google Login Error:", error);
-    alert("Google Login Failed!");
+    setErrorMessage("Google Login Failed. Try again.");
   }
+
+  setGoogleLoading(false);
 };
 
 

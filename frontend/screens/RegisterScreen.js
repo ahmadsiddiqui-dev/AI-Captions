@@ -14,7 +14,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { registerUser, googleLogin } from "../api/api";
+import { registerUser, googleAuth  } from "../api/api";
 import {
   GoogleSignin,
   statusCodes,
@@ -92,33 +92,51 @@ const RegisterScreen = () => {
     setLoading(false);
   };
 
-  const handleGoogleSignup = async () => {
-    try {
-      setGoogleLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
+ const handleGoogleSignup = async () => {
+  try {
+    setErrorMessage("");
+    setGoogleLoading(true);
 
-      const res = await googleLogin(idToken);
+    await GoogleSignin.hasPlayServices();
 
-      if (res.token) {
-        await AsyncStorage.setItem("token", res.token);
-        await AsyncStorage.setItem("user", JSON.stringify(res.user));
+    // Force account chooser UI
+    await GoogleSignin.signOut();
 
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Home" }],
-        });
-      } else {
-        setErrorMessage("Google Signup Failed");
-      }
-    } catch (error) {
-      console.log("Google Signup Error:", error);
-      if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
-        setErrorMessage("Google Signup Failed");
-      }
+    const userInfo = await GoogleSignin.signIn();
+    console.log("Google Sign-In Response:", userInfo);
+
+    const idToken = userInfo?.data?.idToken;
+    console.log("Extracted ID Token:", idToken ? "YES" : "NO");
+
+    if (!idToken) {
+      setErrorMessage("Google Signup Failed: Missing ID Token");
+      return;
     }
-    setGoogleLoading(false);
-  };
+
+    const res = await googleAuth(idToken);
+    console.log("Backend Response:", res);
+
+    if (res.success && res.token) {
+      await AsyncStorage.setItem("token", res.token);
+      await AsyncStorage.setItem("user", JSON.stringify(res.user));
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    } else {
+      setErrorMessage(res.message || "Google Signup Failed");
+    }
+
+  } catch (error) {
+    console.log("Google Signup Error:", error);
+    if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
+      setErrorMessage("Google Signup Failed — Try again.");
+    }
+  }
+
+  setGoogleLoading(false);
+};
 
   return (
     <SafeAreaView style={styles.container}>

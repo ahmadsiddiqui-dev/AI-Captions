@@ -20,6 +20,7 @@ const Settings = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
+  
 
   useEffect(() => {
     const loadUser = async () => {
