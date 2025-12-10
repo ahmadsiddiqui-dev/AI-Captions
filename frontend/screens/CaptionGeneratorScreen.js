@@ -113,6 +113,11 @@ const CaptionGeneratorScreen = () => {
   const [error, setError] = useState("");
   const [copiedIndex, setCopiedIndex] = useState(-1);
 
+  // ★ NEW → Check free usage limit
+  useEffect(() => {
+    AsyncStorage.getItem("freeCaptionCount");
+  }, []);
+
   const addPhotos = () => {
     if (images.length >= 5) return;
     launchImageLibrary(
@@ -159,6 +164,14 @@ const CaptionGeneratorScreen = () => {
       return;
     }
 
+    // ★ NEW → Paywall enforcement
+    const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
+    const subscribed = await AsyncStorage.getItem("subscribed");
+
+    if (!subscribed && freeUsed >= 2) {
+      navigation.navigate("SubscriptionScreen");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -191,6 +204,9 @@ const CaptionGeneratorScreen = () => {
         setLoading(false);
         return;
       }
+
+      // ★ NEW → Increment free usage
+      await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
 
       setCaptions(data.captions);
       images.length > 0 && setImages([]);
@@ -331,10 +347,15 @@ const CaptionGeneratorScreen = () => {
                 setUseHashtags(true);
                 setHashtagCount(v);
               }}
-              style={[styles.pill, useHashtags && hashtagCount === v && styles.pillActive]}
+              style={[
+                styles.pill,
+                useHashtags && hashtagCount === v && styles.pillActive,
+              ]}
             >
               <Text
-                style={useHashtags && hashtagCount === v ? styles.textActive : styles.textInactive}
+                style={
+                  useHashtags && hashtagCount === v ? styles.textActive : styles.textInactive
+                }
               >
                 {v}
               </Text>

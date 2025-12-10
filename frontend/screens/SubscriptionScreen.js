@@ -53,10 +53,6 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
         <Ionicons name="close" size={28} color="#b5b5b5" />
       </Pressable>
 
-      <View style={styles.freeTrial}>
-        <Text style={styles.freeTrialText}>✨ 7 Days Free Trial Available ✨</Text>
-      </View>
-
       <View style={styles.headerBox}>
         <Text style={styles.title}>Go Premium ✨</Text>
         <Text style={styles.subtitle}>Unlock unlimited captions & AI features</Text>
@@ -76,7 +72,10 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
         ))}
       </View>
 
-      {/* Trial Box with enabled border color */}
+      <View style={styles.freeTrial}>
+        <Text style={styles.freeTrialText}>✨ 7 Days Free Trial Available ✨</Text>
+      </View>
+
       <View style={[styles.trialRow, trialEnabled && { borderColor: "#7d5df8" }]}>
         <Text style={styles.trialTextLeft}>Enable Free Trial</Text>
 
@@ -166,8 +165,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1a1822ff",
     paddingHorizontal: 20,
-    justifyContent: "flex-end",
-    paddingBottom: 40,
+    justifyContent: "flex-start",
+    paddingTop: 50,
   },
   closeBtn: { position: "absolute", top: 10, right: 10, padding: 10 },
   freeTrial: {
@@ -182,7 +181,7 @@ const styles = StyleSheet.create({
   headerBox: { alignItems: "center", marginVertical: 20 },
   title: { color: "white", fontSize: 32, fontWeight: "700", marginBottom: 4 },
   subtitle: { color: "#b5b5b5", fontSize: 15 },
-  featureBox: { marginBottom: 10 },
+  featureBox: { marginBottom: 30, marginTop: 10, },
   featureRow: { flexDirection: "row", alignItems: "center", marginVertical: 6 },
   featureText: { color: "white", fontSize: 14 },
 
@@ -247,7 +246,7 @@ const styles = StyleSheet.create({
 
   subscribeBtn: {
     backgroundColor: "#7d5df8",
-    marginTop: 20,
+    marginTop: 30,
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: "center",
