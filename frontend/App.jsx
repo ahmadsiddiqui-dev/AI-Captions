@@ -12,6 +12,7 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import OtpScreen from "./screens/OtpScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import CaptionGeneratorScreen from "./screens/CaptionGeneratorScreen";
+import SubscriptionScreen from "./screens/SubscriptionScreen";
 
 const Stack = createStackNavigator();
 
@@ -50,6 +51,12 @@ export default function App() {
           <Stack.Screen name="OtpScreen" component={OtpScreen} />
           <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
 
+
+          <Stack.Screen
+            name="Subscription"
+            component={SubscriptionScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

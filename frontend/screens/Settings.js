@@ -154,7 +154,9 @@ const Settings = () => {
           {/* SUBSCRIPTION */}
           <Text style={styles.sectionTitle}>Subscription</Text>
           <View style={styles.sectionBox}>
-            <Item title="Upgrade" icon="star-outline" style={{
+            <Item title="Upgrade" icon="star-outline"
+            onPress={() => navigation.navigate("Subscription")}
+             style={{
               borderBottomWidth: 0.8,
               borderBottomColor: "#383737ff",
             }} />

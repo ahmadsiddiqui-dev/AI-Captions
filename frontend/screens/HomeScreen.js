@@ -14,10 +14,22 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; 
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  //  Auto-popup subscription on first app open only
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      const isSubscribed = await AsyncStorage.getItem("subscribed");
+      if (!isSubscribed) {
+        navigation.navigate("Subscription");
+      }
+    };
+    checkSubscriptionStatus();
+  }, []);
 
   const requestGalleryPermission = async () => {
     try {

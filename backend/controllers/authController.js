@@ -33,8 +33,6 @@ const transporter = nodemailer.createTransport({
   debug: true
 });
 
-
-
   // DYNAMIC SUBJECT & MESSAGE
   const isRegister = type === "register";
   const subject = isRegister
@@ -361,13 +359,10 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 exports.googleAuth = async (req, res) => {
   try {
     const { idToken } = req.body;
-    console.log("Received ID Token:", idToken ? "YES" : "NO");
 
     if (!idToken) {
       return res.status(400).json({ message: "Missing idToken" });
     }
-
-    console.log("Verifying Google Token...");
 
     const ticket = await client.verifyIdToken({
       idToken,
@@ -378,8 +373,6 @@ exports.googleAuth = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    console.log("Google Payload:", payload);
-
     const { sub, email, name } = payload;
 
     if (!email) {
@@ -401,7 +394,6 @@ exports.googleAuth = async (req, res) => {
     }
 
     const token = generateToken(user._id);
-    console.log("Google Auth Success!");
 
     return res.status(200).json({
       success: true,
