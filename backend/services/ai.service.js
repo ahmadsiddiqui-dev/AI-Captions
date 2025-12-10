@@ -1,20 +1,16 @@
 const sharp = require("sharp");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-/* CONVERT IMAGES → BASE64 (Optimized with Sharp) */
 async function processImages(files) {
   const converted = [];
-
   for (let img of files) {
     const buffer = await sharp(img.buffer)
       .resize(800)
       .jpeg({ quality: 80 })
       .toBuffer();
-
     converted.push({
       inlineData: {
         data: buffer.toString("base64"),
@@ -22,11 +18,9 @@ async function processImages(files) {
       },
     });
   }
-
   return converted;
 }
 
-/* BUILD PROMPT (For image + text OR text-only) */
 function buildPrompt(options, hasImages) {
   return `
 You are a professional Instagram caption writer who creates natural, aesthetic, human-sounding captions.
@@ -72,29 +66,22 @@ CAPTION_TWO:
 `;
 }
 
-
-/* PARSE AI RESPONSE */
 function parseOutput(text) {
   const cap1 = text
     .split("CAPTION_TWO:")[0]
     .replace("CAPTION_ONE:", "")
     .trim();
-
   const cap2 = text.split("CAPTION_TWO:")[1]?.trim() || cap1;
-
   return [cap1, cap2];
 }
 
-/* MAIN FUNCTION */
 exports.generateWithAI = async (files, options) => {
   const hasImages = files && files.length > 0;
 
-  // Require message ONLY when no photos
   if (!hasImages && (!options.message || options.message.trim().length < 3)) {
     throw new Error("Please enter a description to generate a caption without photos.");
   }
 
-  // Convert images if any
   let imageInputs = [];
   if (hasImages) {
     imageInputs = await processImages(files);
@@ -102,10 +89,15 @@ exports.generateWithAI = async (files, options) => {
 
   const prompt = buildPrompt(options, hasImages);
 
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-});
-
+  // Use supported model gemini-2.5-flash
+  let model;
+  try {
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  } catch (err) {
+    // Fallback: try another model name if first fails
+    console.warn("Model gemini-2.5-flash not available, fallback to gemini-2.0-flash-exp", err);
+    model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  }
 
   const result = await model.generateContent([
     { text: prompt },
