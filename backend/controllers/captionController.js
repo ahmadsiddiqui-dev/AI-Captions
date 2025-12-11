@@ -1,34 +1,43 @@
+const { generateWithAI } = require("../services/ai.service");
+const multer = require("multer");
+const Subscription = require("../models/Subscription");
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+
+const upload = multer().array("images", 5);
+
+// Get user from token
+const getUserFromReq = async (req) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return null;
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return await User.findById(decoded.id);
+  } catch {
+    return null;
+  }
+};
+
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
-      let user = await getUserFromReq(req);
+      const user = await getUserFromReq(req);
 
       let isSubscribed = false;
       let freeTrialEnabled = false;
       let freeCaptionCount = 0;
 
-      // ============================
-      // 1️⃣ ALLOW GUEST USERS
-      // ============================
       if (!user) {
-        // Guest user → no DB limit; frontend enforces 2 free attempts
-        const files = req.files || [];
-        const options = JSON.parse(req.body.options || "{}");
-        const captions = await generateWithAI(files, options);
 
-        return res.json({
-          success: true,
-          captions,
-          guest: true
+        return res.status(200).json({
+          guest: true,
+          allowGeneration: true
         });
       }
 
-      // ============================
-      // 2️⃣ LOGGED IN USER
-      // ============================
-
       const sub = await Subscription.findOne({ userId: user._id });
-
       if (sub) {
         const now = new Date();
 
@@ -43,7 +52,7 @@ exports.generateCaptions = (req, res) => {
         freeCaptionCount = sub.freeCaptionCount || 0;
       }
 
-      // Logged-in user free limit
+      // **Only 2 free caption generations allowed before paywall**
       if (!isSubscribed && !freeTrialEnabled && freeCaptionCount >= 2) {
         return res.status(402).json({
           requireSubscription: true,
@@ -56,13 +65,22 @@ exports.generateCaptions = (req, res) => {
 
       const captions = await generateWithAI(files, options);
 
-      // Increase DB count for logged-in user
+      // Increase free usage ONLY if user is not subscribed and not in trial
       if (!isSubscribed && !freeTrialEnabled) {
         await Subscription.findOneAndUpdate(
           { userId: user._id },
-          { $inc: { freeCaptionCount: 1 } },
+          {
+            $inc: { freeCaptionCount: 1 },
+            $setOnInsert: {
+              userId: user._id,
+              freeTrialUsed: false,
+              freeTrialEnabled: false
+            }
+
+          },
           { new: true, upsert: true }
         );
+
       }
 
       return res.json({ success: true, captions });
