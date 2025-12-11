@@ -164,14 +164,18 @@ const CaptionGeneratorScreen = () => {
       return;
     }
 
-    // ★ NEW → Paywall enforcement
-    const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
-    const subscribed = await AsyncStorage.getItem("subscribed");
+    // Paywall enforcement
+    const token = await AsyncStorage.getItem("token");
+    const subRes = await fetch("https://my-ai-captions.onrender.com/api/subscription/status", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const subData = await subRes.json();
 
-    if (!subscribed && freeUsed >= 2) {
+    if (!subData.isSubscribed && !subData.freeTrialEnabled && subData.freeCaptionCount >= 2) {
       navigation.navigate("Subscription");
       return;
     }
+
 
     setLoading(true);
     setError("");
@@ -417,7 +421,7 @@ export default CaptionGeneratorScreen;
 
 /* STYLES */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1822ff"},
+  container: { flex: 1, backgroundColor: "#1a1822ff" },
   header: {
     flexDirection: "row",
     alignItems: "center",
