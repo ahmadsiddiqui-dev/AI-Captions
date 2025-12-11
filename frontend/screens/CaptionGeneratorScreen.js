@@ -20,17 +20,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
 
-// Enable smooth animation
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const BASE_URL = "https://ai-captions.onrender.com/api/captions";
-
 const LANGUAGES = ["English", "Spanish", "Hindi", "Arabic", "French"];
 
-//  AI BUTTON MOVEMENT + PULSE
 const AIButton = ({ loading, onPress }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -86,9 +83,7 @@ const AIButton = ({ loading, onPress }) => {
         <Ionicons name="sparkles" size={25} color="white" />
       </Animated.View>
 
-      {!loading && (
-        <Text style={styles.generateText}> Generate Captions</Text>
-      )}
+      {!loading && <Text style={styles.generateText}> Generate Captions</Text>}
     </Pressable>
   );
 };
@@ -113,7 +108,6 @@ const CaptionGeneratorScreen = () => {
   const [error, setError] = useState("");
   const [copiedIndex, setCopiedIndex] = useState(-1);
 
-  // ★ NEW → Check free usage limit
   useEffect(() => {
     AsyncStorage.getItem("freeCaptionCount");
   }, []);
@@ -164,10 +158,11 @@ const CaptionGeneratorScreen = () => {
       return;
     }
 
-    // Paywall enforcement
     const token = await AsyncStorage.getItem("token");
+
+    // Get subscription from backend
     const subRes = await fetch("https://my-ai-captions.onrender.com/api/subscription/status", {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     const subData = await subRes.json();
 
@@ -176,15 +171,14 @@ const CaptionGeneratorScreen = () => {
       return;
     }
 
-
     setLoading(true);
     setError("");
     setCaptions([]);
 
     try {
       const token = await AsyncStorage.getItem("token");
-      const form = new FormData();
 
+      const form = new FormData();
       images.forEach((img, i) => {
         form.append("images", {
           uri: img.uri,
@@ -197,7 +191,7 @@ const CaptionGeneratorScreen = () => {
 
       const res = await fetch(`${BASE_URL}/generate-captions`, {
         method: "POST",
-        headers: { Authorization: token ? `Bearer ${token}` : undefined },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
       });
 
@@ -209,12 +203,14 @@ const CaptionGeneratorScreen = () => {
         return;
       }
 
-      // ★ NEW → Increment free usage
+      // FIX ADDED: freeUsed declared
+      const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
       await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
 
       setCaptions(data.captions);
       images.length > 0 && setImages([]);
-    } catch {
+
+    } catch (err) {
       setError("Server error");
     }
 
@@ -232,6 +228,7 @@ const CaptionGeneratorScreen = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.labelp}>Photos</Text>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
           <Pressable style={styles.addBox} onPress={addPhotos}>
             <Ionicons name="add" size={32} color="#134885ff" />
@@ -249,6 +246,7 @@ const CaptionGeneratorScreen = () => {
 
         <Text style={styles.label}>Message</Text>
         <Text style={styles.labelm}>This helps us come up with relevant captions</Text>
+
         <TextInput
           placeholder="Describe your photo..."
           placeholderTextColor="#777"
@@ -263,6 +261,7 @@ const CaptionGeneratorScreen = () => {
             <View key={idx} style={styles.captionCard}>
               <Text style={styles.captionTitle}>Caption {idx + 1}</Text>
               <Text style={styles.captionText}>{c.text}</Text>
+
               <Pressable
                 style={[
                   styles.copyBtn,
@@ -290,32 +289,28 @@ const CaptionGeneratorScreen = () => {
               onPress={() => setLengthOption(v)}
               style={[styles.pill, lengthOption === v && styles.pillActive]}
             >
-              <Text style={lengthOption === v ? styles.textActive : styles.textInactive}>{v}</Text>
+              <Text style={lengthOption === v ? styles.textActive : styles.textInactive}>
+                {v}
+              </Text>
             </Pressable>
           ))}
         </View>
 
         <Text style={styles.label}>Mood</Text>
         <View style={styles.rowWrap}>
-          {[
-            "Auto",
-            "professional",
-            "funny",
-            "romantic",
-            "sad",
-            "inspiring",
-            "travel",
-            "savage",
-            "aesthetic",
-          ].map((v) => (
-            <Pressable
-              key={v}
-              onPress={() => setMoodOption(v)}
-              style={[styles.pill, moodOption === v && styles.pillActive]}
-            >
-              <Text style={moodOption === v ? styles.textActive : styles.textInactive}>{v}</Text>
-            </Pressable>
-          ))}
+          {["Auto", "professional", "funny", "romantic", "sad", "inspiring", "travel", "savage", "aesthetic"].map(
+            (v) => (
+              <Pressable
+                key={v}
+                onPress={() => setMoodOption(v)}
+                style={[styles.pill, moodOption === v && styles.pillActive]}
+              >
+                <Text style={moodOption === v ? styles.textActive : styles.textInactive}>
+                  {v}
+                </Text>
+              </Pressable>
+            )
+          )}
         </View>
 
         <Text style={styles.label}>Emojis</Text>
@@ -334,6 +329,7 @@ const CaptionGeneratorScreen = () => {
               </Text>
             </Pressable>
           ))}
+
           <Pressable
             onPress={() => setUseEmoji(false)}
             style={[styles.pill, !useEmoji && styles.pillActive]}
@@ -351,10 +347,7 @@ const CaptionGeneratorScreen = () => {
                 setUseHashtags(true);
                 setHashtagCount(v);
               }}
-              style={[
-                styles.pill,
-                useHashtags && hashtagCount === v && styles.pillActive,
-              ]}
+              style={[styles.pill, useHashtags && hashtagCount === v && styles.pillActive]}
             >
               <Text
                 style={
@@ -365,6 +358,7 @@ const CaptionGeneratorScreen = () => {
               </Text>
             </Pressable>
           ))}
+
           <Pressable
             onPress={() => setUseHashtags(false)}
             style={[styles.pill, !useHashtags && styles.pillActive]}
@@ -374,6 +368,7 @@ const CaptionGeneratorScreen = () => {
         </View>
 
         <Text style={styles.label}>Language</Text>
+
         <Pressable
           style={styles.dropdown}
           onPress={() => {
@@ -408,18 +403,15 @@ const CaptionGeneratorScreen = () => {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Button */}
       <View style={styles.gnrbtn}>
         <AIButton loading={loading} onPress={generateCaptions} />
       </View>
-
     </SafeAreaView>
   );
 };
 
 export default CaptionGeneratorScreen;
 
-/* STYLES */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1a1822ff" },
   header: {
@@ -467,7 +459,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   labelp: {
-    color: "#dbd8d8ff", marginBottom: 6, fontSize: 14, fontWeight: 400
+    color: "#dbd8d8ff",
+    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: 400,
   },
   labelm: { color: "#7c7b7bff", marginBottom: 6, fontSize: 13 },
   label: { color: "#dbd8d8ff", marginTop: 14, marginBottom: 6, fontSize: 14, fontWeight: 400 },
@@ -484,7 +479,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginTop: 15,
     borderWidth: 1,
-    borderColor: "#7d5df8"
+    borderColor: "#7d5df8",
   },
   captionTitle: { color: "#CFCED6", marginBottom: 6, fontSize: 14 },
   captionText: { color: "white", fontSize: 15, lineHeight: 22 },
@@ -531,7 +526,7 @@ const styles = StyleSheet.create({
     bottom: 15,
     justifyContent: "center",
     alignItems: "center",
-    width: "100%"
+    width: "100%",
   },
   generateBtn: {
     flexDirection: "row",
