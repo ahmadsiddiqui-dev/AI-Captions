@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 const upload = multer().array("images", 5);
 
-// Get user from token
+// Extract user from token — optional (not required)
 const getUserFromReq = async (req) => {
   try {
     const authHeader = req.headers.authorization;
@@ -23,21 +23,39 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
+      // Try to get logged in user, but not required
       const user = await getUserFromReq(req);
 
-      let isSubscribed = false;
-      let freeTrialEnabled = false;
-      let freeCaptionCount = 0;
+      // Safe JSON parse
+      let options = {};
+      try {
+        options = JSON.parse(req.body.options || "{}");
+      } catch {
+        options = {};
+      }
 
+      const files = req.files || [];
+
+      // ---------------------------------------------------
+      // 1️⃣ GUEST USERS — No DB, no login, FE only limits
+      // ---------------------------------------------------
       if (!user) {
-
-        return res.status(200).json({
-          guest: true,
-          allowGeneration: true
+        const captions = await generateWithAI(files, options);
+        return res.json({
+          success: true,
+          captions,
+          guest: true,  // frontend uses this to track 2 attempts
         });
       }
 
+      // ---------------------------------------------------
+      // 2️⃣ LOGGED USERS — Use DB limit
+      // ---------------------------------------------------
+      let isSubscribed = false;
+      let freeCaptionCount = 0;
+
       const sub = await Subscription.findOne({ userId: user._id });
+
       if (sub) {
         const now = new Date();
 
@@ -45,42 +63,27 @@ exports.generateCaptions = (req, res) => {
           isSubscribed = true;
         }
 
-        if (sub.freeTrialEnabled && sub.freeTrialEnd > now) {
-          freeTrialEnabled = true;
-        }
-
         freeCaptionCount = sub.freeCaptionCount || 0;
       }
 
-      // **Only 2 free caption generations allowed before paywall**
-      if (!isSubscribed && !freeTrialEnabled && freeCaptionCount >= 2) {
+      // ❗ LIMIT: 2 FREE GENERATIONS FOR LOGGED USERS
+      if (!isSubscribed && freeCaptionCount >= 2) {
         return res.status(402).json({
           requireSubscription: true,
-          message: "Subscription required"
+          message: "Subscription required",
         });
       }
 
-      const files = req.files || [];
-      const options = JSON.parse(req.body.options || "{}");
-
+      // Generate captions
       const captions = await generateWithAI(files, options);
 
-      // Increase free usage ONLY if user is not subscribed and not in trial
-      if (!isSubscribed && !freeTrialEnabled) {
+      // Increase usage only for logged user & not subscribed
+      if (!isSubscribed) {
         await Subscription.findOneAndUpdate(
           { userId: user._id },
-          {
-            $inc: { freeCaptionCount: 1 },
-            $setOnInsert: {
-              userId: user._id,
-              freeTrialUsed: false,
-              freeTrialEnabled: false
-            }
-
-          },
+          { $inc: { freeCaptionCount: 1 } },
           { new: true, upsert: true }
         );
-
       }
 
       return res.json({ success: true, captions });

@@ -108,6 +108,9 @@ const CaptionGeneratorScreen = () => {
   const [error, setError] = useState("");
   const [copiedIndex, setCopiedIndex] = useState(-1);
 
+  // FIX: safe array so crash never happens
+  const safeCaptions = Array.isArray(captions) ? captions : [];
+
   useEffect(() => {
     AsyncStorage.getItem("freeCaptionCount");
   }, []);
@@ -151,17 +154,15 @@ const CaptionGeneratorScreen = () => {
 
   const generateCaptions = async () => {
     if (images.length === 0 && message.trim().length === 0) {
-      Alert.alert(
-        "Action Required",
-        "Please add at least one photo or enter a short description to generate captions."
-      );
+      Alert.alert("Action Required", "Please add at least one photo or description.");
       return;
     }
 
     const token = await AsyncStorage.getItem("token");
 
-    // Get subscription from backend
-    const subRes = await fetch("https://my-ai-captions.onrender.com/api/subscription/status", {
+    // Backend subscription check
+    const subRes = await fetch("https://ai-captions.onrender.com/api/subscription/status", {
+
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     const subData = await subRes.json();
@@ -176,8 +177,6 @@ const CaptionGeneratorScreen = () => {
     setCaptions([]);
 
     try {
-      const token = await AsyncStorage.getItem("token");
-
       const form = new FormData();
       images.forEach((img, i) => {
         form.append("images", {
@@ -203,12 +202,11 @@ const CaptionGeneratorScreen = () => {
         return;
       }
 
-      // FIX ADDED: freeUsed declared
       const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
       await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
 
       setCaptions(data.captions);
-      images.length > 0 && setImages([]);
+      if (images.length > 0) setImages([]);
 
     } catch (err) {
       setError("Server error");
@@ -256,8 +254,9 @@ const CaptionGeneratorScreen = () => {
           multiline
         />
 
-        {captions.length > 0 &&
-          captions.map((c, idx) => (
+        {/* FIXED: safeCaptions prevents crash */}
+        {safeCaptions.length > 0 &&
+          safeCaptions.map((c, idx) => (
             <View key={idx} style={styles.captionCard}>
               <Text style={styles.captionTitle}>Caption {idx + 1}</Text>
               <Text style={styles.captionText}>{c.text}</Text>
@@ -298,19 +297,27 @@ const CaptionGeneratorScreen = () => {
 
         <Text style={styles.label}>Mood</Text>
         <View style={styles.rowWrap}>
-          {["Auto", "professional", "funny", "romantic", "sad", "inspiring", "travel", "savage", "aesthetic"].map(
-            (v) => (
-              <Pressable
-                key={v}
-                onPress={() => setMoodOption(v)}
-                style={[styles.pill, moodOption === v && styles.pillActive]}
-              >
-                <Text style={moodOption === v ? styles.textActive : styles.textInactive}>
-                  {v}
-                </Text>
-              </Pressable>
-            )
-          )}
+          {[
+            "Auto",
+            "professional",
+            "funny",
+            "romantic",
+            "sad",
+            "inspiring",
+            "travel",
+            "savage",
+            "aesthetic",
+          ].map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => setMoodOption(v)}
+              style={[styles.pill, moodOption === v && styles.pillActive]}
+            >
+              <Text style={moodOption === v ? styles.textActive : styles.textInactive}>
+                {v}
+              </Text>
+            </Pressable>
+          ))}
         </View>
 
         <Text style={styles.label}>Emojis</Text>
@@ -349,11 +356,7 @@ const CaptionGeneratorScreen = () => {
               }}
               style={[styles.pill, useHashtags && hashtagCount === v && styles.pillActive]}
             >
-              <Text
-                style={
-                  useHashtags && hashtagCount === v ? styles.textActive : styles.textInactive
-                }
-              >
+              <Text style={useHashtags && hashtagCount === v ? styles.textActive : styles.textInactive}>
                 {v}
               </Text>
             </Pressable>
@@ -411,6 +414,7 @@ const CaptionGeneratorScreen = () => {
 };
 
 export default CaptionGeneratorScreen;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1a1822ff" },
