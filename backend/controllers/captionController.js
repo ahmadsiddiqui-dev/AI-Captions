@@ -73,11 +73,13 @@ exports.generateCaptions = (req, res) => {
             $setOnInsert: {
               userId: user._id,
               freeTrialUsed: false,
-              freeTrialEnabled: false
+              freeTrialEnabled: false,
+              freeCaptionCount: 0
             }
           },
           { new: true, upsert: true }
         );
+
       }
 
       return res.json({ success: true, captions });

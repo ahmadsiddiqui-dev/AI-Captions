@@ -10,7 +10,6 @@ exports.startPlanAndTrial = async (req, res) => {
       return res.status(400).json({ message: "Missing product selection" });
     }
 
-    // Trial settings
     const TRIAL_DAYS = 7;
     const now = new Date();
     const trialEnd = new Date(now);
@@ -19,7 +18,10 @@ exports.startPlanAndTrial = async (req, res) => {
     let sub = await Subscription.findOne({ userId });
 
     if (!sub) {
-      sub = new Subscription({ userId });
+      sub = new Subscription({
+        userId,
+        freeCaptionCount: 0, // 🟣 added
+      });
     }
 
     if (sub.freeTrialUsed) {
@@ -31,6 +33,7 @@ exports.startPlanAndTrial = async (req, res) => {
     sub.freeTrialUsed = true;
     sub.freeTrialStart = now;
     sub.freeTrialEnd = trialEnd;
+
     await sub.save();
 
     return res.json({
@@ -56,8 +59,12 @@ exports.verifyPurchase = async (req, res) => {
     }
 
     let sub = await Subscription.findOne({ userId });
+
     if (!sub) {
-      sub = new Subscription({ userId });
+      sub = new Subscription({
+        userId,
+        freeCaptionCount: 0, // 🟣 added
+      });
     }
 
     sub.isSubscribed = true;
@@ -67,7 +74,10 @@ exports.verifyPurchase = async (req, res) => {
 
     await sub.save();
 
-    return res.json({ success: true, subscription: sub });
+    return res.json({
+      success: true,
+      subscription: sub
+    });
 
   } catch (err) {
     return res.status(500).json({ message: "Subscription update failed" });
@@ -93,9 +103,11 @@ exports.getSubscriptionStatus = async (req, res) => {
     const now = new Date();
     const trialActive = sub.freeTrialEnabled && now < new Date(sub.freeTrialEnd);
     const isActiveSub =
-      sub.isSubscribed && sub.expiryDate && now < new Date(sub.expiryDate);
+      sub.isSubscribed &&
+      sub.expiryDate &&
+      now < new Date(sub.expiryDate);
 
-    // Fallback if trial expired but user didn't subscribe
+    // Disable trial after expiry
     if (sub.freeTrialEnabled && !trialActive) {
       sub.freeTrialEnabled = false;
       await sub.save();

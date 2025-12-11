@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // BASE URLs
 const AUTH_URL = "https://my-ai-captions.onrender.com/api/auth";
 const CAPTION_URL = "https://my-ai-captions.onrender.com/api/captions";
-
+const SUB_URL = "https://my-ai-captions.onrender.com/api/subscription";
 
 
 // ========== Register User ==========
@@ -142,7 +142,7 @@ export const generateCaptions = async (formData) => {
   }
 };
 
-// ====================== GOOGLE LOGIN ======================
+// ========== GOOGLE LOGIN ==========
 export const googleAuth = async (idToken) => {
   try {
     const res = await fetch(`${AUTH_URL}/google-signin`, {
@@ -154,5 +154,67 @@ export const googleAuth = async (idToken) => {
     return await res.json();
   } catch (err) {
     return { message: "Server error" };
+  }
+};
+
+
+// =================================================================================
+//                          SUBSCRIPTION API FUNCTIONS 
+// =================================================================================
+
+// ========== 1. Check Subscription Status ==========
+export const getSubscriptionStatus = async () => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    const res = await fetch(`${SUB_URL}/status`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await res.json();
+  } catch {
+    return { message: "Cannot connect to server" };
+  }
+};
+
+// ========== 2. Start Free Trial ==========
+export const startFreeTrial = async (productId) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    const res = await fetch(`${SUB_URL}/start-plan-trial`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productId }),
+    });
+
+    return await res.json();
+  } catch {
+    return { message: "Cannot connect to server" };
+  }
+};
+
+// ========== 3. Verify Purchase (Google Play) ==========
+export const verifyPurchase = async ({ productId, expiryDate }) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    const res = await fetch(`${SUB_URL}/verify`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productId, expiryDate }),
+    });
+
+    return await res.json();
+  } catch {
+    return { message: "Cannot connect to server" };
   }
 };

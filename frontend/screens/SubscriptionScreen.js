@@ -38,13 +38,41 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
     setTrialEnabled(!trialEnabled);
   };
 
-  const handleSubscribe = async () => {
-    const token = await AsyncStorage.getItem("token");
-    if (!token) {
-      setLoginPopup(true);
-      return;
+const handleSubscribe = async () => {
+  const token = await AsyncStorage.getItem("token");
+
+  if (!token) {
+    setLoginPopup(true);
+    return;
+  }
+
+  // If FREE TRIAL is enabled → start trial
+  if (trialEnabled) {
+    try {
+      const res = await fetch(
+        "https://my-ai-captions.onrender.com/api/subscription/start-trial",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        await AsyncStorage.setItem("subscribed", "true");
+        navigation.goBack();
+        return;
+      }
+    } catch (error) {
+      console.log("Trial Error:", error);
     }
-  };
+  }
+
+};
 
   return (
     <SafeAreaView style={styles.container}>

@@ -117,6 +117,13 @@ const RegisterScreen = () => {
   try {
     const data = await registerUser({ name, email, password });
 
+    if (data?.message?.toLowerCase().includes("successful")) {
+      await AsyncStorage.setItem("user", JSON.stringify(data.user));
+      navigation.navigate("Home");
+      setLoading(false);
+      return;
+    }
+
     setErrorMessage(data?.message || "Registration failed");
   } catch {
     setErrorMessage("Cannot connect to server");
@@ -125,47 +132,121 @@ const RegisterScreen = () => {
   setLoading(false);
 };
 
+//  const handleGoogleSignup = async () => {
+//   try {
+//     setErrorMessage("");
+//     setGoogleLoading(true);
 
- const handleGoogleSignup = async () => {
+//     await GoogleSignin.hasPlayServices();
+
+//     await GoogleSignin.signOut();
+
+//     const userInfo = await GoogleSignin.signIn();
+
+//     const idToken = userInfo?.data?.idToken;
+
+//     if (!idToken) {
+//       setErrorMessage("Google Signup Failed");
+//       return;
+//     }
+
+//     const res = await googleAuth(idToken);
+
+//     if (res.success && res.token) {
+//       await AsyncStorage.setItem("token", res.token);
+//       await AsyncStorage.setItem("user", JSON.stringify(res.user));
+
+//       navigation.reset({
+//         index: 0,
+//         routes: [{ name: "Home" }],
+//       });
+//     } else {
+//       setErrorMessage(res.message || "Google Signup Failed");
+//     }
+
+//   } catch (error) {
+//     if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
+//       setErrorMessage("Google Login Failed. Try again.");
+//     }
+//   }
+
+//   setGoogleLoading(false);
+// };
+const handleGoogleSignup = async () => {
   try {
     setErrorMessage("");
     setGoogleLoading(true);
 
-    await GoogleSignin.hasPlayServices();
+    // ensure Play Services (shows update dialog if needed)
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-    await GoogleSignin.signOut();
+    // Sign out first (best-effort) to guarantee fresh account selection
+    try {
+      await GoogleSignin.signOut();
+    } catch (e) {
+      // ignore signOut errors (not critical)
+    }
 
+    // Sign in
     const userInfo = await GoogleSignin.signIn();
 
-    const idToken = userInfo?.data?.idToken;
+    // Robust idToken extraction for different GoogleSignin versions/shapes
+    const idToken =
+      userInfo?.idToken ||
+      userInfo?.user?.idToken ||
+      userInfo?.data?.idToken ||
+      (userInfo?.authentication && userInfo.authentication.idToken) ||
+      null;
 
     if (!idToken) {
-      setErrorMessage("Google Signup Failed");
+      setErrorMessage("Google Signup Failed: no idToken returned");
+      setGoogleLoading(false);
       return;
     }
 
+    // Call backend to authenticate / create user
     const res = await googleAuth(idToken);
 
-    if (res.success && res.token) {
+    if (res && res.success && res.token) {
+      // store token + user
       await AsyncStorage.setItem("token", res.token);
       await AsyncStorage.setItem("user", JSON.stringify(res.user));
 
+      // fetch subscription status from backend and store it
+      try {
+        const subStatus = await getSubscriptionStatus();
+        await AsyncStorage.setItem("subscription", JSON.stringify(subStatus));
+      } catch (e) {
+        // If subscription fetch fails, still allow login — just log
+        console.warn("Failed to fetch subscription status:", e?.message || e);
+      }
+
+      // Navigate to Home
       navigation.reset({
         index: 0,
         routes: [{ name: "Home" }],
       });
     } else {
-      setErrorMessage(res.message || "Google Signup Failed");
+      setErrorMessage(res?.message || "Google Signup Failed");
     }
-
   } catch (error) {
-    if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
+    // Recognize cancellation vs other failures
+    if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+      // user cancelled the sign-in, don't show an error if you don't want to
+      setErrorMessage(""); // or keep as is
+    } else if (error?.code === statusCodes.IN_PROGRESS) {
+      setErrorMessage("Google sign-in already in progress");
+    } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      setErrorMessage("Google Play Services not available or out of date");
+    } else {
+      console.error("Google sign-in error:", error);
       setErrorMessage("Google Login Failed. Try again.");
     }
+  } finally {
+    setGoogleLoading(false);
   }
-
-  setGoogleLoading(false);
 };
+
 
   return (
     <SafeAreaView style={styles.container}>

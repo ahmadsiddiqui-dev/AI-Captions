@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
+
 
 const otpStore = new Map();
 
@@ -130,16 +132,65 @@ const transporter = nodemailer.createTransport({
 // };
 
 
+// exports.register = async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body;
+
+//     // Validate email format
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     // Validate password format
+//     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+//     if (!passwordRegex.test(password)) {
+//       return res.status(400).json({
+//         message: "Password must follow requirements",
+//       });
+//     }
+
+//     // Check if email already exists
+//     const userExists = await User.findOne({ email });
+//     if (userExists) {
+//       return res.status(400).json({ message: "Email already in use" });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user directly (no OTP)
+//     const newUser = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//     });
+
+//     await newUser.save();
+
+//     return res.status(201).json({
+//       message: "Registration successful",
+//       user: {
+//         id: newUser._id,
+//         name: newUser.name,
+//         email: newUser.email,
+//       },
+//     });
+
+//   } catch (err) {
+//     return res.status(500).json({
+//       message: "Registration failed",
+//       error: err.message,
+//     });
+//   }
+// };
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate email format
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Validate password format
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
@@ -147,16 +198,13 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if email already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user directly (no OTP)
     const newUser = new User({
       name,
       email,
@@ -165,12 +213,25 @@ exports.register = async (req, res) => {
 
     await newUser.save();
 
+    // CREATE SUBSCRIPTION ENTRY
+    const subscription = await Subscription.findOneAndUpdate(
+      { userId: newUser._id },
+      { userId: newUser._id },
+      { upsert: true, new: true }
+    );
+
     return res.status(201).json({
       message: "Registration successful",
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        isSubscribed: subscription.isSubscribed,
+        freeTrialEnabled: subscription.freeTrialEnabled,
+        freeTrialUsed: subscription.freeTrialUsed,
+        freeCaptionCount: subscription.freeCaptionCount,
+        expiryDate: subscription.expiryDate,
+        trialEnds: subscription.freeTrialEnd
       },
     });
 
@@ -181,6 +242,8 @@ exports.register = async (req, res) => {
     });
   }
 };
+
+
 
 // ===================== VERIFY OTP =====================
 exports.verifyOtp = async (req, res) => {
@@ -234,6 +297,47 @@ exports.verifyOtp = async (req, res) => {
 };
 
 // ===================== LOGIN =====================
+// exports.login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     const user = await User.findOne({ email });
+//     if (!user)
+//       return res.status(400).json({ message: "Invalid email or password" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch)
+//       return res.status(400).json({ message: "Invalid email or password" });
+
+//     const token = generateToken(user._id);
+
+//       await Subscription.findOneAndUpdate(
+//       { userId: user._id },
+//       { userId: user._id },
+//       { upsert: true }
+//     );
+
+//     return res.status(200).json({
+//       token,
+//       user: { 
+//         id: user._id, 
+//         name: user.name, 
+//         email: user.email,
+//         isSubscribed: user.isSubscribed,
+//         subscriptionExpires: user.subscriptionExpires,
+//         freeCaptionsUsed: user.freeCaptionsUsed,
+//       },
+//     });
+
+//   } catch (err) {
+//     return res.status(500).json({ message: "Login failed", error: err.message });
+//   }
+// };
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -252,22 +356,38 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user._id);
 
+    // Ensure subscription exists
+    const subscription = await Subscription.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id },
+      { upsert: true, new: true }
+    );
+
     return res.status(200).json({
       token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
+      user: {
+        id: user._id,
+        name: user.name,
         email: user.email,
-        isSubscribed: user.isSubscribed,
-        subscriptionExpires: user.subscriptionExpires,
-        freeCaptionsUsed: user.freeCaptionsUsed,
       },
+      subscription: {
+        isSubscribed: subscription.isSubscribed,
+        freeTrialEnabled: subscription.freeTrialEnabled,
+        freeTrialUsed: subscription.freeTrialUsed,
+        freeTrialStart: subscription.freeTrialStart,
+        freeTrialEnd: subscription.freeTrialEnd,
+        productId: subscription.productId,
+        purchaseDate: subscription.purchaseDate,
+        expiryDate: subscription.expiryDate,
+        freeCaptionCount: subscription.freeCaptionCount,
+      }
     });
 
   } catch (err) {
     return res.status(500).json({ message: "Login failed", error: err.message });
   }
 };
+
 
 // ===================== LOGOUT =====================
 exports.logout = async (req, res) => {
@@ -417,7 +537,6 @@ exports.updateName = async (req, res) => {
 
 // ===================== GOOGLE SIGN-IN =====================
 const { OAuth2Client } = require("google-auth-library");
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.googleAuth = async (req, res) => {
@@ -431,8 +550,8 @@ exports.googleAuth = async (req, res) => {
     const ticket = await client.verifyIdToken({
       idToken,
       audience: [
-        process.env.GOOGLE_CLIENT_ID,         
-        process.env.GOOGLE_ANDROID_CLIENT_ID, 
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_ANDROID_CLIENT_ID,
       ],
     });
 
@@ -443,6 +562,7 @@ exports.googleAuth = async (req, res) => {
       return res.status(400).json({ message: "Google account has no email" });
     }
 
+    // Find or create user
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -452,9 +572,16 @@ exports.googleAuth = async (req, res) => {
         provider: "google",
         googleId: sub,
         isVerified: true,
-        password: null
+        password: null,
       });
     }
+
+    // Ensure subscription entry exists
+    let subscription = await Subscription.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id },
+      { upsert: true, new: true }
+    );
 
     const token = generateToken(user._id);
 
@@ -466,10 +593,18 @@ exports.googleAuth = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        isSubscribed: user.isSubscribed,
-        subscriptionExpires: user.subscriptionExpires,
-        freeCaptionsUsed: user.freeCaptionsUsed,
       },
+      subscription: {
+        isSubscribed: subscription.isSubscribed,
+        freeTrialEnabled: subscription.freeTrialEnabled,
+        freeTrialUsed: subscription.freeTrialUsed,
+        freeTrialStart: subscription.freeTrialStart,
+        freeTrialEnd: subscription.freeTrialEnd,
+        productId: subscription.productId,
+        purchaseDate: subscription.purchaseDate,
+        expiryDate: subscription.expiryDate,
+        freeCaptionCount: subscription.freeCaptionCount,
+      }
     });
 
   } catch (error) {
@@ -477,3 +612,4 @@ exports.googleAuth = async (req, res) => {
     return res.status(500).json({ message: "Failed Google Login" });
   }
 };
+

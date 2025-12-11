@@ -37,19 +37,6 @@ const UserSchema = new mongoose.Schema(
       default: false,
     },
 
-    isSubscribed: {
-      type: Boolean,
-      default: false,
-    },
-    subscriptionExpires: {
-      type: Date,
-      default: null,
-    },
-    freeCaptionsUsed: {
-      type: Number,
-      default: 0,
-    }
-
   },
   { timestamps: true }
 );

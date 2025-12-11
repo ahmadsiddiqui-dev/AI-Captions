@@ -28,6 +28,12 @@ const SubscriptionSchema = new mongoose.Schema({
   productId: { type: String }, 
   purchaseDate: { type: Date },
   expiryDate: { type: Date },
+
+  freeCaptionCount: {
+    type: Number,
+    default: 0,
+  }
+
 }, 
 { timestamps: true }
 );

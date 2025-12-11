@@ -14,22 +14,33 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { getSubscriptionStatus } from "../api/api"; 
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  //  Auto-popup subscription on first app open only
   useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      const isSubscribed = await AsyncStorage.getItem("subscribed");
-      if (!isSubscribed) {
+    const checkSubscription = async () => {
+      const token = await AsyncStorage.getItem("token");
+
+      if (!token) {
+        navigation.navigate("Subscription");
+        return;
+      }
+
+      const status = await getSubscriptionStatus();
+
+      if (!status.isSubscribed && !status.freeTrialEnabled) {
         navigation.navigate("Subscription");
       }
     };
-    checkSubscriptionStatus();
+
+    checkSubscription();
   }, []);
+  // ===========================
 
   const requestGalleryPermission = async () => {
     try {
