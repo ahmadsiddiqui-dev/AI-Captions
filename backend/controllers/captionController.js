@@ -2,11 +2,12 @@ const { generateWithAI } = require("../services/ai.service");
 const multer = require("multer");
 const Subscription = require("../models/Subscription");
 const User = require("../models/User");
+const Guest = require("../models/Guest");
 const jwt = require("jsonwebtoken");
 
 const upload = multer().array("images", 5);
 
-// Extract user from token — optional (not required)
+// Extract logged in user
 const getUserFromReq = async (req) => {
   try {
     const authHeader = req.headers.authorization;
@@ -14,6 +15,7 @@ const getUserFromReq = async (req) => {
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     return await User.findById(decoded.id);
   } catch {
     return null;
@@ -23,36 +25,52 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
-      // Try to get logged in user, but not required
       const user = await getUserFromReq(req);
+      const deviceId = req.headers["x-device-id"]; // <<< IMPORTANT
 
-      // Safe JSON parse
-      let options = {};
-      try {
-        options = JSON.parse(req.body.options || "{}");
-      } catch {
-        options = {};
-      }
-
-      const files = req.files || [];
-
-      // ---------------------------------------------------
-      // 1️⃣ GUEST USERS — No DB, no login, FE only limits
-      // ---------------------------------------------------
-      if (!user) {
-        const captions = await generateWithAI(files, options);
-        return res.json({
-          success: true,
-          captions,
-          guest: true,  // frontend uses this to track 2 attempts
-        });
-      }
-
-      // ---------------------------------------------------
-      // 2️⃣ LOGGED USERS — Use DB limit
-      // ---------------------------------------------------
       let isSubscribed = false;
+      let freeTrialEnabled = false;
       let freeCaptionCount = 0;
+
+      // ============================
+      // 1️⃣ GUEST USER LOGIC
+      // ============================
+      if (!user) {
+
+        if (!deviceId) {
+          return res.status(400).json({ message: "Device ID missing" });
+        }
+
+        let guest = await Guest.findOne({ deviceId });
+
+        // Create guest record if not exists
+        if (!guest) {
+          guest = await Guest.create({ deviceId });
+        }
+
+        // Check limit
+        if (guest.freeCaptionCount >= 2) {
+          return res.status(402).json({
+            requireSubscription: true,
+            message: "Subscription required"
+          });
+        }
+
+        // Process caption
+        const files = req.files || [];
+        const options = JSON.parse(req.body.options || "{}");
+        const captions = await generateWithAI(files, options);
+
+        // Increase guest usage
+        guest.freeCaptionCount += 1;
+        await guest.save();
+
+        return res.json({ success: true, captions, guest: true });
+      }
+
+      // ============================
+      // 2️⃣ LOGGED-IN USER LOGIC
+      // ============================
 
       const sub = await Subscription.findOne({ userId: user._id });
 
@@ -63,22 +81,26 @@ exports.generateCaptions = (req, res) => {
           isSubscribed = true;
         }
 
+        if (sub.freeTrialEnabled && sub.freeTrialEnd > now) {
+          freeTrialEnabled = true;
+        }
+
         freeCaptionCount = sub.freeCaptionCount || 0;
       }
 
-      // ❗ LIMIT: 2 FREE GENERATIONS FOR LOGGED USERS
-      if (!isSubscribed && freeCaptionCount >= 2) {
+      if (!isSubscribed && !freeTrialEnabled && freeCaptionCount >= 2) {
         return res.status(402).json({
           requireSubscription: true,
-          message: "Subscription required",
+          message: "Subscription required"
         });
       }
 
-      // Generate captions
+      const files = req.files || [];
+      const options = JSON.parse(req.body.options || "{}");
+
       const captions = await generateWithAI(files, options);
 
-      // Increase usage only for logged user & not subscribed
-      if (!isSubscribed) {
+      if (!isSubscribed && !freeTrialEnabled) {
         await Subscription.findOneAndUpdate(
           { userId: user._id },
           { $inc: { freeCaptionCount: 1 } },
@@ -89,7 +111,7 @@ exports.generateCaptions = (req, res) => {
       return res.json({ success: true, captions });
 
     } catch (err) {
-      console.log("Caption Error:", err.message);
+      console.log("Caption Error:", err);
       return res.status(500).json({ message: err.message });
     }
   });

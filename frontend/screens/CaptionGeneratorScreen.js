@@ -152,68 +152,126 @@ const CaptionGeneratorScreen = () => {
     message: message.trim(),
   });
 
-  const generateCaptions = async () => {
-    if (images.length === 0 && message.trim().length === 0) {
-      Alert.alert("Action Required", "Please add at least one photo or description.");
-      return;
-    }
+  // const generateCaptions = async () => {
+  //   if (images.length === 0 && message.trim().length === 0) {
+  //     Alert.alert("Action Required", "Please add at least one photo or description.");
+  //     return;
+  //   }
 
+  //   const token = await AsyncStorage.getItem("token");
+
+  //   // Backend subscription check
+  //   const subRes = await fetch("https://ai-captions.onrender.com/api/subscription/status", {
+  //     headers: token ? { Authorization: `Bearer ${token}` } : {},
+  //   });
+  //   const subData = await subRes.json();
+
+  //   if (data.requireSubscription) {
+  //     navigation.navigate("Subscription");
+  //     return;
+  //   }
+
+
+  //   setLoading(true);
+  //   setError("");
+  //   setCaptions([]);
+
+  //   try {
+  //     const form = new FormData();
+  //     images.forEach((img, i) => {
+  //       form.append("images", {
+  //         uri: img.uri,
+  //         name: img.fileName || `photo_${i}.jpg`,
+  //         type: img.type || "image/jpeg",
+  //       });
+  //     });
+
+  //     form.append("options", JSON.stringify(buildOptions()));
+
+  //     const res = await fetch(`${BASE_URL}/generate-captions`, {
+  //       method: "POST",
+  //       headers: token ? { Authorization: `Bearer ${token}` } : {},
+  //       body: form,
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (!res.ok) {
+  //       setError(data?.message || "Failed to generate caption");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
+  //     await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
+
+  //     setCaptions(data.captions);
+  //     if (images.length > 0) setImages([]);
+
+  //   } catch (err) {
+  //     setError("Server error");
+  //   }
+
+  //   setLoading(false);
+  // };
+const generateCaptions = async () => {
+  if (images.length === 0 && message.trim().length === 0) {
+    Alert.alert("Action Required", "Please add at least one photo or description.");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+  setCaptions([]);
+
+  try {
     const token = await AsyncStorage.getItem("token");
 
-    // Backend subscription check
-    const subRes = await fetch("https://ai-captions.onrender.com/api/subscription/status", {
-
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    const form = new FormData();
+    images.forEach((img, i) => {
+      form.append("images", {
+        uri: img.uri,
+        name: img.fileName || `photo_${i}.jpg`,
+        type: img.type || "image/jpeg",
+      });
     });
-    const subData = await subRes.json();
 
-    if (!subData.isSubscribed && !subData.freeTrialEnabled && subData.freeCaptionCount >= 2) {
+    form.append("options", JSON.stringify(buildOptions()));
+
+    const res = await fetch(`${BASE_URL}/generate-captions`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+
+    const data = await res.json();
+
+    // 🔥 Backend says user reached limit
+    if (data.requireSubscription) {
       navigation.navigate("Subscription");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setCaptions([]);
-
-    try {
-      const form = new FormData();
-      images.forEach((img, i) => {
-        form.append("images", {
-          uri: img.uri,
-          name: img.fileName || `photo_${i}.jpg`,
-          type: img.type || "image/jpeg",
-        });
-      });
-
-      form.append("options", JSON.stringify(buildOptions()));
-
-      const res = await fetch(`${BASE_URL}/generate-captions`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: form,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data?.message || "Failed to generate caption");
-        setLoading(false);
-        return;
-      }
-
-      const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
-      await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
-
-      setCaptions(data.captions);
-      if (images.length > 0) setImages([]);
-
-    } catch (err) {
-      setError("Server error");
+    if (!res.ok) {
+      setError(data?.message || "Failed to generate caption");
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-  };
+    // Save guest usage locally
+    const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
+    await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
+
+    setCaptions(data.captions);
+    if (images.length > 0) setImages([]);
+
+  } catch (err) {
+    setError("Server error");
+  }
+
+  setLoading(false);
+};
 
   return (
     <SafeAreaView style={styles.container}>
