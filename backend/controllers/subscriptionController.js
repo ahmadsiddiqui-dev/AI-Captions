@@ -63,7 +63,7 @@ exports.verifyPurchase = async (req, res) => {
     if (!sub) {
       sub = new Subscription({
         userId,
-        freeCaptionCount: 0, // 🟣 added
+        freeCaptionCount: 0, 
       });
     }
 
@@ -85,7 +85,6 @@ exports.verifyPurchase = async (req, res) => {
 };
 
 
-// Returns subscription status for app launch
 exports.getSubscriptionStatus = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -96,18 +95,24 @@ exports.getSubscriptionStatus = async (req, res) => {
         isSubscribed: false,
         freeTrialEnabled: false,
         freeTrialUsed: false,
-        freeCaptionCount: 0
+        freeCaptionCount: 0,
+        trialEnds: null,
+        expiryDate: null
       });
     }
 
     const now = new Date();
-    const trialActive = sub.freeTrialEnabled && now < new Date(sub.freeTrialEnd);
+
     const isActiveSub =
       sub.isSubscribed &&
       sub.expiryDate &&
-      now < new Date(sub.expiryDate);
+      new Date(sub.expiryDate) > now;
 
-    // Disable trial after expiry
+    const trialActive =
+      sub.freeTrialEnabled &&
+      sub.freeTrialEnd &&
+      new Date(sub.freeTrialEnd) > now;
+
     if (sub.freeTrialEnabled && !trialActive) {
       sub.freeTrialEnabled = false;
       await sub.save();
@@ -118,11 +123,12 @@ exports.getSubscriptionStatus = async (req, res) => {
       freeTrialEnabled: trialActive,
       freeTrialUsed: sub.freeTrialUsed,
       freeCaptionCount: sub.freeCaptionCount || 0,
-      trialEnds: sub.freeTrialEnd,
-      expiryDate: sub.expiryDate
+      trialEnds: sub.freeTrialEnd || null,
+      expiryDate: sub.expiryDate || null
     });
 
   } catch (err) {
+    console.log("Status error:", err);
     return res.status(500).json({ message: "Could not fetch status" });
   }
 };

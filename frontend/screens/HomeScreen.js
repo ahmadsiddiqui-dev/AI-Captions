@@ -22,25 +22,36 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    const checkSubscription = async () => {
-      const token = await AsyncStorage.getItem("token");
+useEffect(() => {
+  const checkSubscriptionPopup = async () => {
+    const token = await AsyncStorage.getItem("token");
 
-      if (!token) {
-        navigation.navigate("Subscription");
-        return;
-      }
+    // Delay 1.5 sec for smoother UX
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const status = await getSubscriptionStatus();
+    // ==========================
+    // 1️⃣ GUEST USER
+    // ==========================
+    if (!token) {
+      navigation.navigate("Subscription");
+      return;
+    }
 
-      if (!status.isSubscribed && !status.freeTrialEnabled) {
-        navigation.navigate("Subscription");
-      }
-    };
+    // ==========================
+    // 2️⃣ LOGGED-IN USER
+    // ==========================
+    const status = await getSubscriptionStatus();
 
-    checkSubscription();
-  }, []);
-  // ===========================
+    // If not subscribed OR not in trial → show popup
+    if (!status.isSubscribed && !status.freeTrialEnabled) {
+      navigation.navigate("Subscription");
+    }
+  };
+
+  checkSubscriptionPopup();
+}, []);
+
+
 
   const requestGalleryPermission = async () => {
     try {

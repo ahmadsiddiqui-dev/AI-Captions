@@ -19,6 +19,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
+import DeviceInfo from "react-native-device-info";
+
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -226,6 +228,15 @@ const generateCaptions = async () => {
 
   try {
     const token = await AsyncStorage.getItem("token");
+    let headers = {};
+
+    
+    if (!token) {
+      const deviceId = DeviceInfo.getUniqueId();
+      headers["x-device-id"] = deviceId;
+    } else {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
     const form = new FormData();
     images.forEach((img, i) => {
@@ -240,13 +251,13 @@ const generateCaptions = async () => {
 
     const res = await fetch(`${BASE_URL}/generate-captions`, {
       method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers,
       body: form,
     });
 
     const data = await res.json();
 
-    // 🔥 Backend says user reached limit
+    // Backend says to show subscription screen
     if (data.requireSubscription) {
       navigation.navigate("Subscription");
       setLoading(false);
@@ -259,7 +270,7 @@ const generateCaptions = async () => {
       return;
     }
 
-    // Save guest usage locally
+    // Local guest count (still needed)
     const freeUsed = Number(await AsyncStorage.getItem("freeCaptionCount")) || 0;
     await AsyncStorage.setItem("freeCaptionCount", String(freeUsed + 1));
 
@@ -272,6 +283,7 @@ const generateCaptions = async () => {
 
   setLoading(false);
 };
+
 
   return (
     <SafeAreaView style={styles.container}>
