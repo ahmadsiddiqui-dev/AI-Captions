@@ -169,7 +169,7 @@ const CaptionGeneratorScreen = () => {
     const subscribed = await AsyncStorage.getItem("subscribed");
 
     if (!subscribed && freeUsed >= 2) {
-      navigation.navigate("SubscriptionScreen");
+      navigation.navigate("Subscription");
       return;
     }
 
@@ -479,8 +479,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     marginTop: 15,
-    borderWidth: 2,
-    borderColor: "#2E2B3A"
+    borderWidth: 1,
+    borderColor: "#7d5df8"
   },
   captionTitle: { color: "#CFCED6", marginBottom: 6, fontSize: 14 },
   captionText: { color: "white", fontSize: 15, lineHeight: 22 },

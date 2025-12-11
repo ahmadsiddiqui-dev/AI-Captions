@@ -53,44 +53,78 @@ const RegisterScreen = () => {
   };
   const strength = getStrength();
 
+  // const handleRegister = async () => {
+  //   setErrorMessage("");
+  //   setLoading(true);
+
+  //   if (!name || !email || !password || !confirmPassword) {
+  //     setErrorMessage("All fields are required !");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (!passwordRule.test(password)) {
+  //     setErrorMessage("Password must follow requirements");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (password !== confirmPassword) {
+  //     setErrorMessage("Passwords do not match");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     const data = await registerUser({ name, email, password });
+
+  //     if (data?.message?.toLowerCase().includes("otp")) {
+  //       setLoading(false);
+  //       navigation.navigate("OtpScreen", { email });
+  //       return;
+  //     }
+
+  //     setErrorMessage(data?.message || "Registration failed");
+  //   } catch {
+  //     setErrorMessage("Cannot connect to server");
+  //   }
+
+  //   setLoading(false);
+  // };
+
   const handleRegister = async () => {
-    setErrorMessage("");
-    setLoading(true);
+  setErrorMessage("");
+  setLoading(true);
 
-    if (!name || !email || !password || !confirmPassword) {
-      setErrorMessage("All fields are required !");
-      setLoading(false);
-      return;
-    }
-
-    if (!passwordRule.test(password)) {
-      setErrorMessage("Password must follow requirements");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const data = await registerUser({ name, email, password });
-
-      if (data?.message?.toLowerCase().includes("otp")) {
-        setLoading(false);
-        navigation.navigate("OtpScreen", { email });
-        return;
-      }
-
-      setErrorMessage(data?.message || "Registration failed");
-    } catch {
-      setErrorMessage("Cannot connect to server");
-    }
-
+  if (!name || !email || !password || !confirmPassword) {
+    setErrorMessage("All fields are required !");
     setLoading(false);
-  };
+    return;
+  }
+
+  if (!passwordRule.test(password)) {
+    setErrorMessage("Password must follow requirements");
+    setLoading(false);
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    setErrorMessage("Passwords do not match");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const data = await registerUser({ name, email, password });
+
+    setErrorMessage(data?.message || "Registration failed");
+  } catch {
+    setErrorMessage("Cannot connect to server");
+  }
+
+  setLoading(false);
+};
+
 
  const handleGoogleSignup = async () => {
   try {

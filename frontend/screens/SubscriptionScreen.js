@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   subscribeBtn: {
     backgroundColor: "#7d5df8",
     marginTop: 30,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
   },

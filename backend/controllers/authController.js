@@ -33,7 +33,6 @@ const transporter = nodemailer.createTransport({
   debug: true
 });
 
-  // DYNAMIC SUBJECT & MESSAGE
   const isRegister = type === "register";
   const subject = isRegister
     ? "Verify Your Email - AI Caption"
@@ -93,14 +92,54 @@ const transporter = nodemailer.createTransport({
 
 
 // ===================== REGISTER =====================
+// exports.register = async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body;
+
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+//     if (!passwordRegex.test(password)) {
+//       return res.status(400).json({
+//         message: "Password must follow requirements",
+//       });
+//     }
+
+//     const userExists = await User.findOne({ email });
+//     if (userExists) {
+//       return res.status(400).json({ message: "Email already in use" });
+//     }
+
+//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+//     otpStore.set(email, {
+//       otp,
+//       name,
+//       password,
+//       expires: Date.now() + 5 * 60 * 1000,
+//     });
+
+//     await sendOtpEmail(email, otp, name, "register");
+
+//     return res.status(200).json({ message: "Enter the OTP sent to your email." });
+
+//   } catch (err) {
+//     return res.status(500).json({ message: "Failed to send OTP", error: err.message });
+//   }
+// };
+
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // Validate email format
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
+    // Validate password format
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
@@ -108,25 +147,38 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Check if email already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(email, {
-      otp,
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user directly (no OTP)
+    const newUser = new User({
       name,
-      password,
-      expires: Date.now() + 5 * 60 * 1000,
+      email,
+      password: hashedPassword,
     });
 
-    await sendOtpEmail(email, otp, name, "register");
+    await newUser.save();
 
-    return res.status(200).json({ message: "Enter the OTP sent to your email." });
+    return res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+      },
+    });
 
   } catch (err) {
-    return res.status(500).json({ message: "Failed to send OTP", error: err.message });
+    return res.status(500).json({
+      message: "Registration failed",
+      error: err.message,
+    });
   }
 };
 
@@ -166,7 +218,14 @@ exports.verifyOtp = async (req, res) => {
     return res.status(201).json({
       message: "Email verified successfully!",
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        isSubscribed: user.isSubscribed,
+        subscriptionExpires: user.subscriptionExpires,
+        freeCaptionsUsed: user.freeCaptionsUsed,
+      },
     });
 
   } catch (err) {
@@ -195,7 +254,14 @@ exports.login = async (req, res) => {
 
     return res.status(200).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email,
+        isSubscribed: user.isSubscribed,
+        subscriptionExpires: user.subscriptionExpires,
+        freeCaptionsUsed: user.freeCaptionsUsed,
+      },
     });
 
   } catch (err) {
@@ -296,7 +362,6 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
-    // CHECK IF NEW PASSWORD = OLD PASSWORD
     const user = await User.findOne({ email });
     if (user) {
       const isSame = await bcrypt.compare(newPassword, user.password);
@@ -353,7 +418,6 @@ exports.updateName = async (req, res) => {
 // ===================== GOOGLE SIGN-IN =====================
 const { OAuth2Client } = require("google-auth-library");
 
-// Web Client ID for OAuth2Client instance
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.googleAuth = async (req, res) => {
@@ -382,7 +446,6 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      console.log("Creating new user:", email);
       user = await User.create({
         name: name || "User",
         email,
@@ -403,6 +466,9 @@ exports.googleAuth = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        isSubscribed: user.isSubscribed,
+        subscriptionExpires: user.subscriptionExpires,
+        freeCaptionsUsed: user.freeCaptionsUsed,
       },
     });
 

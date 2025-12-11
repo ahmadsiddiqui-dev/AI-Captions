@@ -16,7 +16,6 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function () {
-        // Password required ONLY if not using Google
         return this.provider !== "google";
       },
       default: null,
@@ -37,6 +36,20 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    isSubscribed: {
+      type: Boolean,
+      default: false,
+    },
+    subscriptionExpires: {
+      type: Date,
+      default: null,
+    },
+    freeCaptionsUsed: {
+      type: Number,
+      default: 0,
+    }
+
   },
   { timestamps: true }
 );
