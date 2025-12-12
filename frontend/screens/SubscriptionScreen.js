@@ -12,11 +12,16 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import * as RNIap from "react-native-iap";
+import { initIAP, subscriptionSkus } from "../src/utils/iap";
+
 const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const navigation = useNavigation();
   const [selectedPlan, setSelectedPlan] = useState("1");
   const [loginPopup, setLoginPopup] = useState(false);
   const [trialEnabled, setTrialEnabled] = useState(false);
+
+  const [iapProducts, setIapProducts] = useState([]);
 
   const glowAnimation = useRef(new Animated.Value(0.95)).current;
 
@@ -25,6 +30,23 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
     { id: "2", title: "Yearly", price: "$29.99", period: "/year", tag: "SAVE 50%" },
   ];
 
+  // ⭐ INIT IAP + LOAD PRODUCTS
+  useEffect(() => {
+    initIAP();
+
+    const loadProducts = async () => {
+      try {
+        const products = await RNIap.getSubscriptions(subscriptionSkus);
+        setIapProducts(products);
+      } catch (err) {
+        console.log("IAP Load Error:", err);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  // Glow animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -38,41 +60,71 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
     setTrialEnabled(!trialEnabled);
   };
 
-const handleSubscribe = async () => {
-  const token = await AsyncStorage.getItem("token");
+  // ⭐ REAL GOOGLE PLAY SUBSCRIBE FLOW
+  const handleSubscribe = async () => {
+    const token = await AsyncStorage.getItem("token");
 
-  if (!token) {
-    setLoginPopup(true);
-    return;
-  }
+    if (!token) {
+      setLoginPopup(true);
+      return;
+    }
 
-  // If FREE TRIAL is enabled → start trial
-  if (trialEnabled) {
+    const sku = selectedPlan === "1" ? "monthly_plan" : "yearly_plan";
+
     try {
-      const res = await fetch(
-        "https://my-ai-captions.onrender.com/api/subscription/start-trial",
+      // 1️⃣ If trial enabled → inform backend
+      if (trialEnabled) {
+        const trialRes = await fetch(
+          "https://my-ai-captions.onrender.com/api/subscription/start-trial",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId: sku }),
+          }
+        );
+
+        const trialData = await trialRes.json();
+        console.log("Trial Started:", trialData);
+      }
+
+      // 2️⃣ Request subscription from Google Play
+      const purchase = await RNIap.requestSubscription({
+        sku,
+        ...(trialEnabled && { introductoryPriceCyclesAndroid: 1 }), // enable trial in Play Store
+      });
+
+      console.log("PURCHASE:", purchase);
+
+      // 3️⃣ Notify backend for verification
+      const verifyRes = await fetch(
+        "https://my-ai-captions.onrender.com/api/subscription/verify",
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            productId: sku,
+            expiryDate: purchase.transactionDate,
+            purchaseToken: purchase.purchaseToken,
+            transactionId: purchase.transactionId,
+            platform: "google_play",
+          }),
         }
       );
 
-      const data = await res.json();
+      const verifyData = await verifyRes.json();
+      console.log("Verify Result:", verifyData);
 
-      if (data.success) {
-        await AsyncStorage.setItem("subscribed", "true");
-        navigation.goBack();
-        return;
-      }
+      navigation.goBack();
     } catch (error) {
-      console.log("Trial Error:", error);
+      console.log("Subscription Error:", error);
     }
-  }
-
-};
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -186,6 +238,7 @@ const handleSubscribe = async () => {
 };
 
 export default SubscriptionScreen;
+
 
 // ================= STYLES ==================
 const styles = StyleSheet.create({

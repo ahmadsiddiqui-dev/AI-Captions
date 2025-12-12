@@ -23,6 +23,7 @@
     "react-native-device-info": "^15.0.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "^2.29.1",
+    "react-native-iap": "^8.0.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-nitro": "^0.0.2",
     "react-native-permissions": "^5.4.4",

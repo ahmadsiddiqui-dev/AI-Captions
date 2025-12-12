@@ -56,9 +56,18 @@ exports.startPlanAndTrial = async (req, res) => {
 exports.verifyPurchase = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { productId, expiryDate } = req.body;
 
-    if (!productId || !expiryDate) {
+    const {
+      productId,
+      expiryDate,
+      transactionId,
+      purchaseToken,
+      autoRenew,
+      platform,
+      cancelled
+    } = req.body;
+
+    if (!productId || !expiryDate || !transactionId || !purchaseToken) {
       return res.status(400).json({ message: "Missing purchase data" });
     }
 
@@ -73,21 +82,24 @@ exports.verifyPurchase = async (req, res) => {
 
     sub.isSubscribed = true;
     sub.productId = productId;
-    sub.platform = "google_play";
     sub.purchaseDate = new Date();
     sub.expiryDate = new Date(expiryDate);
 
-    sub.autoRenew = true;
-    sub.cancelled = false;
+    // NEW FIELDS
+    sub.transactionId = transactionId;
+    sub.purchaseToken = purchaseToken;
+    sub.autoRenew = autoRenew !== undefined ? autoRenew : true;
+    sub.platform = platform || "google_play";
+    sub.cancelled = cancelled || false;
 
     await sub.save();
 
     return res.json({
       success: true,
-      subscription: sub
+      subscription: sub,
     });
-
   } catch (err) {
+    console.log("Verify purchase error:", err);
     return res.status(500).json({ message: "Subscription update failed" });
   }
 };
@@ -140,10 +152,12 @@ exports.getSubscriptionStatus = async (req, res) => {
       trialEnds: sub.freeTrialEnd || null,
       expiryDate: sub.expiryDate || null,
       productId: sub.productId || null,
-      autoRenew: sub.autoRenew !== undefined ? sub.autoRenew : true,
-      platform: sub.platform || "google_play",
-      cancelled: sub.cancelled || false
+      autoRenew: sub.autoRenew,
+      platform: sub.platform,
+      cancelled: sub.cancelled,
+      transactionId: sub.transactionId || null
     });
+
 
   } catch (err) {
     return res.status(500).json({ message: "Could not fetch status" });

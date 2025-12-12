@@ -52,7 +52,7 @@ export default function App() {
           <Stack.Screen name="OtpScreen" component={OtpScreen} />
           <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
 
-
+          {/* SUBSCRIPTION FLOW */}
           <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ManageSubscription" component={ManageSubscriptionScreen} />
 

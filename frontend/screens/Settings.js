@@ -7,7 +7,8 @@ import {
   ScrollView,
   TextInput,
   Keyboard,
-  Linking
+  Linking,
+  ActivityIndicator
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,12 +26,12 @@ const Settings = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [freeTrial, setFreeTrial] = useState(false);
 
+  const [loadingSub, setLoadingSub] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem("user");
-        console.log("[Settings] storedUser raw:", storedUser);
 
         if (storedUser) {
           const parsed = JSON.parse(storedUser);
@@ -39,20 +40,30 @@ const Settings = () => {
           setTempName(parsed.name);
         }
 
-        //  Load Subscription Status
         const status = await getSubscriptionStatus();
-        console.log("[Settings] getSubscriptionStatus response:", status);
 
         setIsSubscribed(status?.isSubscribed || false);
         setFreeTrial(status?.freeTrialEnabled || false);
+
+        setLoadingSub(false);
+
       } catch (e) {
-        console.log("[Settings] loadUser error:", e);
+        setLoadingSub(false);
       }
     };
 
     loadUser();
   }, []);
 
+  if (loadingSub) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleSaveName = async () => {
     if (!tempName.trim()) return;
@@ -136,7 +147,7 @@ const Settings = () => {
                         borderRadius: 12,
                         paddingVertical: 4,
                         paddingHorizontal: 10,
-                        marginRight: 10,
+                        marginRight: 20,
                         borderWidth: 1,
                         borderColor: "#c77dff",
                       }}
@@ -147,7 +158,6 @@ const Settings = () => {
                       </Text>
                     </View>
                   )}
-
 
                   <Pressable
                     onPress={() => (isEditing ? handleSaveName() : setIsEditing(true))}
@@ -196,7 +206,7 @@ const Settings = () => {
                 <View
                   style={[
                     styles.row,
-                    { borderBottomWidth: 0.8, borderBottomColor: "#383737ff", },
+                    { borderBottomWidth: 0.8, borderBottomColor: "#383737ff" },
                   ]}
                 >
                   <Ionicons name="star" size={18} color="#ffd700" />

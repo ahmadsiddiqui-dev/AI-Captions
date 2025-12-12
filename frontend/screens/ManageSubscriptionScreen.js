@@ -22,36 +22,29 @@ const ManageSubscriptionScreen = () => {
     const [autoRenew, setAutoRenew] = useState("Enabled");
 
 useEffect(() => {
-    const load = async () => {
-        const status = await getSubscriptionStatus();
-        console.log("STATUS:", status);
+  const load = async () => {
+    const status = await getSubscriptionStatus();
+    console.log("STATUS:", status);
 
-        setIsSubscribed(status?.isSubscribed || false);
-        setExpiryDate(status?.expiryDate || null);
+    setIsSubscribed(status?.isSubscribed || false);
+    setExpiryDate(status?.expiryDate || null);
 
-        const pid = status?.productId;
-        let planName = "Premium Plan";
+    const pid = status?.productId?.toLowerCase()?.replace(/[^a-z_]/g, ""); 
 
-        // Correct plan detection
-        if (pid && pid.toLowerCase().includes("month")) {
-            planName = "Monthly Plan";
-        } else if (pid && pid.toLowerCase().includes("year")) {
-            planName = "Yearly Plan";
-        }
+    let planName = "Premium Plan";
 
-        setPlan(planName);
+    if (pid?.includes("month")) planName = "Monthly Plan";
+    else if (pid?.includes("year")) planName = "Yearly Plan";
 
-        // Auto-Renew (from backend)
-        setAutoRenew(
-            status?.autoRenew === false ? "Disabled" : "Enabled"
-        );
+    setPlan(planName);
 
-        setLoading(false);
-    };
+    setAutoRenew(status?.autoRenew === false ? "Disabled" : "Enabled");
 
-    load();
+    setLoading(false);
+  };
+
+  load();
 }, []);
-
 
 
     const openGooglePlaySubscriptions = () => {
@@ -61,7 +54,9 @@ useEffect(() => {
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" color="#8d69e0" />
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                          <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }}/>
+                        </View>
             </SafeAreaView>
         );
     }

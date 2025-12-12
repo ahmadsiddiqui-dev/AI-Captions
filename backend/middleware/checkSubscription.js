@@ -4,7 +4,6 @@ module.exports = async function (req, res, next) {
   try {
     const sub = await Subscription.findOne({ userId: req.user._id });
 
-    // No subscription exists → return defaults
     if (!sub) {
       req.subscription = {
         isSubscribed: false,
@@ -13,32 +12,32 @@ module.exports = async function (req, res, next) {
         freeCaptionCount: 0,
         trialEnds: null,
         expiryDate: null,
-        productId: null
+        productId: null,
+        autoRenew: false,
+        platform: null,
+        cancelled: false,
+        transactionId: null
       };
       return next();
     }
 
     const now = new Date();
 
-    // Check if subscription is active (expiry date must be in future)
     const isActiveSub =
       sub.isSubscribed &&
       sub.expiryDate &&
       new Date(sub.expiryDate) > now;
 
-    // Check if trial is active
     const trialActive =
       sub.freeTrialEnabled &&
       sub.freeTrialEnd &&
       new Date(sub.freeTrialEnd) > now;
 
-    // Disable trial if expired
     if (sub.freeTrialEnabled && !trialActive) {
       sub.freeTrialEnabled = false;
       await sub.save();
     }
 
-    // Attach data to request for controllers
     req.subscription = {
       isSubscribed: isActiveSub,
       freeTrialEnabled: trialActive,
@@ -46,11 +45,14 @@ module.exports = async function (req, res, next) {
       freeCaptionCount: sub.freeCaptionCount || 0,
       trialEnds: sub.freeTrialEnd || null,
       expiryDate: sub.expiryDate || null,
-      productId: sub.productId || null
+      productId: sub.productId || null,
+      autoRenew: sub.autoRenew !== undefined ? sub.autoRenew : true,
+      platform: sub.platform || "google_play",
+      cancelled: sub.cancelled || false,
+      transactionId: sub.transactionId || null
     };
 
     next();
-
   } catch (err) {
     console.log("Subscription middleware error:", err);
     res.status(500).json({ message: "Subscription check failed" });
