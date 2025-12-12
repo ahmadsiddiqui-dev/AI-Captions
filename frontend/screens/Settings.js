@@ -24,34 +24,34 @@ const Settings = () => {
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [freeTrial, setFreeTrial] = useState(false);
-  
 
- useEffect(() => {
-  const loadUser = async () => {
-    try {
-      const storedUser = await AsyncStorage.getItem("user");
-      console.log("[Settings] storedUser raw:", storedUser);
 
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        console.log("[Settings] parsed user:", parsed);
-        setUser(parsed);
-        setTempName(parsed.name);
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("user");
+        console.log("[Settings] storedUser raw:", storedUser);
+
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          console.log("[Settings] parsed user:", parsed);
+          setUser(parsed);
+          setTempName(parsed.name);
+        }
+
+        //  Load Subscription Status
+        const status = await getSubscriptionStatus();
+        console.log("[Settings] getSubscriptionStatus response:", status);
+
+        setIsSubscribed(status?.isSubscribed || false);
+        setFreeTrial(status?.freeTrialEnabled || false);
+      } catch (e) {
+        console.log("[Settings] loadUser error:", e);
       }
+    };
 
-      //  Load Subscription Status
-      const status = await getSubscriptionStatus();
-      console.log("[Settings] getSubscriptionStatus response:", status);
-
-      setIsSubscribed(status?.isSubscribed || false);
-      setFreeTrial(status?.freeTrialEnabled || false);
-    } catch (e) {
-      console.log("[Settings] loadUser error:", e);
-    }
-  };
-
-  loadUser();
-}, []);
+    loadUser();
+  }, []);
 
 
   const handleSaveName = async () => {
@@ -61,7 +61,7 @@ const Settings = () => {
     setUser(updatedUser);
 
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-    updateName(tempName.trim()).catch(() => {});
+    updateName(tempName.trim()).catch(() => { });
 
     Keyboard.dismiss();
     setIsEditing(false);
@@ -130,18 +130,24 @@ const Settings = () => {
                   {(isSubscribed || freeTrial) && (
                     <View
                       style={{
-                        backgroundColor: "#8d69e0",
-                        paddingVertical: 3,
-                        paddingHorizontal: 8,
-                        borderRadius: 10,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: "#4b007d",
+                        borderRadius: 12,
+                        paddingVertical: 4,
+                        paddingHorizontal: 10,
                         marginRight: 10,
+                        borderWidth: 1,
+                        borderColor: "#c77dff",
                       }}
                     >
-                      <Text style={{ color: "white", fontSize: 12, fontWeight: "600" }}>
+                      <Ionicons name="diamond" size={14} color="#ffd700" style={{ marginRight: 4 }} />
+                      <Text style={{ color: "#ffd700", fontSize: 12, fontWeight: "700" }}>
                         PRO
                       </Text>
                     </View>
                   )}
+
 
                   <Pressable
                     onPress={() => (isEditing ? handleSaveName() : setIsEditing(true))}
@@ -190,17 +196,17 @@ const Settings = () => {
                 <View
                   style={[
                     styles.row,
-                    { borderBottomWidth: 0.8, borderBottomColor: "#383737ff" },
+                    { borderBottomWidth: 0.8, borderBottomColor: "#383737ff", },
                   ]}
                 >
                   <Ionicons name="star" size={18} color="#ffd700" />
-                  <Text style={[styles.rowText, { color: "#ffd700" }]}>Premium User</Text>
+                  <Text style={[styles.rowText, { color: "#ffd700" }]}>PRO Member</Text>
                 </View>
 
                 {/* Manage Subscription */}
                 <Pressable
                   style={styles.row}
-                  onPress={() => navigation.navigate("Subscription")}
+                  onPress={() => navigation.navigate("ManageSubscription")}
                 >
                   <Ionicons name="settings-outline" size={18} color="#7da8ff" />
                   <Text style={styles.rowText}>Manage Subscription</Text>

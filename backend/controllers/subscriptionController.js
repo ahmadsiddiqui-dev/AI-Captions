@@ -63,7 +63,7 @@ exports.verifyPurchase = async (req, res) => {
     if (!sub) {
       sub = new Subscription({
         userId,
-        freeCaptionCount: 0, 
+        freeCaptionCount: 0,
       });
     }
 
@@ -125,7 +125,8 @@ exports.getSubscriptionStatus = async (req, res) => {
       freeTrialUsed: sub.freeTrialUsed,
       freeCaptionCount: sub.freeCaptionCount || 0,
       trialEnds: sub.freeTrialEnd || null,
-      expiryDate: sub.expiryDate || null
+      expiryDate: sub.expiryDate || null,
+      productId: sub.productId || null
     });
 
   } catch (err) {
