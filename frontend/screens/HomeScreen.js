@@ -29,20 +29,16 @@ useEffect(() => {
     // Delay 1.5 sec for smoother UX
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // ==========================
-    // 1️⃣ GUEST USER
-    // ==========================
+    // 1 GUEST USER
+   
     if (!token) {
       navigation.navigate("Subscription");
       return;
     }
 
-    // ==========================
-    // 2️⃣ LOGGED-IN USER
-    // ==========================
+    // 2 LOGGED-IN USER
     const status = await getSubscriptionStatus();
 
-    // If not subscribed OR not in trial → show popup
     if (!status.isSubscribed && !status.freeTrialEnabled) {
       navigation.navigate("Subscription");
     }

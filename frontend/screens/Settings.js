@@ -24,24 +24,35 @@ const Settings = () => {
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [freeTrial, setFreeTrial] = useState(false);
+  
 
-  useEffect(() => {
-    const loadUser = async () => {
+ useEffect(() => {
+  const loadUser = async () => {
+    try {
       const storedUser = await AsyncStorage.getItem("user");
+      console.log("[Settings] storedUser raw:", storedUser);
+
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
+        console.log("[Settings] parsed user:", parsed);
         setUser(parsed);
         setTempName(parsed.name);
       }
 
       //  Load Subscription Status
       const status = await getSubscriptionStatus();
+      console.log("[Settings] getSubscriptionStatus response:", status);
+
       setIsSubscribed(status?.isSubscribed || false);
       setFreeTrial(status?.freeTrialEnabled || false);
-    };
+    } catch (e) {
+      console.log("[Settings] loadUser error:", e);
+    }
+  };
 
-    loadUser();
-  }, []);
+  loadUser();
+}, []);
+
 
   const handleSaveName = async () => {
     if (!tempName.trim()) return;

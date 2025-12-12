@@ -87,7 +87,7 @@ exports.verifyPurchase = async (req, res) => {
 
 exports.getSubscriptionStatus = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user?._id;
     const sub = await Subscription.findOne({ userId });
 
     if (!sub) {
@@ -113,6 +113,7 @@ exports.getSubscriptionStatus = async (req, res) => {
       sub.freeTrialEnd &&
       new Date(sub.freeTrialEnd) > now;
 
+    // Disable expired trial
     if (sub.freeTrialEnabled && !trialActive) {
       sub.freeTrialEnabled = false;
       await sub.save();
@@ -128,7 +129,6 @@ exports.getSubscriptionStatus = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("Status error:", err);
     return res.status(500).json({ message: "Could not fetch status" });
   }
 };
