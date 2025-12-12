@@ -28,12 +28,12 @@ const ManageSubscriptionScreen = () => {
             setIsSubscribed(status?.isSubscribed || false);
             setExpiryDate(status?.expiryDate || null);
 
-            // 🚀 Set plan label (industry standard names)
+            //  Set plan label (industry standard names)
             if (status?.productId === "monthly_plan") setPlan("Monthly Plan");
             else if (status?.productId === "yearly_plan") setPlan("Yearly Plan");
             else setPlan("Premium Plan");
 
-            // 🚀 Auto-Renew logic
+            //  Auto-Renew logic
             setAutoRenew(status?.isSubscribed ? "Enabled" : "Disabled");
 
             setLoading(false);
@@ -41,6 +41,7 @@ const ManageSubscriptionScreen = () => {
 
         load();
     }, []);
+
 
     const openGooglePlaySubscriptions = () => {
         Linking.openURL("https://play.google.com/store/account/subscriptions");
@@ -238,24 +239,24 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     toggleBtn: {
-  marginLeft: "auto",
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 8,
-},
+        marginLeft: "auto",
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
 
-toggleOn: {
-  backgroundColor: "#ce1f1f",
-},
+    toggleOn: {
+        backgroundColor: "#ce1f1f",
+    },
 
-toggleOff: {
-  backgroundColor: "#4caf50",
-},
+    toggleOff: {
+        backgroundColor: "#4caf50",
+    },
 
-toggleText: {
-  color: "white",
-  fontSize: 13,
-  fontWeight: "600",
-},
+    toggleText: {
+        color: "white",
+        fontSize: 13,
+        fontWeight: "600",
+    },
 
 });

@@ -20,7 +20,7 @@ exports.startPlanAndTrial = async (req, res) => {
     if (!sub) {
       sub = new Subscription({
         userId,
-        freeCaptionCount: 0, // 🟣 added
+        freeCaptionCount: 0,
       });
     }
 
@@ -29,6 +29,10 @@ exports.startPlanAndTrial = async (req, res) => {
     }
 
     sub.productId = productId;
+    sub.platform = "google_play";
+    sub.autoRenew = true;
+    sub.cancelled = false;
+
     sub.freeTrialEnabled = true;
     sub.freeTrialUsed = true;
     sub.freeTrialStart = now;
@@ -69,8 +73,12 @@ exports.verifyPurchase = async (req, res) => {
 
     sub.isSubscribed = true;
     sub.productId = productId;
+    sub.platform = "google_play";
     sub.purchaseDate = new Date();
     sub.expiryDate = new Date(expiryDate);
+
+    sub.autoRenew = true;
+    sub.cancelled = false;
 
     await sub.save();
 
@@ -85,6 +93,7 @@ exports.verifyPurchase = async (req, res) => {
 };
 
 
+
 exports.getSubscriptionStatus = async (req, res) => {
   try {
     const userId = req.user?._id;
@@ -97,7 +106,11 @@ exports.getSubscriptionStatus = async (req, res) => {
         freeTrialUsed: false,
         freeCaptionCount: 0,
         trialEnds: null,
-        expiryDate: null
+        expiryDate: null,
+        productId: null,
+        autoRenew: false,
+        platform: null,
+        cancelled: false
       });
     }
 
@@ -126,7 +139,10 @@ exports.getSubscriptionStatus = async (req, res) => {
       freeCaptionCount: sub.freeCaptionCount || 0,
       trialEnds: sub.freeTrialEnd || null,
       expiryDate: sub.expiryDate || null,
-      productId: sub.productId || null
+      productId: sub.productId || null,
+      autoRenew: sub.autoRenew !== undefined ? sub.autoRenew : true,
+      platform: sub.platform || "google_play",
+      cancelled: sub.cancelled || false
     });
 
   } catch (err) {
