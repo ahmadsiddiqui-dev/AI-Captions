@@ -21,26 +21,37 @@ const ManageSubscriptionScreen = () => {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [autoRenew, setAutoRenew] = useState("Enabled");
 
-    useEffect(() => {
-        const load = async () => {
-            const status = await getSubscriptionStatus();
+useEffect(() => {
+    const load = async () => {
+        const status = await getSubscriptionStatus();
+        console.log("STATUS:", status);
 
-            setIsSubscribed(status?.isSubscribed || false);
-            setExpiryDate(status?.expiryDate || null);
+        setIsSubscribed(status?.isSubscribed || false);
+        setExpiryDate(status?.expiryDate || null);
 
-            //  Set plan label (industry standard names)
-            if (status?.productId === "monthly_plan") setPlan("Monthly Plan");
-            else if (status?.productId === "yearly_plan") setPlan("Yearly Plan");
-            else setPlan("Premium Plan");
+        const pid = status?.productId;
+        let planName = "Premium Plan";
 
-            //  Auto-Renew logic
-            setAutoRenew(status?.isSubscribed ? "Enabled" : "Disabled");
+        // Correct plan detection
+        if (pid && pid.toLowerCase().includes("month")) {
+            planName = "Monthly Plan";
+        } else if (pid && pid.toLowerCase().includes("year")) {
+            planName = "Yearly Plan";
+        }
 
-            setLoading(false);
-        };
+        setPlan(planName);
 
-        load();
-    }, []);
+        // Auto-Renew (from backend)
+        setAutoRenew(
+            status?.autoRenew === false ? "Disabled" : "Enabled"
+        );
+
+        setLoading(false);
+    };
+
+    load();
+}, []);
+
 
 
     const openGooglePlaySubscriptions = () => {
