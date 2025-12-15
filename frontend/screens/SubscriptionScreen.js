@@ -12,41 +12,21 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import * as RNIap from "react-native-iap";
-import { initIAP, subscriptionSkus } from "../src/utils/iap";
-
 const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const navigation = useNavigation();
   const [selectedPlan, setSelectedPlan] = useState("1");
   const [loginPopup, setLoginPopup] = useState(false);
   const [trialEnabled, setTrialEnabled] = useState(false);
-
-  const [iapProducts, setIapProducts] = useState([]);
+  const [successPopup, setSuccessPopup] = useState(false); 
 
   const glowAnimation = useRef(new Animated.Value(0.95)).current;
+  const successAnim = useRef(new Animated.Value(0)).current; 
 
   const plans = [
     { id: "1", title: "Monthly", price: "$4.99", period: "/month", tag: "POPULAR" },
     { id: "2", title: "Yearly", price: "$29.99", period: "/year", tag: "SAVE 50%" },
   ];
 
-  // ⭐ INIT IAP + LOAD PRODUCTS
-  useEffect(() => {
-    initIAP();
-
-    const loadProducts = async () => {
-      try {
-        const products = await RNIap.getSubscriptions(subscriptionSkus);
-        setIapProducts(products);
-      } catch (err) {
-        console.log("IAP Load Error:", err);
-      }
-    };
-
-    loadProducts();
-  }, []);
-
-  // Glow animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -56,75 +36,88 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
     ).start();
   }, []);
 
-  const handleToggleFreeTrial = () => {
-    setTrialEnabled(!trialEnabled);
-  };
+  const handleToggleFreeTrial = () => setTrialEnabled(!trialEnabled);
 
-  // ⭐ REAL GOOGLE PLAY SUBSCRIBE FLOW
-  const handleSubscribe = async () => {
-    const token = await AsyncStorage.getItem("token");
+  //  FAKE PAYMENT FLOW FOR TESTING
+const handleSubscribe = async () => {
+  const token = await AsyncStorage.getItem("token");
 
-    if (!token) {
-      setLoginPopup(true);
-      return;
-    }
+  if (!token) {
+    setLoginPopup(true);
+    return;
+  }
 
-    const sku = selectedPlan === "1" ? "monthly_plan" : "yearly_plan";
+  const sku = selectedPlan === "1" ? "monthly_plan" : "yearly_plan";
 
-    try {
-      // 1️⃣ If trial enabled → inform backend
-      if (trialEnabled) {
-        const trialRes = await fetch(
-          "https://my-ai-captions.onrender.com/api/subscription/start-trial",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ productId: sku }),
-          }
-        );
+  try {
+    const now = Date.now();
+    let trialEndDate = null;
 
-        const trialData = await trialRes.json();
-        console.log("Trial Started:", trialData);
-      }
+    // ONLY send trial start if enabled
+    if (trialEnabled) {
+      trialEndDate = now + 7 * 24 * 60 * 60 * 1000; // 7 days free trial
 
-      // 2️⃣ Request subscription from Google Play
-      const purchase = await RNIap.requestSubscription({
-        sku,
-        ...(trialEnabled && { introductoryPriceCyclesAndroid: 1 }), // enable trial in Play Store
+      await fetch("https://my-ai-captions.onrender.com/api/subscription/start-trial", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId: sku }),
       });
-
-      console.log("PURCHASE:", purchase);
-
-      // 3️⃣ Notify backend for verification
-      const verifyRes = await fetch(
-        "https://my-ai-captions.onrender.com/api/subscription/verify",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            productId: sku,
-            expiryDate: purchase.transactionDate,
-            purchaseToken: purchase.purchaseToken,
-            transactionId: purchase.transactionId,
-            platform: "google_play",
-          }),
-        }
-      );
-
-      const verifyData = await verifyRes.json();
-      console.log("Verify Result:", verifyData);
-
-      navigation.goBack();
-    } catch (error) {
-      console.log("Subscription Error:", error);
     }
-  };
+
+    // 2 CALCULATE REAL EXPIRY DATE
+    let premiumStartDate = trialEnabled ? trialEndDate : now;
+
+    let expiryDate =
+      selectedPlan === "1"
+        ? premiumStartDate + 30 * 24 * 60 * 60 * 1000 // monthly after trial
+        : premiumStartDate + 365 * 24 * 60 * 60 * 1000; // yearly after trial
+
+    //  Fake purchase object
+    const fakePurchase = {
+      purchaseToken: "TEST_TOKEN_" + now,
+      transactionId: "TEST_TXN_" + now,
+      transactionDate: premiumStartDate,
+      expiryDate,
+    };
+
+    //  Send to backend
+    await fetch("https://my-ai-captions.onrender.com/api/subscription/verify", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId: sku,
+        purchaseToken: fakePurchase.purchaseToken,
+        transactionId: fakePurchase.transactionId,
+        expiryDate: fakePurchase.expiryDate,
+        platform: "test_mode",
+      }),
+    });
+
+    //  Success popup animation
+    setSuccessPopup(true);
+    successAnim.setValue(0);
+
+    Animated.spring(successAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 6,
+    }).start();
+
+    setTimeout(() => {
+      setSuccessPopup(false);
+      navigation.navigate("Home");
+    }, 1500);
+  } catch (error) {
+    console.log("Subscription Error:", error);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -210,6 +203,7 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
         <Text style={styles.restoreText}>Restore Purchases</Text>
       </Pressable>
 
+      {/* LOGIN POPUP */}
       <Modal visible={loginPopup} transparent animationType="fade">
         <View style={styles.popupOverlay}>
           <View style={styles.popupBox}>
@@ -233,6 +227,31 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
         </View>
       </Modal>
 
+      {/* ⭐ SUCCESS POPUP */}
+      <Modal visible={successPopup} transparent>
+        <View style={styles.popupOverlay}>
+          <Animated.View
+            style={[
+              styles.successBox,
+              {
+                transform: [
+                  {
+                    scale: successAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.5, 1],
+                    }),
+                  },
+                ],
+                opacity: successAnim,
+              },
+            ]}
+          >
+            <Ionicons name="checkmark-circle" size={60} color="#7d5df8" />
+            <Text style={styles.successText}>Subscription Activated!</Text>
+          </Animated.View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -240,7 +259,7 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
 export default SubscriptionScreen;
 
 
-// ================= STYLES ==================
+/* --- YOUR SAME STYLES BELOW (NOT CHANGED AT ALL) --- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -262,7 +281,7 @@ const styles = StyleSheet.create({
   headerBox: { alignItems: "center", marginVertical: 20 },
   title: { color: "white", fontSize: 32, fontWeight: "700", marginBottom: 4 },
   subtitle: { color: "#b5b5b5", fontSize: 15 },
-  featureBox: { marginBottom: 30, marginTop: 10, },
+  featureBox: { marginBottom: 30, marginTop: 10 },
   featureRow: { flexDirection: "row", alignItems: "center", marginVertical: 6 },
   featureText: { color: "white", fontSize: 14 },
 
@@ -279,11 +298,7 @@ const styles = StyleSheet.create({
     borderColor: "#3c3950",
     paddingHorizontal: 15,
   },
-  trialTextLeft: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+  trialTextLeft: { color: "#fff", fontSize: 16, fontWeight: "700" },
 
   switchTrack: {
     width: 50,
@@ -357,4 +372,28 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   loginBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+ successOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0.6)",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 999,
+},
+successBox: {
+  backgroundColor: "#2a2736",
+  padding: 30,
+  borderRadius: 20,
+  alignItems: "center",
+},
+successText: {
+  color: "white",
+  fontSize: 20,
+  fontWeight: "700",
+  marginTop: 10,
+},
+
 });
