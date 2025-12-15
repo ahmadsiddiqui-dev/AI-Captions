@@ -92,7 +92,7 @@ exports.generateWithAI = async (files, options) => {
   
   let model;
   try {
-    model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
   } catch (err) {
     console.warn("Fallback model activated:", err);
     model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
