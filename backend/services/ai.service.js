@@ -1,17 +1,16 @@
 const sharp = require("sharp");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Convert images
 async function processImages(files) {
   const converted = [];
   for (let img of files) {
     const buffer = await sharp(img.buffer)
-      .resize(900)
-      .jpeg({ quality: 85 })
+      .resize(800)
+      .jpeg({ quality: 80 })
       .toBuffer();
-
     converted.push({
       inlineData: {
         data: buffer.toString("base64"),
@@ -22,16 +21,17 @@ async function processImages(files) {
   return converted;
 }
 
-// Build prompt
 function buildPrompt(options, hasImages) {
   return `
-You are a professional Instagram caption writer who produces natural, aesthetic, human-sounding captions.
+You are a professional Instagram caption writer who creates natural, aesthetic, human-sounding captions.
 
-Your task: Create **TWO different captions** that feel:
+Your job is to create **TWO different captions** that feel:
 • genuine  
-• emotional or aesthetic  
-• natural, modern, human-written  
-• NOT robotic, NOT generic, NOT repetitive  
+• emotional or aesthetic (based on mood)  
+• NOT robotic  
+• NOT generic  
+• NOT repetitive  
+• clean, modern, social-media ready  
 
 USER SETTINGS:
 • Mood: ${options.mood}
@@ -42,20 +42,21 @@ USER SETTINGS:
 • User Message (context): ${options.message || "Not Provided"}
 
 STYLE RULES:
-1. Captions must feel organic and human.
-2. Do NOT describe the image literally. Focus on emotion, vibe, story.
-3. Avoid clichés.
-4. Match the selected mood.
-5. Add hashtags at the end only if requested.
-6. Output ONLY the captions.
+1. Captions must sound like a real person wrote them.
+2. Do NOT describe the image directly like: “There is a sunset” — instead capture the *emotion, vibe, or moment*.
+3. Avoid clichés like “living my best life.”
+4. Keep the tone consistent with the selected mood.
+5. If hashtags are requested, include them naturally at the end.
+6. Avoid announcing the output (no: “Here are your captions”).
+7. Write only the captions.
 
 ${
   hasImages
-    ? "Images WERE uploaded — captions MUST align with the vibe, feeling, aesthetic, or mood of the photos."
-    : `No images uploaded — use ONLY this message:\n"${options.message}"`
+    ? "Images WERE uploaded — use the FEELING and VIBE of the photo, not literal description."
+    : `No images uploaded — create captions ONLY using this message:\n"${options.message}"`
 }
 
-Return EXACTLY:
+Return EXACTLY this:
 
 CAPTION_ONE:
 <caption text>
@@ -65,7 +66,6 @@ CAPTION_TWO:
 `;
 }
 
-// Parse model output
 function parseOutput(text) {
   const cap1 = text
     .split("CAPTION_TWO:")[0]
@@ -89,13 +89,14 @@ exports.generateWithAI = async (files, options) => {
 
   const prompt = buildPrompt(options, hasImages);
 
-  
+  // Use supported model gemini-2.5-flash
   let model;
   try {
-    model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite-preview-02-05" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   } catch (err) {
-    console.warn("Fallback model activated:", err);
-    model = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash-8b" });
+    // Fallback: try another model name if first fails
+    console.warn("Model gemini-2.5-flash not available, fallback to gemini-2.0-flash-exp", err);
+    model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
   }
 
   const result = await model.generateContent([
