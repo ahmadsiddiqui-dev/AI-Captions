@@ -79,7 +79,7 @@ useEffect(() => {
 
                         {/* PLAN */}
                         <View style={styles.row}>
-                            <Ionicons name="star" size={22} color="#ffd700" />
+                            <Ionicons name="star-outline" size={22} color="#ffd700" />
                             <Text style={styles.value}>{plan}</Text>
                         </View>
 

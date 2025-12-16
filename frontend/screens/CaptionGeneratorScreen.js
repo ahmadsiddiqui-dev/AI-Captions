@@ -21,6 +21,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
 import DeviceInfo from "react-native-device-info";
+import { tryShowRatePopup } from '../src/utils/rateHelper';
+
 
 /* Android Layout Animation */
 if (Platform.OS === "android") {
@@ -251,6 +253,9 @@ const CaptionGeneratorScreen = () => {
     message: message.trim(),
   });
 
+  const CAPTION_SUCCESS_COUNT_KEY = "caption_success_count";
+
+
   const generateCaptions = async () => {
     if (images.length === 0 && message.trim().length === 0) {
       setPopupVisible(true);
@@ -307,6 +312,23 @@ const CaptionGeneratorScreen = () => {
 
       setCaptions(data.captions);
       if (images.length > 0) setImages([]);
+
+      //  RATE APP LOGIC
+      const successCount =
+        Number(await AsyncStorage.getItem(CAPTION_SUCCESS_COUNT_KEY)) || 0;
+
+      const newCount = successCount + 1;
+      await AsyncStorage.setItem(
+        CAPTION_SUCCESS_COUNT_KEY,
+        newCount.toString()
+      );
+
+      // Show rating popup after 3 successful generations
+      if (newCount === 3) {
+        setTimeout(() => {
+          tryShowRatePopup();
+        }, 1500);
+      }
 
     } catch {
       setError("Server error");
@@ -381,89 +403,89 @@ const CaptionGeneratorScreen = () => {
     };
 
     return (
-  <Modal visible transparent animationType="none">
-    {/* Close when tapping outside */}
-    <TouchableOpacity
-      style={styles.sheetOverlay}
-      activeOpacity={1}
-      onPress={closeSheet}
-    />
-
-    <View style={styles.sheet}>
-      <Text style={styles.sheetTitle}>{title}</Text>
-
-      {/* Search bar only for mood & language */}
-      {(sheetType === "mood" || sheetType === "language") && (
-        <View style={styles.searchBox}>
-          <Ionicons name="search" size={18} color="#aaa" />
-          <TextInput
-            placeholder="Search..."
-            placeholderTextColor="#777"
-            style={styles.searchInput}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-        </View>
-      )}
-
-      {/* OPTIONS LIST */}
-      <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
-{options.map((o, i) => {
-  const isSelected =
-    (sheetType === "mood" && o === moodOption) ||
-    (sheetType === "language" && o === language) ||
-    (sheetType === "emoji" && o === emojiCount) ||
-    (sheetType === "hashtag" && o === hashtagCount) ||
-    (sheetType === "length" && o === lengthOption);
-
-  return (
-    <Pressable
-      key={i}
-      style={styles.sheetItem}
-      onPress={() => handleSelect(o)}
-    >
-      <Text
-        style={[
-          styles.sheetItemText,
-          isSelected && { color: "#7d5df8", fontWeight: "600" }
-        ]}
-      >
-        {o}
-      </Text>
-
-      {isSelected && (
-        <Ionicons
-          name="checkmark"
-          size={18}
-          color="#7d5df8"
-          style={styles.checkIcon}
+      <Modal visible transparent animationType="none">
+        {/* Close when tapping outside */}
+        <TouchableOpacity
+          style={styles.sheetOverlay}
+          activeOpacity={1}
+          onPress={closeSheet}
         />
-      )}
-    </Pressable>
-  );
-})}
 
+        <View style={styles.sheet}>
+          <Text style={styles.sheetTitle}>{title}</Text>
 
-        {/* Only show Unlock All for FREE users (NOT for emoji/hashtag/length) */}
-        {!isPremium &&
-          sheetType !== "emoji" &&
-          sheetType !== "hashtag" &&
-          sheetType !== "length" && (
-            <Pressable
-              style={styles.unlockItem}
-              onPress={() => {
-                closeSheet();
-                navigation.navigate("Subscription");
-              }}
-            >
-              <Ionicons name="lock-open" size={18} color="#7d5df8" />
-              <Text style={styles.unlockText}>Unlock all options</Text>
-            </Pressable>
+          {/* Search bar only for mood & language */}
+          {(sheetType === "mood" || sheetType === "language") && (
+            <View style={styles.searchBox}>
+              <Ionicons name="search" size={18} color="#aaa" />
+              <TextInput
+                placeholder="Search..."
+                placeholderTextColor="#777"
+                style={styles.searchInput}
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+            </View>
           )}
-      </ScrollView>
-    </View>
-  </Modal>
-);
+
+          {/* OPTIONS LIST */}
+          <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+            {options.map((o, i) => {
+              const isSelected =
+                (sheetType === "mood" && o === moodOption) ||
+                (sheetType === "language" && o === language) ||
+                (sheetType === "emoji" && o === emojiCount) ||
+                (sheetType === "hashtag" && o === hashtagCount) ||
+                (sheetType === "length" && o === lengthOption);
+
+              return (
+                <Pressable
+                  key={i}
+                  style={styles.sheetItem}
+                  onPress={() => handleSelect(o)}
+                >
+                  <Text
+                    style={[
+                      styles.sheetItemText,
+                      isSelected && { color: "#7d5df8", fontWeight: "600" }
+                    ]}
+                  >
+                    {o}
+                  </Text>
+
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark"
+                      size={18}
+                      color="#7d5df8"
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+
+
+            {/* Only show Unlock All for FREE users (NOT for emoji/hashtag/length) */}
+            {!isPremium &&
+              sheetType !== "emoji" &&
+              sheetType !== "hashtag" &&
+              sheetType !== "length" && (
+                <Pressable
+                  style={styles.unlockItem}
+                  onPress={() => {
+                    closeSheet();
+                    navigation.navigate("Subscription");
+                  }}
+                >
+                  <Ionicons name="lock-open" size={18} color="#7d5df8" />
+                  <Text style={styles.unlockText}>Unlock all options</Text>
+                </Pressable>
+              )}
+          </ScrollView>
+        </View>
+      </Modal>
+    );
 
   };
 
@@ -793,36 +815,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-sheetItem: {
-  paddingVertical: 10,
-  borderBottomWidth: 1,
-  borderBottomColor: "#2b2836",
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "center",
-  position: "relative",
-},
-checkIcon: {
-  position: "absolute",
-  right: 10,
-},
+  sheetItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#2b2836",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  checkIcon: {
+    position: "absolute",
+    right: 10,
+  },
 
   sheetItemText: { color: "white", fontSize: 15, textAlign: "center" },
 
-unlockItem: {
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "center",
-  paddingVertical: 15,
-  gap: 6,
-},
+  unlockItem: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 15,
+    gap: 6,
+  },
 
-unlockText: {
-  color: "#7d5df8",
-  fontWeight: "700",
-  fontSize: 15,
-  textAlign: "center",
-},
+  unlockText: {
+    color: "#7d5df8",
+    fontWeight: "700",
+    fontSize: 15,
+    textAlign: "center",
+  },
 
 
   /* ERRORS */
@@ -899,10 +921,10 @@ unlockText: {
     marginTop: 15,
   },
   inputSeparator: {
-  height: 2,
-  backgroundColor: "#2b2836",
-  marginTop: 20,
-  marginBottom: 0,
-},
+    height: 2,
+    backgroundColor: "#2b2836",
+    marginTop: 20,
+    marginBottom: 0,
+  },
 
 });

@@ -86,7 +86,7 @@ const handleGoogleLogin = async () => {
     const idToken = userInfo?.data?.idToken;
 
     if (!idToken) {
-      setErrorMessage("Google login failed: missing ID Token");
+      setErrorMessage("Google Login Failed. Try again.");
       setGoogleLoading(false);
       return;
     }

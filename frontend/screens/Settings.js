@@ -14,6 +14,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { showRatePopup } from '../src/utils/rateHelper';
 
 import { logoutUser, updateName, getSubscriptionStatus } from "../api/api";
 
@@ -96,7 +97,7 @@ const Settings = () => {
 
   const Item = ({ icon, title, onPress, showArrow = true, style }) => (
     <Pressable style={[styles.row, style]} onPress={onPress}>
-      <Ionicons name={icon} size={18} color="#7da8ff" />
+      <Ionicons name={icon} size={18} color="#a08afcff" />
       <Text style={styles.rowText}>{title}</Text>
       {showArrow && <Ionicons name="chevron-forward" size={18} color="#777" />}
     </Pressable>
@@ -122,7 +123,7 @@ const Settings = () => {
               <>
                 {/* Name + PRO Badge */}
                 <View style={styles.rows}>
-                  <Ionicons name="person-outline" size={18} color="#7da8ff" />
+                  <Ionicons name="person-outline" size={18} color="#a08afcff" />
 
                   <TextInput
                     value={tempName}
@@ -152,7 +153,7 @@ const Settings = () => {
                         borderColor: "#c77dff",
                       }}
                     >
-                      <Ionicons name="diamond" size={14} color="#ffd700" style={{ marginRight: 4 }} />
+                      <Ionicons name="diamond-outline" size={14} color="#ffd700" style={{ marginRight: 4 }} />
                       <Text style={{ color: "#ffd700", fontSize: 12, fontWeight: "700" }}>
                         PRO
                       </Text>
@@ -165,14 +166,14 @@ const Settings = () => {
                     <Ionicons
                       name={isEditing ? "checkmark" : "create-outline"}
                       size={20}
-                      color="#7da8ff"
+                      color="#a08afcff"
                     />
                   </Pressable>
                 </View>
 
                 {/* EMAIL */}
                 <View className="row" style={styles.row}>
-                  <Ionicons name="mail-outline" size={18} color="#7da8ff" />
+                  <Ionicons name="mail-outline" size={18} color="#a08afcff" />
                   <Text style={styles.emailText}>{user.email}</Text>
                 </View>
               </>
@@ -209,24 +210,22 @@ const Settings = () => {
                     { borderBottomWidth: 0.8, borderBottomColor: "#383737ff" },
                   ]}
                 >
-                  <Ionicons name="star" size={18} color="#ffd700" />
-                  <Text style={[styles.rowText, { color: "#ffd700" }]}>PRO Member</Text>
+                  <Ionicons name="diamond-outline" size={18} color="#faca2bff" />
+                  <Text style={[styles.rowText, { color: "#faca2bff", fontWeight: "600" }]}>PRO Member</Text>
                 </View>
 
                 {/* Manage Subscription */}
-                <Pressable
-                  style={styles.row}
+                <Item
+                  title="Manage Subscription"
+                  icon="settings-outline"
                   onPress={() => navigation.navigate("ManageSubscription")}
-                >
-                  <Ionicons name="settings-outline" size={18} color="#7da8ff" />
-                  <Text style={styles.rowText}>Manage Subscription</Text>
-                </Pressable>
+                />
               </>
             ) : (
               <>
                 <Item
                   title="Upgrade"
-                  icon="star-outline"
+                  icon="diamond-outline"
                   onPress={() => navigation.navigate("Subscription")}
                   style={{
                     borderBottomWidth: 0.8,
@@ -241,6 +240,15 @@ const Settings = () => {
           {/* FEEDBACK */}
           <Text style={styles.sectionTitle}>Feedback</Text>
           <View style={styles.sectionBox}>
+                        <Item
+              title="Rate us"
+              icon="star-outline"
+              style={{
+                borderBottomWidth: 0.8,
+                borderBottomColor: "#383737ff",
+              }}
+              onPress={showRatePopup}
+            />
             <Item
               title="Contact Support"
               icon="mail-outline"
