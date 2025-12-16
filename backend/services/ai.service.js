@@ -104,29 +104,22 @@ exports.generateWithAI = async (files, options) => {
     ...imageInputs,
   ]);
 
-  //  TOKEN USAGE
-  const usage = result.response.usageMetadata;
-
-  console.log("Gemini token usage:", {
-    input: usage.promptTokenCount,
-    output: usage.candidatesTokenCount,
-    total: usage.totalTokenCount,
-  });
-
+  // 🔹 ADDED (SAFE): TOKEN LOGGING ONLY — NO RETURN CHANGE
+  const usage = result.response?.usageMetadata;
+  if (usage) {
+    console.log("Gemini token usage:", {
+      input: usage.promptTokenCount,
+      output: usage.candidatesTokenCount,
+      total: usage.totalTokenCount,
+    });
+  }
+  // 🔹 END ADDED
 
   const output = result.response.text();
   const [cap1, cap2] = parseOutput(output);
 
-  return {
-    captions: [
-      { text: cap1 },
-      { text: cap2 },
-    ],
-    // RETURN TOKEN USAGE
-    usage: {
-      inputTokens: usage.promptTokenCount,
-      outputTokens: usage.candidatesTokenCount,
-      totalTokens: usage.totalTokenCount,
-    },
-  };
+  return [
+    { text: cap1 },
+    { text: cap2 },
+  ];
 };
