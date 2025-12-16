@@ -36,8 +36,17 @@ Your job is to create **TWO different captions** that feel:
 USER SETTINGS:
 • Mood: ${options.mood}
 • Length: ${options.length}
-• Emojis: ${options.useEmoji ? `yes, up to ${options.emojiCount}` : "no emojis"}
-• Hashtags: ${options.useHashtags ? `yes, up to ${options.hashtagCount}` : "no hashtags"}
+• Emojis: ${
+  options.emojiCount && options.emojiCount !== "Off"
+    ? `yes, up to ${options.emojiCount === "Auto" ? 5 : options.emojiCount}`
+    : "no emojis"
+}
+• Hashtags: ${
+  options.hashtagCount && options.hashtagCount !== "Off"
+    ? `yes, up to ${options.hashtagCount === "Auto" ? 8 : options.hashtagCount}`
+    : "no hashtags"
+}
+
 • Language: ${options.language}
 • User Message (context): ${options.message || "Not Provided"}
 
