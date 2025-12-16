@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
   /* GENERATE BUTTON */
   gnrbtn: {
     position: "absolute",
-    bottom: 15,
+    bottom: 25,
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
