@@ -8,8 +8,8 @@ async function processImages(files) {
   const converted = [];
   for (let img of files) {
     const buffer = await sharp(img.buffer)
-      .resize(800)
-      .jpeg({ quality: 80 })
+      .resize(640)
+      .jpeg({ quality: 70 })
       .toBuffer();
     converted.push({
       inlineData: {
@@ -23,55 +23,52 @@ async function processImages(files) {
 
 function buildPrompt(options, hasImages) {
   return `
-You are a professional Instagram caption writer who creates natural, aesthetic, human-sounding captions.
+You are an expert Instagram caption writer.
 
-Your job is to create **TWO different captions** that feel:
-• genuine  
-• emotional or aesthetic (based on mood)  
-• NOT robotic  
-• NOT generic  
-• NOT repetitive  
-• clean, modern, social-media ready  
+Generate **TWO different captions** that:
+- sound natural and human
+- match the selected mood
+- feel emotional or aesthetic
+- are modern, clean, and non-generic
+- are NOT robotic or repetitive
 
-USER SETTINGS:
-• Mood: ${options.mood}
-• Length: ${options.length}
-• Emojis: ${
+SETTINGS:
+Mood: ${options.mood}
+Length: ${options.length}
+Language: ${options.language}
+Emojis: ${
   options.emojiCount && options.emojiCount !== "Off"
-    ? `yes, up to ${options.emojiCount === "Auto" ? 5 : options.emojiCount}`
-    : "no emojis"
+    ? `allowed, up to ${options.emojiCount === "Auto" ? 5 : options.emojiCount}`
+    : "not allowed"
 }
-• Hashtags: ${
+Hashtags: ${
   options.hashtagCount && options.hashtagCount !== "Off"
-    ? `yes, up to ${options.hashtagCount === "Auto" ? 8 : options.hashtagCount}`
-    : "no hashtags"
+    ? `allowed, up to ${options.hashtagCount === "Auto" ? 8 : options.hashtagCount}`
+    : "not allowed"
 }
+User context: ${options.message || "None"}
 
-• Language: ${options.language}
-• User Message (context): ${options.message || "Not Provided"}
-
-STYLE RULES:
-1. Captions must sound like a real person wrote them.
-2. Do NOT describe the image directly like: “There is a sunset” — instead capture the *emotion, vibe, or moment*.
-3. Avoid clichés like “living my best life.”
-4. Keep the tone consistent with the selected mood.
-5. If hashtags are requested, include them naturally at the end.
-6. Avoid announcing the output (no: “Here are your captions”).
-7. Write only the captions.
+RULES:
+- Do NOT describe the image literally
+- Capture emotion, vibe, or moment instead
+- Avoid clichés
+- Keep tone consistent with mood
+- If used, place hashtags at the end
+- Output captions only (no explanations)
 
 ${
   hasImages
-    ? "Images WERE uploaded — use the FEELING and VIBE of the photo, not literal description."
-    : `No images uploaded — create captions ONLY using this message:\n"${options.message}"`
+    ? "Images are provided — use their vibe and feeling only."
+    : `No images — base captions only on this text:\n"${options.message}"`
 }
 
-Return EXACTLY this:
+Return EXACTLY:
 
 CAPTION_ONE:
-<caption text>
+<caption>
 
 CAPTION_TWO:
-<caption text>
+<caption>
 `;
 }
 
