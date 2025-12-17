@@ -8,6 +8,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ScrollView
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -124,6 +125,14 @@ const ResetPasswordScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+
+        <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ flexGrow: 1 }}
+             showsVerticalScrollIndicator={false} 
+          >
+
+         
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
@@ -256,6 +265,7 @@ const ResetPasswordScreen = () => {
         </Pressable>
 
       </View>
+       </ScrollView>
     </SafeAreaView>
   );
 };

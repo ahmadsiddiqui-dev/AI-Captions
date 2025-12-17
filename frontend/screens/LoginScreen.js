@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView, 
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,14 +32,13 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+
   useEffect(() => {
-  GoogleSignin.configure({
-    webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
-    offlineAccess: true
-
-  });
-}, []);
-
+    GoogleSignin.configure({
+      webClientId: "537694548839-kl9qrfghurm92ndd6adoefjp200512d2.apps.googleusercontent.com",
+      offlineAccess: true
+    });
+  }, []);
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -71,176 +71,159 @@ const LoginScreen = () => {
     setLoading(false);
   };
 
-const handleGoogleLogin = async () => {
-  try {
-    setErrorMessage(""); 
-    setGoogleLoading(true);
+  const handleGoogleLogin = async () => {
+    try {
+      setErrorMessage(""); 
+      setGoogleLoading(true);
 
-    await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.signOut();
 
-    // Force account chooser UI
-    await GoogleSignin.signOut();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo?.data?.idToken;
 
-    const userInfo = await GoogleSignin.signIn();
+      if (!idToken) {
+        setErrorMessage("Google Login Failed. Try again.");
+        setGoogleLoading(false);
+        return;
+      }
 
-    const idToken = userInfo?.data?.idToken;
+      const res = await googleAuth(idToken);
 
-    if (!idToken) {
+      if (res.success) {
+        await AsyncStorage.setItem("token", res.token);
+        await AsyncStorage.setItem("user", JSON.stringify(res.user));
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
+      } else {
+        setErrorMessage(res.message || "Google Login Failed");
+      }
+
+    } catch {
       setErrorMessage("Google Login Failed. Try again.");
-      setGoogleLoading(false);
-      return;
     }
 
-    const res = await googleAuth(idToken);
-
-    if (res.success) {
-      await AsyncStorage.setItem("token", res.token);
-      await AsyncStorage.setItem("user", JSON.stringify(res.user));
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" }],
-      });
-    } else {
-      setErrorMessage(res.message || "Google Login Failed");
-    }
-
-  } catch (error) {
-    setErrorMessage("Google Login Failed. Try again.");
-  }
-
-  setGoogleLoading(false);
-};
-
+    setGoogleLoading(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-          <Text style={styles.headerTitleb}>Back</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.bgTop} pointerEvents="none" />
-      <View style={styles.bgBottom} pointerEvents="none" />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }} // ✅ SAFETY ONLY
       >
-        <View style={styles.centerWrapper}>
-          <Text style={styles.topText}>Welcome Back!</Text>
 
-          <View style={styles.box}>
-            {/* EMAIL */}
-            <View style={styles.inputRow}>
-              <Ionicons
-                name="mail-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Enter your email"
-                placeholderTextColor="#8a8a8d"
-                style={styles.inputField}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+            <Text style={styles.headerTitleb}>Back</Text>
+          </Pressable>
+        </View>
 
-            {/* PASSWORD */}
-            <View style={styles.passwordRow2}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Enter password"
-                placeholderTextColor="#8a8a8d"
-                style={[styles.inputField, { flex: 1 }]}
-                secureTextEntry={!showPass}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
-                <Ionicons
-                  name={showPass ? "eye-off-outline" : "eye-outline"}
-                  size={22}
-                  color="#b5b5b5"
+        <View style={styles.bgTop} pointerEvents="none" />
+        <View style={styles.bgBottom} pointerEvents="none" />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.centerWrapper}>
+            <Text style={styles.topText}>Welcome Back!</Text>
+
+            <View style={styles.box}>
+              {/* EMAIL */}
+              <View style={styles.inputRow}>
+                <Ionicons name="mail-outline" size={18} color="#8a8a8d" style={styles.inputIcon} />
+                <TextInput
+                  placeholder="Enter your email"
+                  placeholderTextColor="#8a8a8d"
+                  style={styles.inputField}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
                 />
+              </View>
+
+              {/* PASSWORD */}
+              <View style={styles.passwordRow2}>
+                <Ionicons name="lock-closed-outline" size={18} color="#8a8a8d" style={styles.inputIcon} />
+                <TextInput
+                  placeholder="Enter password"
+                  placeholderTextColor="#8a8a8d"
+                  style={[styles.inputField, { flex: 1 }]}
+                  secureTextEntry={!showPass}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
+                  <Ionicons
+                    name={showPass ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color="#b5b5b5"
+                  />
+                </Pressable>
+              </View>
+
+              <Pressable onPress={() => navigation.navigate("ForgotPasswordScreen")}>
+                <Text style={styles.forgot}>Forgot Password?</Text>
+              </Pressable>
+
+              {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
+
+              <Pressable
+                onPress={handleLogin}
+                disabled={loading}
+                style={({ pressed }) => [
+                  styles.button,
+                  pressed && !loading && { transform: [{ scale: 0.96 }] },
+                ]}
+              >
+                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Login</Text>}
+              </Pressable>
+
+              <Text style={styles.or}>──────── OR ────────</Text>
+
+              <Pressable
+                onPress={handleGoogleLogin}
+                style={({ pressed }) => [
+                  styles.googleButton,
+                  pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 },
+                ]}
+              >
+                {googleLoading ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <>
+                    <Image
+                      source={require("../src/images/google.png")}
+                      style={{ width: 20, height: 20, marginRight: 10 }}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.googleText}>Continue with Google</Text>
+                  </>
+                )}
+              </Pressable>
+
+              <Pressable onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.registerText}>
+                  Don’t have an account? <Text style={styles.registerLink}>Register</Text>
+                </Text>
               </Pressable>
             </View>
-
-            <Pressable onPress={() => navigation.navigate("ForgotPasswordScreen")}>
-              <Text style={styles.forgot}>Forgot Password?</Text>
-            </Pressable>
-
-            {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
-
-            {/* LOGIN */}
-            <Pressable
-              onPress={handleLogin}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.button,
-                pressed && !loading && { transform: [{ scale: 0.96 }] },
-              ]}
-            >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Login</Text>
-              )}
-            </Pressable>
-
-            {/* OR */}
-            <Text style={styles.or}>──────── OR ────────</Text>
-
-            {/* GOOGLE LOGIN */}
-            <Pressable
-              onPress={handleGoogleLogin}
-              style={({ pressed }) => [
-                styles.googleButton,
-                pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 },
-              ]}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="black" />
-              ) : (
-                <>
-                  <Image
-                    source={require("../src/images/google.png")}
-                    style={{ width: 20, height: 20, marginRight: 10 }}
-                    resizeMode="contain"
-                  />
-
-                  <Text style={styles.googleText}>Continue with Google</Text>
-                </>
-              )}
-            </Pressable>
-
-
-            {/* REGISTER LINK */}
-            <Pressable onPress={() => navigation.navigate("Register")}>
-              <Text style={styles.registerText}>
-                Don’t have an account?{" "}
-                <Text style={styles.registerLink}>Register</Text>
-              </Text>
-            </Pressable>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default LoginScreen;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1a1822ff" },

@@ -9,12 +9,14 @@ import {
   ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets(); 
+
   const [selectedPlan, setSelectedPlan] = useState("1");
   const [loginPopup, setLoginPopup] = useState(false);
   const [trialEnabled, setTrialEnabled] = useState(false);
@@ -24,8 +26,8 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const successAnim = useRef(new Animated.Value(0)).current;
 
   const plans = [
-    { id: "1", title: "Monthly", price: "$4.99", period: "/month", tag: "POPULAR" },
-    { id: "2", title: "Yearly", price: "$29.99", period: "/year", tag: "SAVE 50%" },
+    { id: "1", title: "Monthly", price: "$9.99", period: "/month", tag: "POPULAR" },
+    { id: "2", title: "Yearly", price: "$59.99", period: "/year", tag: "SAVE 50%" },
   ];
 
   useEffect(() => {
@@ -108,16 +110,29 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#1a1822ff" }}>
-      
-      {/* SAFE CLOSE BUTTON (ADDED WRAPPER ONLY) */}
-      <View style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
+
+      {/* SAFE CLOSE BUTTON */}
+      <View
+        style={{
+          position: "absolute",
+          top: insets.top, 
+          right: 0,
+          zIndex: 10,
+        }}
+      >
         <Pressable style={styles.closeBtn} onPress={onClose || (() => navigation.goBack())}>
           <Ionicons name="close" size={28} color="#b5b5b5" />
         </Pressable>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          {
+            paddingTop: styles.container.paddingTop + insets.top,
+            paddingBottom: insets.bottom, 
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
 
@@ -249,6 +264,7 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
 
 export default SubscriptionScreen;
 
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#1a1822ff",
@@ -273,7 +289,7 @@ const styles = StyleSheet.create({
   headerBox: { alignItems: "center", marginVertical: 20 },
   title: { color: "white", fontSize: 32, fontWeight: "700", marginBottom: 4 },
   subtitle: { color: "#b5b5b5", fontSize: 15 },
-  featureBox: { marginBottom: 30, marginTop: 10 },
+  featureBox: { marginBottom: 20, marginTop: 0 },
   featureRow: { flexDirection: "row", alignItems: "center", marginVertical: 6 },
   featureText: { color: "white", fontSize: 14 },
 
@@ -340,7 +356,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   subscribeText: { color: "white", fontSize: 17, fontWeight: "700" },
-  restoreText: { color: "#7da8ff", textAlign: "center", marginTop: 12 },
+  restoreText: { color: "#7da8ff", textAlign: "center", marginTop: 12, },
 
   popupOverlay: {
     flex: 1,

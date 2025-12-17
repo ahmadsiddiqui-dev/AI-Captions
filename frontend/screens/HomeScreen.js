@@ -9,6 +9,7 @@ import {
   Easing,
   PermissionsAndroid,
   Platform,
+  useWindowDimensions, // ✅ ADDED
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -22,32 +23,27 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-useEffect(() => {
-  const checkSubscriptionPopup = async () => {
-    const token = await AsyncStorage.getItem("token");
+  const { width, height } = useWindowDimensions(); // ✅ ADDED
+  const isLandscape = width > height; // ✅ ADDED
 
-    // Delay 1.5 sec for smoother UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  useEffect(() => {
+    const checkSubscriptionPopup = async () => {
+      const token = await AsyncStorage.getItem("token");
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // 1 GUEST USER
-   
-    if (!token) {
-      navigation.navigate("Subscription");
-      return;
-    }
+      if (!token) {
+        navigation.navigate("Subscription");
+        return;
+      }
 
-    // 2 LOGGED-IN USER
-    const status = await getSubscriptionStatus();
+      const status = await getSubscriptionStatus();
+      if (!status.isSubscribed && !status.freeTrialEnabled) {
+        navigation.navigate("Subscription");
+      }
+    };
 
-    if (!status.isSubscribed && !status.freeTrialEnabled) {
-      navigation.navigate("Subscription");
-    }
-  };
-
-  checkSubscriptionPopup();
-}, []);
-
-
+    checkSubscriptionPopup();
+  }, []);
 
   const requestGalleryPermission = async () => {
     try {
@@ -113,47 +109,68 @@ useEffect(() => {
         </Pressable>
       </View>
 
-      {/* IMAGE SPACE */}
-      <View style={styles.imageWrapper}>
-        <Image
-          style={styles.ovalImage}
-          source={require("../src/images/img1.png")}
-        />
-      </View>
+      {/* MAIN WRAPPER (ONLY ADDITION) */}
+      <View style={{ flex: 1, flexDirection: isLandscape ? "row" : "column" }}>
 
-      {/* BOTTOM CONTENT */}
-      <View style={styles.bottomContent}>
-        <Text style={styles.title}>
-          Create Your{"\n"}
-          <Text style={{ fontWeight: "bold" }}>Perfect Caption!</Text>
-        </Text>
-
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <Pressable style={styles.button} onPress={pickImage}>
-            <Ionicons name="folder-outline" size={35} color="white" />
-            <Text style={styles.buttonText}>Select Photos</Text>
-          </Pressable>
-        </Animated.View>
-
-        <Text style={styles.policy}>
-          We temporarily process your photos{"\n"}and delete them once your caption is ready.
-        </Text>
-
-        <Pressable
-          onPress={() =>
-            navigation.navigate("CaptionGeneratorScreen", {
-              selectedImages: [],
-            })
-          }
+        {/* IMAGE SPACE */}
+        <View
+          style={[
+            styles.imageWrapper,
+            isLandscape && { width: "50%", height: "100%", marginTop: 0 } // ✅ LOGIC ONLY
+          ]}
         >
-          <Text style={styles.linkText}>Proceed Without Photos</Text>
-        </Pressable>
+          <Image
+            style={styles.ovalImage}
+            source={require("../src/images/img1.png")}
+          />
+        </View>
+
+        {/* RIGHT / BOTTOM CONTENT */}
+        <View
+          style={[
+            styles.bottomContent,
+            isLandscape && {
+              position: "relative",
+              bottom: 0,
+              width: "50%",
+              justifyContent: "center",
+            }, // ✅ LOGIC ONLY
+          ]}
+        >
+          <Text style={styles.title}>
+            Create Your{"\n"}
+            <Text style={{ fontWeight: "bold" }}>Perfect Caption!</Text>
+          </Text>
+
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <Pressable style={styles.button} onPress={pickImage}>
+              <Ionicons name="folder-outline" size={35} color="white" />
+              <Text style={styles.buttonText}>Select Photos</Text>
+            </Pressable>
+          </Animated.View>
+
+          <Text style={styles.policy}>
+            We temporarily process your photos{"\n"}and delete them once your caption is ready.
+          </Text>
+
+          <Pressable
+            onPress={() =>
+              navigation.navigate("CaptionGeneratorScreen", {
+                selectedImages: [],
+              })
+            }
+          >
+            <Text style={styles.linkText}>Proceed Without Photos</Text>
+          </Pressable>
+        </View>
+
       </View>
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1a1822ff" },

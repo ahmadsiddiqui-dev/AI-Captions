@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  ScrollView, 
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -132,65 +133,23 @@ const RegisterScreen = () => {
   setLoading(false);
 };
 
-//  const handleGoogleSignup = async () => {
-//   try {
-//     setErrorMessage("");
-//     setGoogleLoading(true);
 
-//     await GoogleSignin.hasPlayServices();
-
-//     await GoogleSignin.signOut();
-
-//     const userInfo = await GoogleSignin.signIn();
-
-//     const idToken = userInfo?.data?.idToken;
-
-//     if (!idToken) {
-//       setErrorMessage("Google Signup Failed");
-//       return;
-//     }
-
-//     const res = await googleAuth(idToken);
-
-//     if (res.success && res.token) {
-//       await AsyncStorage.setItem("token", res.token);
-//       await AsyncStorage.setItem("user", JSON.stringify(res.user));
-
-//       navigation.reset({
-//         index: 0,
-//         routes: [{ name: "Home" }],
-//       });
-//     } else {
-//       setErrorMessage(res.message || "Google Signup Failed");
-//     }
-
-//   } catch (error) {
-//     if (error?.code !== statusCodes.SIGN_IN_CANCELLED) {
-//       setErrorMessage("Google Login Failed. Try again.");
-//     }
-//   }
-
-//   setGoogleLoading(false);
-// };
 const handleGoogleSignup = async () => {
   try {
     setErrorMessage("");
     setGoogleLoading(true);
 
-    // ensure Play Services (shows update dialog if needed)
+    
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-    // Sign out first (best-effort) to guarantee fresh account selection
     try {
       await GoogleSignin.signOut();
     } catch (e) {
-      // ignore signOut errors (not critical)
     }
 
     // Sign in
     const userInfo = await GoogleSignin.signIn();
 
-    // Robust idToken extraction for different GoogleSignin versions/shapes
     const idToken =
       userInfo?.idToken ||
       userInfo?.user?.idToken ||
@@ -204,7 +163,6 @@ const handleGoogleSignup = async () => {
       return;
     }
 
-    // Call backend to authenticate / create user
     const res = await googleAuth(idToken);
 
     if (res && res.success && res.token) {
@@ -212,16 +170,13 @@ const handleGoogleSignup = async () => {
       await AsyncStorage.setItem("token", res.token);
       await AsyncStorage.setItem("user", JSON.stringify(res.user));
 
-      // fetch subscription status from backend and store it
       try {
         const subStatus = await getSubscriptionStatus();
         await AsyncStorage.setItem("subscription", JSON.stringify(subStatus));
       } catch (e) {
-        // If subscription fetch fails, still allow login — just log
         console.warn("Failed to fetch subscription status:", e?.message || e);
       }
 
-      // Navigate to Home
       navigation.reset({
         index: 0,
         routes: [{ name: "Home" }],
@@ -230,10 +185,8 @@ const handleGoogleSignup = async () => {
       setErrorMessage(res?.message || "Google Signup Failed");
     }
   } catch (error) {
-    // Recognize cancellation vs other failures
     if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-      // user cancelled the sign-in, don't show an error if you don't want to
-      setErrorMessage(""); // or keep as is
+      setErrorMessage(""); 
     } else if (error?.code === statusCodes.IN_PROGRESS) {
       setErrorMessage("Google sign-in already in progress");
     } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
@@ -251,6 +204,11 @@ const handleGoogleSignup = async () => {
   return (
     <SafeAreaView style={styles.container}>
 
+        <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ flexGrow: 1 }}
+       showsVerticalScrollIndicator={false} 
+    >
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
@@ -457,6 +415,8 @@ const handleGoogleSignup = async () => {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
@@ -171,6 +172,8 @@ const AIButton = ({ loading, onPress }) => {
 const CaptionGeneratorScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
+
 
   /* STATES */
   const initialImages = route.params?.selectedImages ?? [];
@@ -602,9 +605,10 @@ const CaptionGeneratorScreen = () => {
       </ScrollView>
 
       {/* GENERATE BUTTON */}
-      <View style={styles.gnrbtn}>
+      <View style={[styles.gnrbtn, { bottom: 25 + insets.bottom }]}>
         <AIButton loading={loading} onPress={generateCaptions} />
       </View>
+
 
       {/* BOTTOM SHEET */}
       {renderSheet()}
