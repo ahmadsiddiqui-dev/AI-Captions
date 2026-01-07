@@ -19,6 +19,8 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getSubscriptionStatus } from "../api/api";
+import { getOrCreateDeviceId } from "../src/utils/deviceId";
+
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -31,6 +33,14 @@ const HomeScreen = () => {
   const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
 
   useEffect(() => {
+      const init = async () => {
+    try {
+      await getOrCreateDeviceId();
+    } catch {}
+  };
+
+  init();
+
     const checkSubscriptionPopup = async () => {
       const token = await AsyncStorage.getItem("token");
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -47,7 +57,10 @@ const HomeScreen = () => {
     };
 
     checkSubscriptionPopup();
+    
   }, []);
+
+  
 
   const pickImage = async () => {
     if (Platform.OS === "android") {

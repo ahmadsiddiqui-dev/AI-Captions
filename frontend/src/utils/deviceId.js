@@ -5,9 +5,9 @@ export const getOrCreateDeviceId = async () => {
   let deviceId = await AsyncStorage.getItem("device_id");
 
   if (!deviceId) {
-    deviceId = uuidv4();
+    deviceId = uuidv4(); // STRING
     await AsyncStorage.setItem("device_id", deviceId);
   }
 
-  return deviceId;
+  return deviceId; // STRING
 };

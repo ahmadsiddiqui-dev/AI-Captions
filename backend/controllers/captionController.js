@@ -25,8 +25,20 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
+      console.log("HEADERS:", req.headers);
+      console.log("x-device-id value:", req.headers["x-device-id"]);
+      console.log("x-device-id type:", typeof req.headers["x-device-id"]);
+
       const user = await getUserFromReq(req);
-      const deviceId = req.headers["x-device-id"]; 
+      const deviceId = req.headers["x-device-id"];
+
+      if (
+        !deviceId ||
+        typeof deviceId !== "string" ||
+        deviceId === "[object Object]"
+      ) {
+        return res.status(400).json({ message: "Invalid device ID" });
+      }
 
       let isSubscribed = false;
       let freeTrialEnabled = false;

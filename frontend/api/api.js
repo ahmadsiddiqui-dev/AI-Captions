@@ -162,6 +162,8 @@ export const generateCaptions = async (formData) => {
     const token = await AsyncStorage.getItem("token");
     const deviceId = await getOrCreateDeviceId();
 
+    console.log("SENDING DEVICE ID:", deviceId, typeof deviceId);
+
     const res = await fetch(`${CAPTION_URL}/generate-captions`, {
       method: "POST",
       headers: {
