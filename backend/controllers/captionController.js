@@ -30,7 +30,7 @@ exports.generateCaptions = (req, res) => {
       console.log("x-device-id type:", typeof req.headers["x-device-id"]);
 
       const user = await getUserFromReq(req);
-      const deviceId = req.headers["x-device-id"];
+      const deviceId = req.body.deviceId;
 
       if (
         !deviceId ||

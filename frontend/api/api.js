@@ -17,7 +17,7 @@ export const registerUser = async (data) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-device-id": deviceId,
+        "x-device-id": String(deviceId),
       },
       body: JSON.stringify(data),
     });
@@ -52,7 +52,7 @@ export const loginUser = async (data) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-device-id": deviceId,
+        "x-device-id": String(deviceId),
       },
       body: JSON.stringify(data),
     });
@@ -162,13 +162,12 @@ export const generateCaptions = async (formData) => {
     const token = await AsyncStorage.getItem("token");
     const deviceId = await getOrCreateDeviceId();
 
-    console.log("SENDING DEVICE ID:", deviceId, typeof deviceId);
+    formData.append("deviceId", deviceId); 
 
     const res = await fetch(`${CAPTION_URL}/generate-captions`, {
       method: "POST",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        "x-device-id": deviceId,
       },
       body: formData,
     });
@@ -180,6 +179,8 @@ export const generateCaptions = async (formData) => {
 };
 
 
+
+
 // ========== GOOGLE LOGIN ==========
 export const googleAuth = async (idToken) => {
   try {
@@ -189,7 +190,7 @@ export const googleAuth = async (idToken) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-device-id": deviceId,
+        "x-device-id": String(deviceId),
       },
       body: JSON.stringify({ idToken }),
     });
