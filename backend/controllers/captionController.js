@@ -26,14 +26,14 @@ exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
       const user = await getUserFromReq(req);
-      const deviceId = req.headers["x-device-id"]; // <<< IMPORTANT
+      const deviceId = req.headers["x-device-id"]; 
 
       let isSubscribed = false;
       let freeTrialEnabled = false;
       let freeCaptionCount = 0;
 
       // ============================
-      // 1️⃣ GUEST USER LOGIC
+      //  GUEST USER LOGIC
       // ============================
       if (!user) {
 
@@ -69,7 +69,7 @@ exports.generateCaptions = (req, res) => {
       }
 
       // ============================
-      // 2️⃣ LOGGED-IN USER LOGIC
+      //  LOGGED-IN USER LOGIC
       // ============================
 
       const sub = await Subscription.findOne({ userId: user._id });

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,22 +9,26 @@ import {
   Easing,
   PermissionsAndroid,
   Platform,
-  useWindowDimensions, // ✅ ADDED
+  useWindowDimensions,
+  Modal,
+  Linking,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import { getSubscriptionStatus } from "../api/api"; 
+import { getSubscriptionStatus } from "../api/api";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const { width, height } = useWindowDimensions(); // ✅ ADDED
-  const isLandscape = width > height; // ✅ ADDED
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
+  const permissionDeniedOnceRef = useRef(false);
+  const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
 
   useEffect(() => {
     const checkSubscriptionPopup = async () => {
@@ -45,26 +49,29 @@ const HomeScreen = () => {
     checkSubscriptionPopup();
   }, []);
 
-  const requestGalleryPermission = async () => {
-    try {
-      if (Platform.OS === "android") {
-        if (Platform.Version >= 33) {
-          return await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
-          );
-        }
-        return await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-        );
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
-
   const pickImage = async () => {
-    const granted = await requestGalleryPermission();
-    if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
+    if (Platform.OS === "android") {
+      const permission =
+        Platform.Version >= 33
+          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+      const hasPermission = await PermissionsAndroid.check(permission);
+
+      if (!hasPermission) {
+        if (permissionDeniedOnceRef.current) {
+          setPermissionPopupVisible(true);
+          return;
+        }
+
+        const result = await PermissionsAndroid.request(permission);
+
+        if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+          permissionDeniedOnceRef.current = true;
+          return;
+        }
+      }
+    }
 
     launchImageLibrary(
       { mediaType: "photo", selectionLimit: 5 },
@@ -101,22 +108,17 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-
-      {/* SETTINGS ICON */}
       <View style={[styles.topRight, { top: insets.top + 10 }]}>
         <Pressable onPress={() => navigation.push("Settings")}>
           <Ionicons name="cog-outline" size={30} color="#b3b1b1ff" />
         </Pressable>
       </View>
 
-      {/* MAIN WRAPPER (ONLY ADDITION) */}
       <View style={{ flex: 1, flexDirection: isLandscape ? "row" : "column" }}>
-
-        {/* IMAGE SPACE */}
         <View
           style={[
             styles.imageWrapper,
-            isLandscape && { width: "50%", height: "100%", marginTop: 0 } // ✅ LOGIC ONLY
+            isLandscape && { width: "50%", height: "100%", marginTop: 0 }
           ]}
         >
           <Image
@@ -125,7 +127,6 @@ const HomeScreen = () => {
           />
         </View>
 
-        {/* RIGHT / BOTTOM CONTENT */}
         <View
           style={[
             styles.bottomContent,
@@ -134,7 +135,7 @@ const HomeScreen = () => {
               bottom: 0,
               width: "50%",
               justifyContent: "center",
-            }, // ✅ LOGIC ONLY
+            },
           ]}
         >
           <Text style={styles.title}>
@@ -163,14 +164,44 @@ const HomeScreen = () => {
             <Text style={styles.linkText}>Proceed Without Photos</Text>
           </Pressable>
         </View>
-
       </View>
+
+      <Modal visible={permissionPopupVisible} transparent animationType="fade">
+        <Pressable
+          style={styles.popupOverlay}
+          onPress={() => setPermissionPopupVisible(false)}
+        >
+          <Pressable
+            style={styles.popupBox}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.popupTitle}>Permission Required</Text>
+
+            <Text style={styles.popupText}>
+              Please allow photo access from settings to select photos.
+            </Text>
+
+            <Pressable
+              style={styles.popupBtn}
+              onPress={() => {
+                setPermissionPopupVisible(false);
+                Linking.openSettings();
+              }}
+            >
+              <Text style={styles.popupBtnText}>Open Settings</Text>
+            </Pressable>
+
+            <Pressable onPress={() => setPermissionPopupVisible(false)}>
+              <Text style={styles.popupCancel}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1a1822ff" },
@@ -248,5 +279,54 @@ const styles = StyleSheet.create({
     color: "#ffffffa4",
     fontSize: 16,
     fontWeight: "500",
+  },
+
+  popupOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  popupBox: {
+    width: 280,
+    backgroundColor: "#2a2736",
+    padding: 22,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+
+  popupTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
+  popupText: {
+    color: "#bbb",
+    fontSize: 14,
+    marginBottom: 15,
+    textAlign: "center",
+  },
+
+  popupBtn: {
+    backgroundColor: "#7d5df8",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+
+  popupBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  popupCancel: {
+    color: "#bbb",
+    fontSize: 14,
+    marginTop: 15,
   },
 });

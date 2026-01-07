@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
 
   const [selectedPlan, setSelectedPlan] = useState("1");
   const [loginPopup, setLoginPopup] = useState(false);
@@ -115,7 +115,7 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
       <View
         style={{
           position: "absolute",
-          top: insets.top, 
+          top: insets.top,
           right: 0,
           zIndex: 10,
         }}
@@ -130,7 +130,7 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
           styles.container,
           {
             paddingTop: styles.container.paddingTop + insets.top,
-            paddingBottom: insets.bottom, 
+            paddingBottom: insets.bottom,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -210,10 +210,16 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
 
       </ScrollView>
 
-      {/* POPUPS UNCHANGED */}
+      {/* POPUPS */}
       <Modal visible={loginPopup} transparent animationType="fade">
-        <View style={styles.popupOverlay}>
-          <View style={styles.popupBox}>
+        <Pressable
+          style={styles.popupOverlay}
+          onPress={() => setLoginPopup(false)}
+        >
+          <Pressable
+            style={styles.popupBox}
+            onPress={(e) => e.stopPropagation()}
+          >
             <Text style={styles.popupTitle}>Login Required</Text>
             <Text style={styles.popupDesc}>Please login to continue.</Text>
 
@@ -230,9 +236,10 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
             <Pressable onPress={() => setLoginPopup(false)} style={{ marginTop: 10 }}>
               <Text style={{ color: "#bbb" }}>Cancel</Text>
             </Pressable>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
+
 
       <Modal visible={successPopup} transparent>
         <View style={styles.popupOverlay}>
@@ -272,11 +279,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingTop: 50,
   },
-  closeBtn: { 
-  padding: 10,
-  marginTop: 10,
-  marginRight: 10
-},
+  closeBtn: {
+    padding: 10,
+    marginTop: 10,
+    marginRight: 10
+  },
   freeTrial: {
     alignSelf: "center",
     backgroundColor: "#7d5df8",
@@ -380,28 +387,28 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   loginBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
- successOverlay: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: "rgba(0,0,0,0.6)",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 999,
-},
-successBox: {
-  backgroundColor: "#2a2736",
-  padding: 30,
-  borderRadius: 20,
-  alignItems: "center",
-},
-successText: {
-  color: "white",
-  fontSize: 20,
-  fontWeight: "700",
-  marginTop: 10,
-},
+  successOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+  successBox: {
+    backgroundColor: "#2a2736",
+    padding: 30,
+    borderRadius: 20,
+    alignItems: "center",
+  },
+  successText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 10,
+  },
 
 });

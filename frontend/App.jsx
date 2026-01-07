@@ -1,10 +1,10 @@
-// App.js
+
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// ⭐ ADD THESE TWO IMPORTS
+
 import RateAppModal from "./src/components/RateAppModal";
 import { registerRatePopup } from "./src/utils/rateHelper";
 
@@ -70,7 +70,7 @@ export default function App() {
             
           </Stack.Navigator>
 
-          {/*  ADD THIS BELOW NAVIGATOR */}
+          {/*   */}
           <RateAppModal visible={showRate} onClose={() => setShowRate(false)}
           />
         </>

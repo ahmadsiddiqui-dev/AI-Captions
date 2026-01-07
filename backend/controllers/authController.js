@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
+const mergeGuestIntoUser = require("../utils/mergeGuestIntoUser");
+
 
 
 const otpStore = new Map();
@@ -18,22 +20,22 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const sendOtpEmail = async (email, otp, name, type) => {
   const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-  authMethod: "LOGIN",
-  tls: {
-    rejectUnauthorized: false,
-    minVersion: "TLSv1.2",
-  },
-  logger: true,
-  debug: true
-});
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.SMTP_EMAIL,
+      pass: process.env.SMTP_PASSWORD,
+    },
+    authMethod: "LOGIN",
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: "TLSv1.2",
+    },
+    logger: true,
+    debug: true
+  });
 
   const isRegister = type === "register";
   const subject = isRegister
@@ -220,6 +222,9 @@ exports.register = async (req, res) => {
       { upsert: true, new: true }
     );
 
+    const deviceId = req.headers["x-device-id"];
+    await mergeGuestIntoUser(deviceId, newUser._id);
+
     return res.status(201).json({
       message: "Registration successful",
       user: {
@@ -297,6 +302,8 @@ exports.verifyOtp = async (req, res) => {
 };
 
 // ===================== LOGIN =====================
+
+
 // exports.login = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
@@ -315,22 +322,31 @@ exports.verifyOtp = async (req, res) => {
 
 //     const token = generateToken(user._id);
 
-//       await Subscription.findOneAndUpdate(
+//     // Ensure subscription exists
+//     const subscription = await Subscription.findOneAndUpdate(
 //       { userId: user._id },
 //       { userId: user._id },
-//       { upsert: true }
+//       { upsert: true, new: true }
 //     );
 
 //     return res.status(200).json({
 //       token,
-//       user: { 
-//         id: user._id, 
-//         name: user.name, 
+//       user: {
+//         id: user._id,
+//         name: user.name,
 //         email: user.email,
-//         isSubscribed: user.isSubscribed,
-//         subscriptionExpires: user.subscriptionExpires,
-//         freeCaptionsUsed: user.freeCaptionsUsed,
 //       },
+//       subscription: {
+//         isSubscribed: subscription.isSubscribed,
+//         freeTrialEnabled: subscription.freeTrialEnabled,
+//         freeTrialUsed: subscription.freeTrialUsed,
+//         freeTrialStart: subscription.freeTrialStart,
+//         freeTrialEnd: subscription.freeTrialEnd,
+//         productId: subscription.productId,
+//         purchaseDate: subscription.purchaseDate,
+//         expiryDate: subscription.expiryDate,
+//         freeCaptionCount: subscription.freeCaptionCount,
+//       }
 //     });
 
 //   } catch (err) {
@@ -356,12 +372,14 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    // Ensure subscription exists
     const subscription = await Subscription.findOneAndUpdate(
       { userId: user._id },
       { userId: user._id },
       { upsert: true, new: true }
     );
+
+    const deviceId = req.headers["x-device-id"];
+    await mergeGuestIntoUser(deviceId, user._id);
 
     return res.status(200).json({
       token,
@@ -584,6 +602,9 @@ exports.googleAuth = async (req, res) => {
     );
 
     const token = generateToken(user._id);
+
+    const deviceId = req.headers["x-device-id"];
+    await mergeGuestIntoUser(deviceId, user._id);
 
     return res.status(200).json({
       success: true,

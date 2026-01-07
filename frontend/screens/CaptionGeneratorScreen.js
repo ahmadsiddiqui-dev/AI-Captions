@@ -13,6 +13,8 @@ import {
   Animated,
   Modal,
   TouchableOpacity,
+  loading,
+  Linking,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +25,7 @@ import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
 import DeviceInfo from "react-native-device-info";
 import { tryShowRatePopup } from '../src/utils/rateHelper';
+import { PermissionsAndroid } from "react-native";
 
 
 /* Android Layout Animation */
@@ -30,6 +33,7 @@ if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+const isBlocked = loading;
 
 const BASE_URL = "https://ai-captions.onrender.com/api/captions";
 
@@ -199,6 +203,11 @@ const CaptionGeneratorScreen = () => {
 
   /* Popup for add photo */
   const [popupVisible, setPopupVisible] = useState(false);
+  const [popupType, setPopupType] = useState("content");
+  const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
+  const permissionDeniedOnceRef = useRef(false);
+
+
 
   /* CHECK PREMIUM */
   useEffect(() => {
@@ -223,14 +232,51 @@ const CaptionGeneratorScreen = () => {
   }, []);
 
   /* IMAGE PICKER */
-  const addPhotos = () => {
-    launchImageLibrary({ selectionLimit: 5 - images.length, mediaType: "photo" }, (res) => {
-      if (res.assets) {
-        setImages([...images, ...res.assets]);
-        LayoutAnimation.easeInEaseOut();
+  const addPhotos = async () => {
+    if (images.length >= 5) return;
+
+    if (Platform.OS === "android") {
+      const permission =
+        Platform.Version >= 33
+          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+      const hasPermission = await PermissionsAndroid.check(permission);
+
+      if (!hasPermission) {
+        if (permissionDeniedOnceRef.current) {
+          setPermissionPopupVisible(true);
+          return;
+        }
+
+        const result = await PermissionsAndroid.request(permission);
+
+        if (result === PermissionsAndroid.RESULTS.GRANTED) {
+          // ok
+        } else {
+          permissionDeniedOnceRef.current = true;
+          return;
+        }
       }
-    });
+    }
+
+
+    launchImageLibrary(
+      {
+        selectionLimit: 5 - images.length,
+        mediaType: "photo",
+      },
+      (res) => {
+        if (res.didCancel) return;
+
+        if (res.assets) {
+          setImages([...images, ...res.assets]);
+          LayoutAnimation.easeInEaseOut();
+        }
+      }
+    );
   };
+
 
   const removeImage = (index) => {
     const arr = [...images];
@@ -396,6 +442,7 @@ const CaptionGeneratorScreen = () => {
     }
 
     const handleSelect = (value) => {
+      if (loading) return;
       if (sheetType === "mood") setMoodOption(value);
       if (sheetType === "language") setLanguage(value);
       if (sheetType === "emoji") setEmojiCount(value);
@@ -508,16 +555,31 @@ const CaptionGeneratorScreen = () => {
         <Text style={styles.labelp}>Photos</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
-          <Pressable style={styles.addBox} onPress={addPhotos}>
+          <Pressable
+            style={styles.addBox}
+            onPress={() => {
+              if (loading || images.length >= 5) return;
+              addPhotos();
+            }}
+            disabled={loading || images.length >= 5}
+          >
             <Ionicons name="add" size={32} color="#134885ff" />
           </Pressable>
+
 
           {images.map((img, i) => (
             <View key={i} style={styles.imageBox}>
               <Image source={{ uri: img.uri }} style={styles.image} />
-              <Pressable style={styles.removeBtn} onPress={() => removeImage(i)}>
+              <Pressable
+                style={styles.removeBtn}
+                onPress={() => {
+                  if (loading) return;
+                  removeImage(i);
+                }}
+              >
                 <Ionicons name="close" size={16} color="white" />
               </Pressable>
+
             </View>
           ))}
         </ScrollView>
@@ -534,9 +596,11 @@ const CaptionGeneratorScreen = () => {
             onChangeText={setMessage}
             style={styles.input}
             multiline
+            editable={!loading}
           />
           <View style={styles.inputSeparator} />
         </View>
+
 
 
         {/* CAPTIONS */}
@@ -559,7 +623,13 @@ const CaptionGeneratorScreen = () => {
         <Text style={styles.customizeTitle}>Customize (Optional)</Text>
 
         {/* ROWS */}
-        <Pressable style={styles.rowCard} onPress={() => openSheet("length")}>
+        <Pressable
+          style={styles.rowCard}
+          onPress={() => {
+            if (loading) return;
+            openSheet("length");
+          }}
+        >
           <Text style={styles.rowLeft}>Caption Length</Text>
           <View style={styles.rowRightBox}>
             <Text style={styles.rowRight}>{lengthOption}</Text>
@@ -567,7 +637,13 @@ const CaptionGeneratorScreen = () => {
           </View>
         </Pressable>
 
-        <Pressable style={styles.rowCard} onPress={() => openSheet("mood")}>
+        <Pressable
+          style={styles.rowCard}
+          onPress={() => {
+            if (loading) return;
+            openSheet("mood");
+          }}
+        >
           <Text style={styles.rowLeft}>Mood</Text>
           <View style={styles.rowRightBox}>
             <Text style={styles.rowRight}>{moodOption}</Text>
@@ -575,7 +651,13 @@ const CaptionGeneratorScreen = () => {
           </View>
         </Pressable>
 
-        <Pressable style={styles.rowCard} onPress={() => openSheet("emoji")}>
+        <Pressable
+          style={styles.rowCard}
+          onPress={() => {
+            if (loading) return;
+            openSheet("emoji");
+          }}
+        >
           <Text style={styles.rowLeft}>Emojis</Text>
           <View style={styles.rowRightBox}>
             <Text style={styles.rowRight}>{String(emojiCount)}</Text>
@@ -583,7 +665,13 @@ const CaptionGeneratorScreen = () => {
           </View>
         </Pressable>
 
-        <Pressable style={styles.rowCard} onPress={() => openSheet("hashtag")}>
+        <Pressable
+          style={styles.rowCard}
+          onPress={() => {
+            if (loading) return;
+            openSheet("hashtag");
+          }}
+        >
           <Text style={styles.rowLeft}>Hashtags</Text>
           <View style={styles.rowRightBox}>
             <Text style={styles.rowRight}>{String(hashtagCount)}</Text>
@@ -591,13 +679,20 @@ const CaptionGeneratorScreen = () => {
           </View>
         </Pressable>
 
-        <Pressable style={styles.rowCard} onPress={() => openSheet("language")}>
+        <Pressable
+          style={styles.rowCard}
+          onPress={() => {
+            if (loading) return;
+            openSheet("language");
+          }}
+        >
           <Text style={styles.rowLeft}>Language</Text>
           <View style={styles.rowRightBox}>
             <Text style={styles.rowRight}>{language}</Text>
             <Ionicons name="chevron-forward" size={18} color="#777" />
           </View>
         </Pressable>
+
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -615,11 +710,17 @@ const CaptionGeneratorScreen = () => {
 
       {/* PHOTO POPUP */}
       <Modal visible={popupVisible} transparent animationType="fade">
-        <View style={styles.popupOverlay}>
-          <View style={styles.popupBox}>
-            <Text style={styles.popupTitle}>Photo Required</Text>
+        <Pressable
+          style={styles.popupOverlay}
+          onPress={() => setPopupVisible(false)}
+        >
+          <Pressable
+            style={styles.popupBox}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.popupTitle}>Content Required</Text>
             <Text style={styles.popupText}>
-              Please add at least one photo or description.
+              Please add at least one photo or description to generate a caption.
             </Text>
 
             <Pressable
@@ -635,9 +736,43 @@ const CaptionGeneratorScreen = () => {
             <Pressable onPress={() => setPopupVisible(false)}>
               <Text style={styles.popupCancel}>Cancel</Text>
             </Pressable>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
+
+      <Modal visible={permissionPopupVisible} transparent animationType="fade">
+        <Pressable
+          style={styles.popupOverlay}
+          onPress={() => setPermissionPopupVisible(false)}
+        >
+          <Pressable
+            style={styles.popupBox}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.popupTitle}>Permission Required</Text>
+
+            <Text style={styles.popupText}>
+              Please allow photo access from settings to add photos.
+            </Text>
+
+            <Pressable
+              style={styles.popupBtn}
+              onPress={() => {
+                setPermissionPopupVisible(false);
+                Linking.openSettings();
+              }}
+            >
+              <Text style={styles.popupBtnText}>Open Settings</Text>
+            </Pressable>
+
+            <Pressable onPress={() => setPermissionPopupVisible(false)}>
+              <Text style={styles.popupCancel}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+
     </SafeAreaView>
   );
 };

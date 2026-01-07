@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -22,12 +22,25 @@ const Settings = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const nameInputRef = useRef(null);
+
   const [tempName, setTempName] = useState("");
+  const isNameValid = (tempName || "").trim().length >= 3;
+
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [freeTrial, setFreeTrial] = useState(false);
 
   const [loadingSub, setLoadingSub] = useState(true);
+
+  useEffect(() => {
+    if (isEditing) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isEditing]);
+
 
   useEffect(() => {
     const loadUser = async () => {
@@ -67,17 +80,20 @@ const Settings = () => {
   }
 
   const handleSaveName = async () => {
-    if (!tempName.trim()) return;
+    const trimmedName = tempName.trim();
 
-    const updatedUser = { ...user, name: tempName.trim() };
+    if (trimmedName.length < 3) return;
+
+    const updatedUser = { ...user, name: trimmedName };
     setUser(updatedUser);
 
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-    updateName(tempName.trim()).catch(() => { });
+    updateName(trimmedName).catch(() => { });
 
     Keyboard.dismiss();
     setIsEditing(false);
   };
+
 
   const handleLogout = async () => {
     try {
@@ -115,7 +131,7 @@ const Settings = () => {
       </View>
 
       <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="always">
           {/* ACCOUNT */}
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionBox}>
@@ -126,10 +142,17 @@ const Settings = () => {
                   <Ionicons name="person-outline" size={18} color="#a08afcff" />
 
                   <TextInput
+                    ref={nameInputRef}
                     value={tempName}
-                    onChangeText={setTempName}
+                    onChangeText={(text) => {
+                      if (text.length <= 15) {
+                        setTempName(text);
+                      }
+                    }}
+                    maxLength={15}
                     editable={isEditing}
-                    autoFocus={isEditing}
+                    autoFocus={false}
+                    returnKeyType="done"
                     style={{
                       color: "white",
                       fontSize: 16,
@@ -161,7 +184,16 @@ const Settings = () => {
                   )}
 
                   <Pressable
-                    onPress={() => (isEditing ? handleSaveName() : setIsEditing(true))}
+                    onPress={() => {
+                      if (isEditing) {
+                        if (!isNameValid) return;
+                        handleSaveName();
+                      } else {
+                        setIsEditing(true);
+                      }
+                    }}
+                    disabled={isEditing && !isNameValid}
+                    style={isEditing && !isNameValid ? { opacity: 0.5 } : null}
                   >
                     <Ionicons
                       name={isEditing ? "checkmark" : "create-outline"}
@@ -169,6 +201,7 @@ const Settings = () => {
                       color="#a08afcff"
                     />
                   </Pressable>
+
                 </View>
 
                 {/* EMAIL */}
@@ -240,7 +273,7 @@ const Settings = () => {
           {/* FEEDBACK */}
           <Text style={styles.sectionTitle}>Feedback</Text>
           <View style={styles.sectionBox}>
-                        <Item
+            <Item
               title="Rate us"
               icon="star-outline"
               style={{

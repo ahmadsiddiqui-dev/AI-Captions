@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getOrCreateDeviceId } from "../utils/deviceId";
+
 
 // BASE URLs
 const AUTH_URL = "https://my-ai-captions.onrender.com/api/auth";
@@ -9,16 +11,23 @@ const SUB_URL = "https://my-ai-captions.onrender.com/api/subscription";
 // ========== Register User ==========
 export const registerUser = async (data) => {
   try {
+    const deviceId = await getOrCreateDeviceId();
+
     const res = await fetch(`${AUTH_URL}/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-device-id": deviceId,
+      },
       body: JSON.stringify(data),
     });
+
     return await res.json();
   } catch {
     return { message: "Cannot connect to server" };
   }
 };
+
 
 // ========== Verify OTP ==========
 export const verifyOtp = async (data) => {
@@ -37,16 +46,23 @@ export const verifyOtp = async (data) => {
 // ========== Login ==========
 export const loginUser = async (data) => {
   try {
+    const deviceId = await getOrCreateDeviceId();
+
     const res = await fetch(`${AUTH_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-device-id": deviceId,
+      },
       body: JSON.stringify(data),
     });
+
     return await res.json();
   } catch {
     return { message: "Cannot connect to server" };
   }
 };
+
 
 // ========== Resend OTP ==========
 export const resendOtp = async (data) => {
@@ -124,16 +140,35 @@ export const updateName = async (newName) => {
 };
 
 // ========== Generate Captions (AI) ==========
+// export const generateCaptions = async (formData) => {
+//   try {
+//     const token = await AsyncStorage.getItem("token");
+
+//     const res = await fetch(`${CAPTION_URL}/generate-captions`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: token ? `Bearer ${token}` : undefined,
+//       },
+//       body: formData, 
+//     });
+
+//     return await res.json();
+//   } catch {
+//     return { message: "Cannot connect to server" };
+//   }
+// };
 export const generateCaptions = async (formData) => {
   try {
     const token = await AsyncStorage.getItem("token");
+    const deviceId = await getOrCreateDeviceId();
 
     const res = await fetch(`${CAPTION_URL}/generate-captions`, {
       method: "POST",
       headers: {
-        Authorization: token ? `Bearer ${token}` : undefined,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        "x-device-id": deviceId,
       },
-      body: formData, 
+      body: formData,
     });
 
     return await res.json();
@@ -142,20 +177,27 @@ export const generateCaptions = async (formData) => {
   }
 };
 
+
 // ========== GOOGLE LOGIN ==========
 export const googleAuth = async (idToken) => {
   try {
+    const deviceId = await getOrCreateDeviceId();
+
     const res = await fetch(`${AUTH_URL}/google-signin`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-device-id": deviceId,
+      },
       body: JSON.stringify({ idToken }),
     });
 
     return await res.json();
-  } catch (err) {
+  } catch {
     return { message: "Server error" };
   }
 };
+
 
 
 // =================================================================================

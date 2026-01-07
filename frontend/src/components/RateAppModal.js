@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Pressable,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -21,38 +22,45 @@ const RateAppModal = ({ visible, onClose }) => {
   };
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.box}>
-          <Text style={styles.title}>Enjoying the app?</Text>
-          <Text style={styles.subtitle}>Tap a star to rate us</Text>
+   <Modal transparent visible={visible} animationType="fade">
+  <Pressable
+    style={styles.overlay}
+    onPress={onClose}
+  >
+    <Pressable
+      style={styles.box}
+      onPress={(e) => e.stopPropagation()}
+    >
+      <Text style={styles.title}>Enjoying the app?</Text>
+      <Text style={styles.subtitle}>Tap a star to rate us</Text>
 
-          <View style={styles.stars}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <TouchableOpacity key={i} onPress={() => setRating(i)}>
-                <Icon
-                  name={rating >= i ? 'star' : 'star-outline'}
-                  size={34}
-                  color="#faca2bff"
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, !rating && { opacity: 0.5 }]}
-            disabled={!rating}
-            onPress={handleRate}
-          >
-            <Text style={styles.buttonText}>Rate Now</Text>
+      <View style={styles.stars}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <TouchableOpacity key={i} onPress={() => setRating(i)}>
+            <Icon
+              name={rating >= i ? 'star' : 'star-outline'}
+              size={34}
+              color="#faca2bff"
+            />
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.later}>Maybe Later</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
-    </Modal>
+
+      <TouchableOpacity
+        style={[styles.button, !rating && { opacity: 0.5 }]}
+        disabled={!rating}
+        onPress={handleRate}
+      >
+        <Text style={styles.buttonText}>Rate Now</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={onClose}>
+        <Text style={styles.later}>Maybe Later</Text>
+      </TouchableOpacity>
+    </Pressable>
+  </Pressable>
+</Modal>
+
   );
 };
 

@@ -9,13 +9,13 @@ import {
   Platform,
   ActivityIndicator,
   Image,
-  ScrollView, 
+  ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { registerUser, googleAuth  } from "../api/api";
+import { registerUser, googleAuth } from "../api/api";
 import {
   GoogleSignin,
   statusCodes,
@@ -94,327 +94,338 @@ const RegisterScreen = () => {
   // };
 
   const handleRegister = async () => {
-  setErrorMessage("");
-  setLoading(true);
+    setErrorMessage("");
+    setLoading(true);
 
-  if (!name || !email || !password || !confirmPassword) {
-    setErrorMessage("All fields are required !");
-    setLoading(false);
-    return;
-  }
-
-  if (!passwordRule.test(password)) {
-    setErrorMessage("Password must follow requirements");
-    setLoading(false);
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    setErrorMessage("Passwords do not match");
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const data = await registerUser({ name, email, password });
-
-    if (data?.message?.toLowerCase().includes("successful")) {
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      navigation.navigate("Home");
+    if (!name || !email || !password || !confirmPassword) {
+      setErrorMessage("All fields are required !");
+      setLoading(false);
+      return;
+    }
+    if (name.trim().length < 3) {
+      setErrorMessage("Name must be at least 3 characters long");
       setLoading(false);
       return;
     }
 
-    setErrorMessage(data?.message || "Registration failed");
-  } catch {
-    setErrorMessage("Cannot connect to server");
-  }
-
-  setLoading(false);
-};
-
-
-const handleGoogleSignup = async () => {
-  try {
-    setErrorMessage("");
-    setGoogleLoading(true);
-
-    
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-
-    try {
-      await GoogleSignin.signOut();
-    } catch (e) {
-    }
-
-    // Sign in
-    const userInfo = await GoogleSignin.signIn();
-
-    const idToken =
-      userInfo?.idToken ||
-      userInfo?.user?.idToken ||
-      userInfo?.data?.idToken ||
-      (userInfo?.authentication && userInfo.authentication.idToken) ||
-      null;
-
-    if (!idToken) {
-      setErrorMessage("Google Signup Failed: no idToken returned");
-      setGoogleLoading(false);
+    if (!passwordRule.test(password)) {
+      setErrorMessage("Password must follow requirements");
+      setLoading(false);
       return;
     }
 
-    const res = await googleAuth(idToken);
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      setLoading(false);
+      return;
+    }
 
-    if (res && res.success && res.token) {
-      // store token + user
-      await AsyncStorage.setItem("token", res.token);
-      await AsyncStorage.setItem("user", JSON.stringify(res.user));
+    try {
+      const data = await registerUser({ name, email, password });
 
-      try {
-        const subStatus = await getSubscriptionStatus();
-        await AsyncStorage.setItem("subscription", JSON.stringify(subStatus));
-      } catch (e) {
-        console.warn("Failed to fetch subscription status:", e?.message || e);
+      if (data?.message?.toLowerCase().includes("successful")) {
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
+        navigation.navigate("Home");
+        setLoading(false);
+        return;
       }
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" }],
-      });
-    } else {
-      setErrorMessage(res?.message || "Google Signup Failed");
+      setErrorMessage(data?.message || "Registration failed");
+    } catch {
+      setErrorMessage("Cannot connect to server");
     }
-  } catch (error) {
-    if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-      setErrorMessage(""); 
-    } else if (error?.code === statusCodes.IN_PROGRESS) {
-      setErrorMessage("Google sign-in already in progress");
-    } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      setErrorMessage("Google Play Services not available or out of date");
-    } else {
-      console.error("Google sign-in error:", error);
-      setErrorMessage("Google Login Failed. Try again.");
+
+    setLoading(false);
+  };
+
+
+  const handleGoogleSignup = async () => {
+    try {
+      setErrorMessage("");
+      setGoogleLoading(true);
+
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      try {
+        await GoogleSignin.signOut();
+      } catch (e) {
+      }
+
+      // Sign in
+      const userInfo = await GoogleSignin.signIn();
+
+      const idToken =
+        userInfo?.idToken ||
+        userInfo?.user?.idToken ||
+        userInfo?.data?.idToken ||
+        (userInfo?.authentication && userInfo.authentication.idToken) ||
+        null;
+
+      if (!idToken) {
+        setErrorMessage("Google Signup Failed: no idToken returned");
+        setGoogleLoading(false);
+        return;
+      }
+
+      const res = await googleAuth(idToken);
+
+      if (res && res.success && res.token) {
+        // store token + user
+        await AsyncStorage.setItem("token", res.token);
+        await AsyncStorage.setItem("user", JSON.stringify(res.user));
+
+        try {
+          const subStatus = await getSubscriptionStatus();
+          await AsyncStorage.setItem("subscription", JSON.stringify(subStatus));
+        } catch (e) {
+          console.warn("Failed to fetch subscription status:", e?.message || e);
+        }
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
+      } else {
+        setErrorMessage(res?.message || "Google Signup Failed");
+      }
+    } catch (error) {
+      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+        setErrorMessage("");
+      } else if (error?.code === statusCodes.IN_PROGRESS) {
+        setErrorMessage("Google sign-in already in progress");
+      } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setErrorMessage("Google Play Services not available or out of date");
+      } else {
+        console.error("Google sign-in error:", error);
+        setErrorMessage("Google Login Failed. Try again.");
+      }
+    } finally {
+      setGoogleLoading(false);
     }
-  } finally {
-    setGoogleLoading(false);
-  }
-};
+  };
 
 
   return (
     <SafeAreaView style={styles.container}>
 
-        <ScrollView
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ flexGrow: 1 }}
-       showsVerticalScrollIndicator={false} 
-    >
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-          <Text style={styles.headerTitleb}>Back</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.bgTop} pointerEvents="none" />
-      <View style={styles.bgBottom} pointerEvents="none" />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.centerWrapper}>
-          <Text style={styles.topText}>Create Account!</Text>
-
-          <View style={styles.box}>
-            {/* NAME */}
-            <View style={styles.inputRow}>
-              <Ionicons
-                name="person-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Enter your name"
-                placeholderTextColor="#8a8a8d"
-                style={styles.inputField}
-                value={name}
-                onChangeText={setName}
-              />
-            </View>
-
-            {/* EMAIL */}
-            <View style={styles.inputRow}>
-              <Ionicons
-                name="mail-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Enter email"
-                placeholderTextColor="#8a8a8d"
-                style={styles.inputField}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
-
-            {/* PASSWORD */}
-            <View style={styles.passwordRow2}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Enter password"
-                placeholderTextColor="#8a8a8d"
-                style={[styles.inputField, { flex: 1 }]}
-                secureTextEntry={!showPass}
-                value={password}
-                onChangeText={setPassword}
-              />
-              {strength !== "" && (
-                <Text
-                  style={[
-                    styles.strengthInline,
-                    strength === "Weak"
-                      ? { color: "#FF453A" }
-                      : strength === "Medium"
-                      ? { color: "#FFA500" }
-                      : { color: "#32D74B" },
-                  ]}
-                >
-                  {strength}
-                </Text>
-              )}
-              <Pressable
-                onPress={() => setShowPass(!showPass)}
-                style={styles.eye}
-              >
-                <Ionicons
-                  name={showPass ? "eye-off-outline" : "eye-outline"}
-                  size={21}
-                  color="#b5b5b5"
-                />
-              </Pressable>
-            </View>
-
-            {/* CONFIRM PASSWORD */}
-            <View style={styles.passwordRow2}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={18}
-                color="#8a8a8d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Confirm password"
-                placeholderTextColor="#8a8a8d"
-                style={[styles.inputField, { flex: 1 }]}
-                secureTextEntry={!showConfirmPass}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <Pressable
-                onPress={() => setShowConfirmPass(!showConfirmPass)}
-                style={styles.eye}
-              >
-                <Ionicons
-                  name={showConfirmPass ? "eye-off-outline" : "eye-outline"}
-                  size={21}
-                  color="#b5b5b5"
-                />
-              </Pressable>
-            </View>
-
-            {/* REQUIREMENTS */}
-            <Pressable
-              onPress={() => setShowRequirements(!showRequirements)}
-              style={styles.dropdownHeader}
-            >
-              <Text style={styles.dropdownText}>
-                {showRequirements ? "Hide Requirements" : "Show Requirements"}
-              </Text>
-              <Ionicons
-                name={showRequirements ? "chevron-up" : "chevron-down"}
-                size={20}
-                color="#7da8ff"
-              />
-            </Pressable>
-
-            {showRequirements && (
-              <View style={styles.requireBox}>
-                <Text style={[styles.reqItem, password.length >= 8 && { color: "#32D74B" }]}>
-                  {password.length >= 8 ? "✓" : "✗"} 8+ characters
-                </Text>
-                <Text style={[styles.reqItem, /[A-Z]/.test(password) && { color: "#32D74B" }]}>
-                  {/[A-Z]/.test(password) ? "✓" : "✗"} One uppercase letter
-                </Text>
-                <Text style={[styles.reqItem, /\d/.test(password) && { color: "#32D74B" }]}>
-                  {/\d/.test(password) ? "✓" : "✗"} One number
-                </Text>
-                <Text style={[styles.reqItem, /[@$!%*?&]/.test(password) && { color: "#32D74B" }]}>
-                  {/[@$!%*?&]/.test(password) ? "✓" : "✗"} One special character
-                </Text>
-              </View>
-            )}
-
-            {/* ERROR */}
-            {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
-
-            {/* CREATE ACCOUNT */}
-            <Pressable
-              onPress={handleRegister}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.button,
-                pressed && !loading && { transform: [{ scale: 0.96 }] },
-              ]}
-            >
-              {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Create Account</Text>}
-            </Pressable>
-
-            {/* OR DIVIDER */}
-            <Text style={styles.or}>──────── OR ────────</Text>
-
-            {/* GOOGLE BUTTON */}
-            <Pressable
-              onPress={handleGoogleSignup}
-              disabled={googleLoading}
-              style={({ pressed }) => [
-                styles.googleButton,
-                pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 },
-              ]}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="black" />
-              ) : (
-                <>
-                  <Image
-                    source={require("../src/images/google.png")}
-                    style={{ width: 22, height: 22 }}
-                  />
-                  <Text style={styles.googleText}>Continue with Google</Text>
-                </>
-              )}
-            </Pressable>
-
-            {/* LOGIN LINK */}
-            <Pressable onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.loginText}>
-                Already have an account?{" "}
-                <Text style={styles.loginLink}>Login</Text>
-              </Text>
-            </Pressable>
-          </View>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+            <Text style={styles.headerTitleb}>Back</Text>
+          </Pressable>
         </View>
-      </KeyboardAvoidingView>
+
+        <View style={styles.bgTop} pointerEvents="none" />
+        <View style={styles.bgBottom} pointerEvents="none" />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.centerWrapper}>
+            <Text style={styles.topText}>Create Account!</Text>
+
+            <View style={styles.box}>
+              {/* NAME */}
+              <View style={styles.inputRow}>
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color="#8a8a8d"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Enter your name"
+                  placeholderTextColor="#8a8a8d"
+                  style={styles.inputField}
+                  value={name}
+                  onChangeText={(text) => {
+                    if (text.length <= 20) {
+                      setName(text);
+                    }
+                  }}
+                  maxLength={20}
+                />
+
+              </View>
+
+              {/* EMAIL */}
+              <View style={styles.inputRow}>
+                <Ionicons
+                  name="mail-outline"
+                  size={18}
+                  color="#8a8a8d"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Enter email"
+                  placeholderTextColor="#8a8a8d"
+                  style={styles.inputField}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+
+              {/* PASSWORD */}
+              <View style={styles.passwordRow2}>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color="#8a8a8d"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Enter password"
+                  placeholderTextColor="#8a8a8d"
+                  style={[styles.inputField, { flex: 1 }]}
+                  secureTextEntry={!showPass}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                {strength !== "" && (
+                  <Text
+                    style={[
+                      styles.strengthInline,
+                      strength === "Weak"
+                        ? { color: "#FF453A" }
+                        : strength === "Medium"
+                          ? { color: "#FFA500" }
+                          : { color: "#32D74B" },
+                    ]}
+                  >
+                    {strength}
+                  </Text>
+                )}
+                <Pressable
+                  onPress={() => setShowPass(!showPass)}
+                  style={styles.eye}
+                >
+                  <Ionicons
+                    name={showPass ? "eye-off-outline" : "eye-outline"}
+                    size={21}
+                    color="#b5b5b5"
+                  />
+                </Pressable>
+              </View>
+
+              {/* CONFIRM PASSWORD */}
+              <View style={styles.passwordRow2}>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color="#8a8a8d"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Confirm password"
+                  placeholderTextColor="#8a8a8d"
+                  style={[styles.inputField, { flex: 1 }]}
+                  secureTextEntry={!showConfirmPass}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <Pressable
+                  onPress={() => setShowConfirmPass(!showConfirmPass)}
+                  style={styles.eye}
+                >
+                  <Ionicons
+                    name={showConfirmPass ? "eye-off-outline" : "eye-outline"}
+                    size={21}
+                    color="#b5b5b5"
+                  />
+                </Pressable>
+              </View>
+
+              {/* REQUIREMENTS */}
+              <Pressable
+                onPress={() => setShowRequirements(!showRequirements)}
+                style={styles.dropdownHeader}
+              >
+                <Text style={styles.dropdownText}>
+                  {showRequirements ? "Hide Requirements" : "Show Requirements"}
+                </Text>
+                <Ionicons
+                  name={showRequirements ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#7da8ff"
+                />
+              </Pressable>
+
+              {showRequirements && (
+                <View style={styles.requireBox}>
+                  <Text style={[styles.reqItem, password.length >= 8 && { color: "#32D74B" }]}>
+                    {password.length >= 8 ? "✓" : "✗"} 8+ characters
+                  </Text>
+                  <Text style={[styles.reqItem, /[A-Z]/.test(password) && { color: "#32D74B" }]}>
+                    {/[A-Z]/.test(password) ? "✓" : "✗"} One uppercase letter
+                  </Text>
+                  <Text style={[styles.reqItem, /\d/.test(password) && { color: "#32D74B" }]}>
+                    {/\d/.test(password) ? "✓" : "✗"} One number
+                  </Text>
+                  <Text style={[styles.reqItem, /[@$!%*?&]/.test(password) && { color: "#32D74B" }]}>
+                    {/[@$!%*?&]/.test(password) ? "✓" : "✗"} One special character
+                  </Text>
+                </View>
+              )}
+
+              {/* ERROR */}
+              {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
+
+              {/* CREATE ACCOUNT */}
+              <Pressable
+                onPress={handleRegister}
+                disabled={loading}
+                style={({ pressed }) => [
+                  styles.button,
+                  pressed && !loading && { transform: [{ scale: 0.96 }] },
+                ]}
+              >
+                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Create Account</Text>}
+              </Pressable>
+
+              {/* OR DIVIDER */}
+              <Text style={styles.or}>──────── OR ────────</Text>
+
+              {/* GOOGLE BUTTON */}
+              <Pressable
+                onPress={handleGoogleSignup}
+                disabled={googleLoading}
+                style={({ pressed }) => [
+                  styles.googleButton,
+                  pressed && !googleLoading && { transform: [{ scale: 0.96 }], opacity: 0.9 },
+                ]}
+              >
+                {googleLoading ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <>
+                    <Image
+                      source={require("../src/images/google.png")}
+                      style={{ width: 22, height: 22 }}
+                    />
+                    <Text style={styles.googleText}>Continue with Google</Text>
+                  </>
+                )}
+              </Pressable>
+
+              {/* LOGIN LINK */}
+              <Pressable onPress={() => navigation.replace("Login")}>
+                <Text style={styles.loginText}>
+                  Already have an account?{" "}
+                  <Text style={styles.loginLink}>Login</Text>
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
 
       </ScrollView>
     </SafeAreaView>

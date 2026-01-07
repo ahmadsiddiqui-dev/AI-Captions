@@ -113,7 +113,7 @@ const LoginScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }} // ✅ SAFETY ONLY
+        contentContainerStyle={{ flexGrow: 1 }} 
       >
 
         <View style={styles.header}>
@@ -208,7 +208,7 @@ const LoginScreen = () => {
                 )}
               </Pressable>
 
-              <Pressable onPress={() => navigation.navigate("Register")}>
+              <Pressable onPress={() => navigation.replace("Register")}>
                 <Text style={styles.registerText}>
                   Don’t have an account? <Text style={styles.registerLink}>Register</Text>
                 </Text>
