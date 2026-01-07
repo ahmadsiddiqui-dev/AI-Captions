@@ -539,7 +539,7 @@ exports.updateName = async (req, res) => {
     const { name } = req.body;
 
     if (!name || name.trim().length < 2) {
-      return res.status(400).json({ message: "Name must be at least 2 characters" });
+      return res.status(400).json({ message: "Name must be at least 3 characters" });
     }
 
     const updatedUser = await User.findByIdAndUpdate(

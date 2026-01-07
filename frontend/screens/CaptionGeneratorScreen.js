@@ -23,9 +23,10 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { launchImageLibrary } from "react-native-image-picker";
-import DeviceInfo from "react-native-device-info";
 import { tryShowRatePopup } from '../src/utils/rateHelper';
 import { PermissionsAndroid } from "react-native";
+import { getOrCreateDeviceId } from "../src/utils/deviceId";
+
 
 
 /* Android Layout Animation */
@@ -317,15 +318,16 @@ const CaptionGeneratorScreen = () => {
 
     try {
       const token = await AsyncStorage.getItem("token");
+    const deviceId = await getOrCreateDeviceId();
 
       let headers = {};
-      if (!token) {
-        headers["x-device-id"] = DeviceInfo.getUniqueId();
-      } else {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
       const form = new FormData();
+      form.append("deviceId", deviceId); 
+
       images.forEach((img, i) => {
         form.append("images", {
           uri: img.uri,
@@ -379,9 +381,10 @@ const CaptionGeneratorScreen = () => {
         }, 1500);
       }
 
-    } catch {
-      setError("Server error");
-    }
+ } catch (err) {
+  console.log("FRONTEND ERROR:", err);
+  setError(err?.message || "Server error");
+}
 
     setLoading(false);
   };

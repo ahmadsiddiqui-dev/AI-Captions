@@ -10,6 +10,10 @@ const upload = multer().array("images", 5);
 // Extract logged in user
 const getUserFromReq = async (req) => {
   try {
+
+    console.log("🔥 BODY:", req.body);
+      console.log("🔥 FILES:", req.files?.length);
+      
     const authHeader = req.headers.authorization;
     if (!authHeader) return null;
 
