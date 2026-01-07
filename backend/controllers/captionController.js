@@ -25,20 +25,10 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
-      console.log("HEADERS:", req.headers);
-      console.log("x-device-id value:", req.headers["x-device-id"]);
-      console.log("x-device-id type:", typeof req.headers["x-device-id"]);
 
       const user = await getUserFromReq(req);
-      const deviceId = req.body.deviceId;
 
-      if (
-        !deviceId ||
-        typeof deviceId !== "string" ||
-        deviceId === "[object Object]"
-      ) {
-        return res.status(400).json({ message: "Invalid device ID" });
-      }
+      const deviceId = req.body.deviceId;
 
       let isSubscribed = false;
       let freeTrialEnabled = false;
@@ -48,14 +38,12 @@ exports.generateCaptions = (req, res) => {
       //  GUEST USER LOGIC
       // ============================
       if (!user) {
-
-        if (!deviceId) {
-          return res.status(400).json({ message: "Device ID missing" });
+        if (!deviceId || typeof deviceId !== "string") {
+          return res.status(400).json({ message: "Invalid device ID" });
         }
 
         let guest = await Guest.findOne({ deviceId });
 
-        // Create guest record if not exists
         if (!guest) {
           guest = await Guest.create({ deviceId });
         }
