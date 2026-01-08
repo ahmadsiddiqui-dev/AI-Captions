@@ -227,10 +227,11 @@ exports.register = async (req, res) => {
       await mergeGuestIntoUser(deviceId, newUser._id);
     }
 
-
+    const token = generateToken(newUser._id);
 
     return res.status(201).json({
       message: "Registration successful",
+      token, 
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -251,6 +252,7 @@ exports.register = async (req, res) => {
     });
   }
 };
+
 
 
 

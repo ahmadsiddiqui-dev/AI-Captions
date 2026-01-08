@@ -93,50 +93,55 @@ const RegisterScreen = () => {
   //   setLoading(false);
   // };
 
-  const handleRegister = async () => {
-    setErrorMessage("");
-    setLoading(true);
+ const handleRegister = async () => {
+  setErrorMessage("");
+  setLoading(true);
 
-    if (!name || !email || !password || !confirmPassword) {
-      setErrorMessage("All fields are required !");
-      setLoading(false);
-      return;
-    }
-    if (name.trim().length < 3) {
-      setErrorMessage("Name must be at least 3 characters long");
-      setLoading(false);
-      return;
-    }
+  if (!name || !email || !password || !confirmPassword) {
+    setErrorMessage("All fields are required !");
+    setLoading(false);
+    return;
+  }
+  if (name.trim().length < 3) {
+    setErrorMessage("Name must be at least 3 characters long");
+    setLoading(false);
+    return;
+  }
 
-    if (!passwordRule.test(password)) {
-      setErrorMessage("Password must follow requirements");
-      setLoading(false);
-      return;
-    }
+  if (!passwordRule.test(password)) {
+    setErrorMessage("Password must follow requirements");
+    setLoading(false);
+    return;
+  }
 
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
-      setLoading(false);
-      return;
-    }
+  if (password !== confirmPassword) {
+    setErrorMessage("Passwords do not match");
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const data = await registerUser({ name, email, password });
+  try {
+    const data = await registerUser({ name, email, password });
 
-      if (data?.message?.toLowerCase().includes("successful")) {
-        await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        navigation.navigate("Home");
-        setLoading(false);
-        return;
+    if (data?.message?.toLowerCase().includes("successful")) {
+      if (data.token) {
+        await AsyncStorage.setItem("token", data.token);
       }
 
-      setErrorMessage(data?.message || "Registration failed");
-    } catch {
-      setErrorMessage("Cannot connect to server");
+      await AsyncStorage.setItem("user", JSON.stringify(data.user));
+      navigation.navigate("Home");
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-  };
+    setErrorMessage(data?.message || "Registration failed");
+  } catch {
+    setErrorMessage("Cannot connect to server");
+  }
+
+  setLoading(false);
+};
+
 
 
   const handleGoogleSignup = async () => {
