@@ -37,83 +37,54 @@ exports.generateCaptions = (req, res) => {
 
       const user = await getUserFromReq(req);
 
-      let isSubscribed = false;
-      let freeTrialEnabled = false;
-      let freeCaptionCount = 0;
-
       // ============================
-      //  GUEST USER LOGIC
+      //  GET / CREATE GUEST (ALWAYS)
       // ============================
-      if (!user) {
-        let guest = await Guest.findOne({ deviceId });
+      let guest = await Guest.findOne({ deviceId });
 
-        if (guest && guest.mergedIntoUser) {
-          return res.status(402).json({
-            requireSubscription: true,
-            message: "Subscription required"
-          });
-        }
-
-        if (!guest) {
-          guest = await Guest.create({ deviceId });
-        }
-
-        if (guest.freeCaptionCount >= 2) {
-          return res.status(402).json({
-            requireSubscription: true,
-            message: "Subscription required"
-          });
-        }
-
-        const files = req.files || [];
-        const options = JSON.parse(req.body.options || "{}");
-        const captions = await generateWithAI(files, options);
-
-        guest.freeCaptionCount += 1;
-        await guest.save();
-
-        return res.json({ success: true, captions, guest: true });
+      if (!guest) {
+        guest = await Guest.create({ deviceId, freeCaptionCount: 0 });
       }
 
       // ============================
-      //  LOGGED-IN USER LOGIC
+      //  CHECK GLOBAL LIMIT
       // ============================
-
-      const sub = await Subscription.findOne({ userId: user._id });
-
-      if (sub) {
-        const now = new Date();
-
-        if (sub.isSubscribed && sub.expiryDate > now) {
-          isSubscribed = true;
-        }
-
-        if (sub.freeTrialEnabled && sub.freeTrialEnd > now) {
-          freeTrialEnabled = true;
-        }
-
-        freeCaptionCount = sub.freeCaptionCount || 0;
-      }
-
-      if (!isSubscribed && !freeTrialEnabled && freeCaptionCount >= 2) {
+      if (guest.freeCaptionCount >= 2) {
         return res.status(402).json({
           requireSubscription: true,
-          message: "Subscription required"
+          message: "Subscription required",
         });
       }
 
+      // ============================
+      //  GENERATE CAPTION
+      // ============================
       const files = req.files || [];
       const options = JSON.parse(req.body.options || "{}");
       const captions = await generateWithAI(files, options);
 
-      if (!isSubscribed && !freeTrialEnabled) {
-        if (sub && sub.freeCaptionCount < 2) {
-          sub.freeCaptionCount += 1;
-          await sub.save();
-        }
+      // ============================
+      //  INCREMENT GUEST (SOURCE OF TRUTH)
+      // ============================
+      guest.freeCaptionCount += 1;
+      await guest.save();
+
+      // ============================
+      //  SYNC USER (IF LOGGED IN)
+      // ============================
+      if (user) {
+        await Subscription.findOneAndUpdate(
+          { userId: user._id },
+          { freeCaptionCount: guest.freeCaptionCount },
+          { upsert: true, new: true }
+        );
       }
 
-      return res.json({ success: true, captions });
+      return res.json({
+        success: true,
+        captions,
+        freeCaptionCount: guest.freeCaptionCount,
+      });
 
     } catch (err) {
       console.log("Caption Error:", err);
