@@ -29,29 +29,20 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
+      
+      const deviceId = req.body.deviceId;
+
+      if (!deviceId || typeof deviceId !== "string") {
+        return res.status(400).json({ message: "Device ID required" });
+      }
 
       const user = await getUserFromReq(req);
-
-      const deviceId = req.body.deviceId;
 
       let isSubscribed = false;
       let freeTrialEnabled = false;
       let freeCaptionCount = 0;
 
-      // ============================
-      //  GUEST USER LOGIC
-      // ============================
       if (!user) {
-        if (!deviceId || typeof deviceId !== "string") {
-          return res.status(400).json({ message: "Invalid device ID" });
-        }
-
-        const deviceId = req.body.deviceId;
-
-        if (!deviceId || typeof deviceId !== "string") {
-          return res.status(400).json({ message: "Device ID required" });
-        }
-
         let guest = await Guest.findOne({ deviceId });
 
         if (guest && guest.mergedIntoUser) {
