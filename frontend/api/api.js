@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getOrCreateDeviceId } from "../utils/deviceId";
+import { getOrCreateDeviceId } from "../src/utils/deviceId";
 import DeviceInfo from "react-native-device-info";
 
 // BASE URLs
@@ -9,31 +9,26 @@ const SUB_URL = "https://my-ai-captions.onrender.com/api/subscription";
 
 
 // ========== Register User ==========
-// export const registerUser = async (data) => {
-//   try {
-//     const res = await fetch(`${AUTH_URL}/register`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(data),
-//     });
-//     return await res.json();
-//   } catch {
-//     return { message: "Cannot connect to server" };
-//   }
-// };
-export const registerUser = async (data) => {
-  const deviceId = DeviceInfo.getUniqueId();
-
-  const res = await fetch(`${AUTH_URL}/register`, {
-    method: "POST",
-    headers: {
+export const registerUser = async (data, deviceId = null) => {
+  try {
+    const headers = {
       "Content-Type": "application/json",
-      "x-device-id": deviceId,
-    },
-    body: JSON.stringify(data),
-  });
+    };
 
-  return res.json();
+    if (typeof deviceId === "string") {
+      headers["x-device-id"] = deviceId;
+    }
+
+    const res = await fetch(`${AUTH_URL}/register`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    return await res.json();
+  } catch (err) {
+    return { message: "Cannot connect to server" };
+  }
 };
 
 // ========== Verify OTP ==========
@@ -51,18 +46,6 @@ export const verifyOtp = async (data) => {
 };
 
 // ========== Login ==========
-// export const loginUser = async (data) => {
-//   try {
-//     const res = await fetch(`${AUTH_URL}/login`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(data),
-//     });
-//     return await res.json();
-//   } catch {
-//     return { message: "Cannot connect to server" };
-//   }
-// };
 export const loginUser = async (data) => {
   const deviceId = DeviceInfo.getUniqueId();
 
@@ -174,34 +157,26 @@ export const generateCaptions = async (formData) => {
 };
 
 // ========== GOOGLE LOGIN ==========
-// export const googleAuth = async (idToken) => {
-//   try {
-//     const res = await fetch(`${AUTH_URL}/google-signin`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ idToken }),
-//     });
 
-//     return await res.json();
-//   } catch (err) {
-//     return { message: "Server error" };
-//   }
-// };
 export const googleAuth = async (idToken) => {
-  const deviceId = DeviceInfo.getUniqueId();
+  try {
+    const deviceId = await getOrCreateDeviceId();
 
-  const res = await fetch(`${AUTH_URL}/google-signin`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-device-id": deviceId,
-    },
-    body: JSON.stringify({ idToken }),
-  });
+    const res = await fetch(`${AUTH_URL}/google-signin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-device-id": deviceId, 
+      },
+      body: JSON.stringify({ idToken }),
+    });
 
-  return res.json();
+    return await res.json();
+  } catch (err) {
+    console.log("GOOGLE AUTH ERROR:", err);
+    return { message: "Server error" };
+  }
 };
-
 
 
 // =================================================================================

@@ -20,6 +20,8 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import { getOrCreateDeviceId } from "../src/utils/deviceId";
+
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
@@ -54,46 +56,7 @@ const RegisterScreen = () => {
   };
   const strength = getStrength();
 
-  // const handleRegister = async () => {
-  //   setErrorMessage("");
-  //   setLoading(true);
-
-  //   if (!name || !email || !password || !confirmPassword) {
-  //     setErrorMessage("All fields are required !");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   if (!passwordRule.test(password)) {
-  //     setErrorMessage("Password must follow requirements");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   if (password !== confirmPassword) {
-  //     setErrorMessage("Passwords do not match");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     const data = await registerUser({ name, email, password });
-
-  //     if (data?.message?.toLowerCase().includes("otp")) {
-  //       setLoading(false);
-  //       navigation.navigate("OtpScreen", { email });
-  //       return;
-  //     }
-
-  //     setErrorMessage(data?.message || "Registration failed");
-  //   } catch {
-  //     setErrorMessage("Cannot connect to server");
-  //   }
-
-  //   setLoading(false);
-  // };
-
- const handleRegister = async () => {
+const handleRegister = async () => {
   setErrorMessage("");
   setLoading(true);
 
@@ -102,6 +65,7 @@ const RegisterScreen = () => {
     setLoading(false);
     return;
   }
+
   if (name.trim().length < 3) {
     setErrorMessage("Name must be at least 3 characters long");
     setLoading(false);
@@ -121,23 +85,24 @@ const RegisterScreen = () => {
   }
 
   try {
-    const data = await registerUser({ name, email, password });
+    const deviceId = await getOrCreateDeviceId();
+
+    const data = await registerUser(
+      { name, email, password },
+      deviceId 
+    );
 
     if (data?.message?.toLowerCase().includes("successful")) {
-      if (data.token) {
-        await AsyncStorage.setItem("token", data.token);
-      }
-
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
       navigation.navigate("Home");
       setLoading(false);
       return;
     }
-
     setErrorMessage(data?.message || "Registration failed");
-  } catch {
-    setErrorMessage("Cannot connect to server");
-  }
+ } catch (err) {
+  setError(err?.message || "Cannot connect to server");
+}
+
 
   setLoading(false);
 };
@@ -157,7 +122,6 @@ const RegisterScreen = () => {
       } catch (e) {
       }
 
-      // Sign in
       const userInfo = await GoogleSignin.signIn();
 
       const idToken =
@@ -202,7 +166,6 @@ const RegisterScreen = () => {
       } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage("Google Play Services not available or out of date");
       } else {
-        console.error("Google sign-in error:", error);
         setErrorMessage("Google Login Failed. Try again.");
       }
     } finally {

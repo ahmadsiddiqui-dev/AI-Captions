@@ -11,9 +11,9 @@ const upload = multer().array("images", 5);
 const getUserFromReq = async (req) => {
   try {
 
-    console.log("🔥 BODY:", req.body);
-      console.log("🔥 FILES:", req.files?.length);
-      
+    console.log(" BODY:", req.body);
+    console.log("FILES:", req.files?.length);
+
     const authHeader = req.headers.authorization;
     if (!authHeader) return null;
 
@@ -48,9 +48,17 @@ exports.generateCaptions = (req, res) => {
 
         let guest = await Guest.findOne({ deviceId });
 
+        if (guest && guest.mergedIntoUser) {
+          return res.status(402).json({
+            requireSubscription: true,
+            message: "Subscription required"
+          });
+        }
+
         if (!guest) {
           guest = await Guest.create({ deviceId });
         }
+
 
         // Check limit
         if (guest.freeCaptionCount >= 2) {
