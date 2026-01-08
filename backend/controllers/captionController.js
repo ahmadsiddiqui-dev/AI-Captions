@@ -29,7 +29,6 @@ const getUserFromReq = async (req) => {
 exports.generateCaptions = (req, res) => {
   upload(req, res, async () => {
     try {
-      
       const deviceId = req.body.deviceId;
 
       if (!deviceId || typeof deviceId !== "string") {
@@ -42,6 +41,9 @@ exports.generateCaptions = (req, res) => {
       let freeTrialEnabled = false;
       let freeCaptionCount = 0;
 
+      // ============================
+      //  GUEST USER LOGIC
+      // ============================
       if (!user) {
         let guest = await Guest.findOne({ deviceId });
 
@@ -56,7 +58,6 @@ exports.generateCaptions = (req, res) => {
           guest = await Guest.create({ deviceId });
         }
 
-        // Check limit
         if (guest.freeCaptionCount >= 2) {
           return res.status(402).json({
             requireSubscription: true,
@@ -64,12 +65,10 @@ exports.generateCaptions = (req, res) => {
           });
         }
 
-        // Process caption
         const files = req.files || [];
         const options = JSON.parse(req.body.options || "{}");
         const captions = await generateWithAI(files, options);
 
-        // Increase guest usage
         guest.freeCaptionCount += 1;
         await guest.save();
 
@@ -105,15 +104,13 @@ exports.generateCaptions = (req, res) => {
 
       const files = req.files || [];
       const options = JSON.parse(req.body.options || "{}");
-
       const captions = await generateWithAI(files, options);
 
       if (!isSubscribed && !freeTrialEnabled) {
-        await Subscription.findOneAndUpdate(
-          { userId: user._id },
-          { $inc: { freeCaptionCount: 1 } },
-          { new: true, upsert: true }
-        );
+        if (sub && sub.freeCaptionCount < 2) {
+          sub.freeCaptionCount += 1;
+          await sub.save();
+        }
       }
 
       return res.json({ success: true, captions });
