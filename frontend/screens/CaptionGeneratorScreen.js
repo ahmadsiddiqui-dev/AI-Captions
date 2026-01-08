@@ -326,7 +326,8 @@ const CaptionGeneratorScreen = () => {
     }
 
       const form = new FormData();
-      form.append("deviceId", deviceId); 
+      
+      form.append("deviceId", String(deviceId));
 
       images.forEach((img, i) => {
         form.append("images", {

@@ -1,19 +1,19 @@
 const Guest = require("../models/Guest");
 const Subscription = require("../models/Subscription");
 
-const mergeGuestIntoUser = async (deviceId, userId) => {
-  if (!deviceId) return;
+module.exports = async function mergeGuestIntoUser(deviceId, userId) {
+  if (!deviceId || !userId) return;
 
   const guest = await Guest.findOne({ deviceId });
   if (!guest) return;
 
-  await Subscription.findOneAndUpdate(
+  const subscription = await Subscription.findOneAndUpdate(
     { userId },
-    { $inc: { freeCaptionCount: guest.freeCaptionCount } },
-    { upsert: true }
+    { userId },
+    { upsert: true, new: true }
   );
 
-  await Guest.deleteOne({ deviceId });
-};
+  subscription.freeCaptionCount = guest.freeCaptionCount;
+  await subscription.save();
 
-module.exports = mergeGuestIntoUser;
+};

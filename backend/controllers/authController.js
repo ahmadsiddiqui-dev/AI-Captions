@@ -225,7 +225,7 @@ exports.register = async (req, res) => {
     const deviceId = req.headers["x-device-id"];
 
     if (deviceId && typeof deviceId === "string") {
-      await mergeGuestIntoUser(deviceId, user._id);
+      await mergeGuestIntoUser(deviceId, newUser._id);
     }
 
 
@@ -385,7 +385,7 @@ exports.login = async (req, res) => {
     const deviceId = req.headers["x-device-id"];
 
     if (deviceId && typeof deviceId === "string") {
-      await mergeGuestIntoUser(deviceId, user._id);
+      await mergeGuestIntoUser(deviceId, newUser._id);
     }
 
 
@@ -615,7 +615,7 @@ exports.googleAuth = async (req, res) => {
     const deviceId = req.headers["x-device-id"];
 
     if (deviceId && typeof deviceId === "string") {
-      await mergeGuestIntoUser(deviceId, user._id);
+      await mergeGuestIntoUser(deviceId, newUser._id);
     }
 
 
