@@ -46,6 +46,12 @@ exports.generateCaptions = (req, res) => {
           return res.status(400).json({ message: "Invalid device ID" });
         }
 
+        const deviceId = req.body.deviceId;
+
+        if (!deviceId || typeof deviceId !== "string") {
+          return res.status(400).json({ message: "Device ID required" });
+        }
+
         let guest = await Guest.findOne({ deviceId });
 
         if (guest && guest.mergedIntoUser) {
@@ -58,7 +64,6 @@ exports.generateCaptions = (req, res) => {
         if (!guest) {
           guest = await Guest.create({ deviceId });
         }
-
 
         // Check limit
         if (guest.freeCaptionCount >= 2) {
