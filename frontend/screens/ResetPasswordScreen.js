@@ -15,6 +15,12 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { resetPassword, resendOtp } from "../api/api";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const GLASS_ACCENT = "#F5C77A";
+
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -148,7 +154,7 @@ const ResetPasswordScreen = () => {
         <Text style={styles.title}>Reset Password for {email}</Text>
 
         <View style={styles.inputRow}>
-          <Ionicons name="key-outline" size={18} color="#808080" style={styles.icon} />
+          <Ionicons name="key-outline" size={18} color="#A1A1A6" style={styles.icon} />
           <TextInput
             style={[styles.inputField, { flex: 1 }]}
             placeholder="Enter OTP"
@@ -167,7 +173,7 @@ const ResetPasswordScreen = () => {
             <Ionicons
               name="refresh-outline"
               size={22}
-              color={canResend ? "#7da8ff" : "#555"}
+              color={canResend ? "#A1A1A6" : "#555"}
             />
             {!canResend && (
               <Text style={{ color: "#777", fontSize: 11, textAlign: "center" }}>
@@ -178,7 +184,7 @@ const ResetPasswordScreen = () => {
         </View>
 
         <View style={styles.inputRow}>
-          <Ionicons name="lock-closed-outline" size={18} color="#808080" style={styles.icon} />
+          <Ionicons name="lock-closed-outline" size={18} color="#A1A1A6" style={styles.icon} />
 
           <TextInput
             style={[styles.inputField, { flex: 1 }]}
@@ -193,7 +199,7 @@ const ResetPasswordScreen = () => {
             <Ionicons
               name={showPass ? "eye-off-outline" : "eye-outline"}
               size={21}
-              color="#b5b5b5"
+              color="#A1A1A6"
             />
           </Pressable>
         </View>
@@ -226,7 +232,7 @@ const ResetPasswordScreen = () => {
           <Ionicons
             name={showRequirements ? "chevron-up" : "chevron-down"}
             size={20}
-            color="#7da8ff"
+            color="#A1A1A6"
           />
         </Pressable>
 
@@ -273,14 +279,14 @@ const ResetPasswordScreen = () => {
 export default ResetPasswordScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
+  safeArea: { flex: 1, backgroundColor: "#141414ff" },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#1a1822ff",
+    backgroundColor: "#141414ff",
   },
 
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
@@ -288,12 +294,13 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
 
-  title: {
-    color: "#dbd8d8ff",
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: "center",
-  },
+title: {
+  color: GLASS_TEXT,
+  fontSize: 18,
+  marginBottom: 20,
+  textAlign: "center",
+},
+
 
   msg: {
     fontSize: 15,
@@ -301,29 +308,33 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
-  success: { color: "#32D74B" },
-  error: { color: "#FF453A" },
+  success: { color: "#F5C77A" },
+  error: { color: "#F5C77A" },
 
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1F1D29",
-    width: "80%",
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
+inputRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: GLASS_BG,
+  width: "80%",
+  paddingHorizontal: 14,
+  borderRadius: 14,
+  marginBottom: 20,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
 
-  icon: {
-    marginRight: 10,
-  },
+icon: {
+  marginRight: 10,
+  color: GLASS_SUBTEXT,
+},
 
-  inputField: {
-    flex: 1,
-    color: "white",
-    fontSize: 16,
-    paddingVertical: 14,
-  },
+inputField: {
+  flex: 1,
+  color: GLASS_TEXT,
+  fontSize: 16,
+  paddingVertical: 14,
+},
+
 
   eye: { paddingLeft: 10 },
 
@@ -337,49 +348,57 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
   },
+dropdownText: {
+  color: GLASS_SUBTEXT,
+  fontSize: 15,
+  marginRight: 5,
+},
 
-  dropdownText: {
-    color: "#7da8ff",
-    fontSize: 15,
-    marginRight: 5,
-  },
 
-  requireBox: {
-    width: "80%",
-    backgroundColor: "#222224ff",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
+requireBox: {
+  width: "80%",
+  backgroundColor: GLASS_BG,
+  padding: 15,
+  borderRadius: 14,
+  marginBottom: 20,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
 
-  reqItem: {
-    color: "#dbd8d8ff",
-    marginBottom: 6,
-    fontSize: 14,
-  },
+reqItem: {
+  color: GLASS_TEXT,
+  marginBottom: 6,
+  fontSize: 14,
+},
 
-  button: {
-    backgroundColor: "#7d5df8",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    alignItems: "center",
-  },
 
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+button: {
+  backgroundColor: GLASS_BG,
+  paddingVertical: 15,
+  paddingHorizontal: 40,
+  borderRadius: 16,
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
+buttonText: {
+  color: GLASS_ACCENT,
+  fontSize: 16,
+  fontWeight: "600",
+},
+
   bgTop: {
     position: "absolute",
     top: -130,
     right: -110,
     width: 260,
     height: 260,
-    backgroundColor: "#35323fff",
+      backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
     opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -387,8 +406,10 @@ const styles = StyleSheet.create({
     left: -120,
     width: 300,
     height: 300,
-    backgroundColor: "#35323fff",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
-    opacity: 0.3,
+    opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
 });

@@ -21,6 +21,12 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const ACCENT = "#F5C77A";
+
 const LoginScreen = () => {
   const navigation = useNavigation();
 
@@ -136,7 +142,7 @@ const LoginScreen = () => {
             <View style={styles.box}>
               {/* EMAIL */}
               <View style={styles.inputRow}>
-                <Ionicons name="mail-outline" size={18} color="#8a8a8d" style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={18} color="#A1A1A6" style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter your email"
                   placeholderTextColor="#8a8a8d"
@@ -150,7 +156,7 @@ const LoginScreen = () => {
 
               {/* PASSWORD */}
               <View style={styles.passwordRow2}>
-                <Ionicons name="lock-closed-outline" size={18} color="#8a8a8d" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={18} color="#A1A1A6" style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter password"
                   placeholderTextColor="#8a8a8d"
@@ -226,7 +232,7 @@ export default LoginScreen;
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1822ff" },
+  container: { flex: 1, backgroundColor: "#141414ff" },
   header: { flexDirection: "row", paddingVertical: 10, paddingHorizontal: 5 },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
@@ -239,53 +245,75 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   box: { paddingHorizontal: 20, marginHorizontal: 16, marginBottom: 20 },
-  inputRow: {
-    flexDirection: "row",
-    backgroundColor: "#1F1D29",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  passwordRow2: {
-    flexDirection: "row",
-    backgroundColor: "#1F1D29",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    marginBottom: 15,
-  },
+inputRow: {
+  flexDirection: "row",
+  backgroundColor: GLASS_BG,
+  borderRadius: 12,
+  paddingHorizontal: 14,
+  alignItems: "center",
+  marginBottom: 15,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
+passwordRow2: {
+  flexDirection: "row",
+  backgroundColor: GLASS_BG,
+  borderRadius: 12,
+  paddingHorizontal: 14,
+  alignItems: "center",
+  marginBottom: 15,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
   inputIcon: { marginRight: 10 },
-  inputField: { flex: 1, color: "white", fontSize: 16, paddingVertical: 14 },
+  inputField: {
+  flex: 1,
+  color: GLASS_TEXT,
+  fontSize: 16,
+  paddingVertical: 14,
+},
+
   eye: { paddingLeft: 10 },
-  forgot: { color: "#7da8ff", marginBottom: 10, fontSize: 14 },
+  forgot: { color: GLASS_SUBTEXT, marginBottom: 10, fontSize: 14 },
   button: {
-    backgroundColor: "#7d5df8",
-    paddingVertical: 15,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  buttonText: { color: "white", fontSize: 16, fontWeight: "600" },
-  errorMsg: { color: "#ff6b6b", textAlign: "center", marginBottom: 10 },
+  backgroundColor: GLASS_BG,
+  paddingVertical: 15,
+  borderRadius: 14,
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
+buttonText: {
+  color: ACCENT,
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+  errorMsg: { color: ACCENT, textAlign: "center", marginBottom: 10 },
   or: { color: "#808080", textAlign: "center", marginVertical: 20 },
   googleButton: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: GLASS_BG,
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
     gap: 10,
     marginBottom: 20,
+    borderWidth: 1,
+  borderColor: GLASS_BORDER,
   },
   googleText: {
-    color: "black",
+    color: GLASS_TEXT,
     fontSize: 15,
     fontWeight: "600",
   },
-  registerText: { color: "#b5b5b5", textAlign: "center", marginTop: 0, fontSize: 15 },
-  registerLink: { color: "#7da8ff", fontWeight: "600" },
+  registerText: { color: GLASS_SUBTEXT, textAlign: "center", marginTop: 0, fontSize: 15 },
+  registerLink: { color: ACCENT, fontWeight: "600" },
 
   bgTop: {
     position: "absolute",
@@ -293,9 +321,11 @@ const styles = StyleSheet.create({
     right: -90,
     width: 260,
     height: 260,
-    backgroundColor: "#35323fff",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
     opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -303,8 +333,10 @@ const styles = StyleSheet.create({
     left: -140,
     width: 300,
     height: 300,
-    backgroundColor: "#35323fff",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
-    opacity: 0.3,
+    opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
 });

@@ -27,7 +27,61 @@ import { tryShowRatePopup } from '../src/utils/rateHelper';
 import { PermissionsAndroid } from "react-native";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
 
+const AnimatedPressable = ({
+  children,
+  onPress,
+  disabled,
+  style,
+}) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
 
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      onPressIn={() => {
+        Animated.parallel([
+          Animated.spring(scale, {
+            toValue: 0.97,
+            friction: 7,
+            tension: 90,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0.75,
+            duration: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }}
+      onPressOut={() => {
+        Animated.parallel([
+          Animated.spring(scale, {
+            toValue: 1,
+            friction: 7,
+            tension: 90,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }}
+    >
+      <Animated.View
+        style={[
+          { transform: [{ scale }], opacity },
+          style,
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 /* Android Layout Animation */
 if (Platform.OS === "android") {
@@ -122,6 +176,10 @@ const PREMIUM_LANGUAGES = [
   "Zulu"
 ];
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
 
 /* Generate Button Animation */
 const AIButton = ({ loading, onPress }) => {
@@ -161,15 +219,29 @@ const AIButton = ({ loading, onPress }) => {
   }, [loading]);
 
   return (
-    <Pressable onPress={onPress} disabled={loading} style={styles.generateBtn}>
-      <Animated.View
-        style={{ transform: [{ translateX: moveAnim }, { scale: pulseAnim }] }}
-      >
-        <Ionicons name="sparkles" size={25} color="white" />
-      </Animated.View>
+ <Pressable
+  onPress={onPress}
+  disabled={loading}
+  style={({ pressed }) => [
+    styles.generateBtn,
+    pressed && { opacity: 0.7, transform: [{ scale: 0.97 }] },
+    loading && { opacity: 0.6 },
+  ]}
+>
+  <Animated.View
+    style={{
+      transform: [{ translateX: moveAnim }, { scale: pulseAnim }],
+      marginRight: loading ? 0 : 8,
+    }}
+  >
+    <Ionicons name="sparkles" size={22} color="#F5C77A" />
+  </Animated.View>
 
-      {!loading && <Text style={styles.generateText}> Generate Captions</Text>}
-    </Pressable>
+  {!loading && (
+    <Text style={styles.generateText}>Generate Captions</Text>
+  )}
+</Pressable>
+
   );
 };
 
@@ -207,6 +279,7 @@ const CaptionGeneratorScreen = () => {
   const [popupType, setPopupType] = useState("content");
   const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
   const permissionDeniedOnceRef = useRef(false);
+
 
 
 
@@ -318,15 +391,15 @@ const CaptionGeneratorScreen = () => {
 
     try {
       const token = await AsyncStorage.getItem("token");
-    const deviceId = await getOrCreateDeviceId();
+      const deviceId = await getOrCreateDeviceId();
 
       let headers = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
       const form = new FormData();
-      
+
       form.append("deviceId", String(deviceId));
 
       images.forEach((img, i) => {
@@ -382,10 +455,10 @@ const CaptionGeneratorScreen = () => {
         }, 1500);
       }
 
- } catch (err) {
-  console.log("FRONTEND ERROR:", err);
-  setError(err?.message || "Server error");
-}
+    } catch (err) {
+      console.log("FRONTEND ERROR:", err);
+      setError(err?.message || "Server error");
+    }
 
     setLoading(false);
   };
@@ -501,7 +574,7 @@ const CaptionGeneratorScreen = () => {
                   <Text
                     style={[
                       styles.sheetItemText,
-                      isSelected && { color: "#7d5df8", fontWeight: "600" }
+                      isSelected && { color: "#F5C77A", fontWeight: "600" }
                     ]}
                   >
                     {o}
@@ -511,7 +584,7 @@ const CaptionGeneratorScreen = () => {
                     <Ionicons
                       name="checkmark"
                       size={18}
-                      color="#7d5df8"
+                      color="#F5C77A"
                       style={styles.checkIcon}
                     />
                   )}
@@ -532,7 +605,7 @@ const CaptionGeneratorScreen = () => {
                     navigation.navigate("Subscription");
                   }}
                 >
-                  <Ionicons name="lock-open" size={18} color="#7d5df8" />
+                  <Ionicons name="lock-open" size={18} color="#F5C77A" />
                   <Text style={styles.unlockText}>Unlock all options</Text>
                 </Pressable>
               )}
@@ -559,16 +632,18 @@ const CaptionGeneratorScreen = () => {
         <Text style={styles.labelp}>Photos</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
-          <Pressable
-            style={styles.addBox}
+          <AnimatedPressable
+            disabled={loading || images.length >= 5}
             onPress={() => {
               if (loading || images.length >= 5) return;
               addPhotos();
             }}
-            disabled={loading || images.length >= 5}
           >
-            <Ionicons name="add" size={32} color="#134885ff" />
-          </Pressable>
+            <View style={styles.addBox}>
+              <Ionicons name="add" size={32} color="#F5C77A" />
+            </View>
+          </AnimatedPressable>
+
 
 
           {images.map((img, i) => (
@@ -614,10 +689,17 @@ const CaptionGeneratorScreen = () => {
             <Text style={styles.captionText}>{c.text}</Text>
 
             <Pressable
-              style={[styles.copyBtn, copiedIndex === idx && { backgroundColor: "#4caf50" }]}
+              style={({ pressed }) => [
+                styles.copyBtn,
+                copiedIndex === idx && {
+                  backgroundColor: "rgba(245,199,122,0.25)",
+                  borderColor: "#F5C77A",
+                },
+                pressed && { opacity: 0.7 },
+              ]}
               onPress={() => copyToClipboard(c.text, idx)}
             >
-              <Ionicons name={copiedIndex === idx ? "checkmark" : "copy-outline"} size={18} color="white" />
+              <Ionicons name={copiedIndex === idx ? "checkmark" : "copy-outline"} size={18} color="#F5C77A" />
               <Text style={styles.copyText}>{copiedIndex === idx ? "Copied" : "Copy"}</Text>
             </Pressable>
           </View>
@@ -627,75 +709,87 @@ const CaptionGeneratorScreen = () => {
         <Text style={styles.customizeTitle}>Customize (Optional)</Text>
 
         {/* ROWS */}
-        <Pressable
-          style={styles.rowCard}
-          onPress={() => {
-            if (loading) return;
-            openSheet("length");
-          }}
-        >
-          <Text style={styles.rowLeft}>Caption Length</Text>
-          <View style={styles.rowRightBox}>
-            <Text style={styles.rowRight}>{lengthOption}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#777" />
-          </View>
-        </Pressable>
+      <AnimatedPressable
+  disabled={loading}
+  onPress={() => {
+    if (loading) return;
+    openSheet("length");
+  }}
+>
+  <View style={styles.rowCard}>
+    <Text style={styles.rowLeft}>Caption Length</Text>
+    <View style={styles.rowRightBox}>
+      <Text style={styles.rowRight}>{lengthOption}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#777" />
+    </View>
+  </View>
+</AnimatedPressable>
 
-        <Pressable
-          style={styles.rowCard}
-          onPress={() => {
-            if (loading) return;
-            openSheet("mood");
-          }}
-        >
-          <Text style={styles.rowLeft}>Mood</Text>
-          <View style={styles.rowRightBox}>
-            <Text style={styles.rowRight}>{moodOption}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#777" />
-          </View>
-        </Pressable>
+   <AnimatedPressable
+  disabled={loading}
+  onPress={() => {
+    if (loading) return;
+    openSheet("mood");
+  }}
+>
+  <View style={styles.rowCard}>
+    <Text style={styles.rowLeft}>Mood</Text>
+    <View style={styles.rowRightBox}>
+      <Text style={styles.rowRight}>{moodOption}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#777" />
+    </View>
+  </View>
+</AnimatedPressable>
 
-        <Pressable
-          style={styles.rowCard}
-          onPress={() => {
-            if (loading) return;
-            openSheet("emoji");
-          }}
-        >
-          <Text style={styles.rowLeft}>Emojis</Text>
-          <View style={styles.rowRightBox}>
-            <Text style={styles.rowRight}>{String(emojiCount)}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#777" />
-          </View>
-        </Pressable>
 
-        <Pressable
-          style={styles.rowCard}
-          onPress={() => {
-            if (loading) return;
-            openSheet("hashtag");
-          }}
-        >
-          <Text style={styles.rowLeft}>Hashtags</Text>
-          <View style={styles.rowRightBox}>
-            <Text style={styles.rowRight}>{String(hashtagCount)}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#777" />
-          </View>
-        </Pressable>
+    <AnimatedPressable
+  disabled={loading}
+  onPress={() => {
+    if (loading) return;
+    openSheet("emoji");
+  }}
+>
+  <View style={styles.rowCard}>
+    <Text style={styles.rowLeft}>Emojis</Text>
+    <View style={styles.rowRightBox}>
+      <Text style={styles.rowRight}>{String(emojiCount)}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#777" />
+    </View>
+  </View>
+</AnimatedPressable>
 
-        <Pressable
-          style={styles.rowCard}
-          onPress={() => {
-            if (loading) return;
-            openSheet("language");
-          }}
-        >
-          <Text style={styles.rowLeft}>Language</Text>
-          <View style={styles.rowRightBox}>
-            <Text style={styles.rowRight}>{language}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#777" />
-          </View>
-        </Pressable>
+     <AnimatedPressable
+  disabled={loading}
+  onPress={() => {
+    if (loading) return;
+    openSheet("hashtag");
+  }}
+>
+  <View style={styles.rowCard}>
+    <Text style={styles.rowLeft}>Hashtags</Text>
+    <View style={styles.rowRightBox}>
+      <Text style={styles.rowRight}>{String(hashtagCount)}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#777" />
+    </View>
+  </View>
+</AnimatedPressable>
+
+
+      <AnimatedPressable
+  disabled={loading}
+  onPress={() => {
+    if (loading) return;
+    openSheet("language");
+  }}
+>
+  <View style={styles.rowCard}>
+    <Text style={styles.rowLeft}>Language</Text>
+    <View style={styles.rowRightBox}>
+      <Text style={styles.rowRight}>{language}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#777" />
+    </View>
+  </View>
+</AnimatedPressable>
 
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -785,7 +879,7 @@ export default CaptionGeneratorScreen;
 
 /* STYLES */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1822ff" },
+  container: { flex: 1, backgroundColor: "#141414ff" },
 
   header: {
     flexDirection: "row",
@@ -813,8 +907,10 @@ const styles = StyleSheet.create({
   addBox: {
     width: 50,
     height: 50,
-    backgroundColor: "#1F1D29",
-    borderRadius: 10,
+    borderRadius: 12,
+    backgroundColor: GLASS_BG,
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -850,39 +946,64 @@ const styles = StyleSheet.create({
 
   /* INPUT */
   input: {
-    backgroundColor: "#1F1D29",
-    padding: 12,
-    borderRadius: 12,
-    color: "white",
+    backgroundColor: GLASS_BG,
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
+    padding: 14,
+    borderRadius: 14,
+    color: GLASS_TEXT,
     minHeight: 55,
-    marginBottom: 10,
   },
+
 
   /* CAPTION CARDS */
   captionCard: {
-    backgroundColor: "#23212FFF",
-    borderRadius: 12,
-    padding: 15,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 16,
+    padding: 16,
     marginTop: 30,
+
     borderWidth: 1,
-    borderColor: "#7d5df8",
+    borderColor: GLASS_BORDER
   },
 
-  captionTitle: { color: "#CFCED6", marginBottom: 6, fontSize: 14 },
-  captionText: { color: "white", fontSize: 15, lineHeight: 22 },
+
+  captionTitle: {
+    color: "#A1A1A6",
+    marginBottom: 6,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+
+  captionText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+
 
   copyBtn: {
     flexDirection: "row",
-    backgroundColor: "#8d69e0",
+    alignItems: "center",
+    justifyContent: "center",
+
+    backgroundColor: GLASS_BG,
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
+
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 12,
-    width: "35%",
+    borderRadius: 12,
+    marginTop: 14,
+    width: "38%",
   },
 
-  copyText: { color: "white", marginLeft: 8, fontWeight: "600" },
+
+  copyText: {
+    color: "#F5C77A",
+    marginLeft: 8,
+    fontWeight: "700",
+  },
 
   /* CUSTOMIZE */
   customizeTitle: {
@@ -894,28 +1015,35 @@ const styles = StyleSheet.create({
   },
 
   rowCard: {
-    backgroundColor: "#1F1D29",
-    paddingVertical: 11,
+    backgroundColor: GLASS_BG,
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
+    paddingVertical: 12,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
 
-  rowLeft: { color: "#dbd8d8ff", fontSize: 14 },
+
+  rowLeft: {
+    color: GLASS_TEXT,
+    fontSize: 14,
+  },
+
+  rowRight: {
+    color: "#F5C77A",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
 
   rowRightBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-  },
-
-  rowRight: {
-    color: "#7d5df8",
-    fontSize: 14,
-    fontWeight: "600",
   },
 
   /* SHEET */
@@ -924,16 +1052,20 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
 
-  sheet: {
-    backgroundColor: "#1F1D29",
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
+sheet: {
+  backgroundColor: "rgba(30,30,30,0.92)",
+  borderTopLeftRadius: 22,
+  borderTopRightRadius: 22,
+
+  borderTopWidth: 1,
+  borderLeftWidth: 1,
+  borderRightWidth: 1,
+  borderBottomWidth: 0,
+
+  borderColor: GLASS_BORDER,
+  padding: 20,
+},
+
 
   sheetTitle: {
     fontSize: 18,
@@ -945,9 +1077,14 @@ const styles = StyleSheet.create({
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2b2836",
-    paddingHorizontal: 10,
-    borderRadius: 10,
+
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    borderRadius: 14,
     marginVertical: 10,
   },
 
@@ -959,20 +1096,23 @@ const styles = StyleSheet.create({
   },
 
   sheetItem: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#2b2836",
-    flexDirection: "row",
-    justifyContent: "center",
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
-    position: "relative",
   },
+
   checkIcon: {
     position: "absolute",
     right: 10,
+    top: "50%",
   },
 
-  sheetItemText: { color: "white", fontSize: 15, textAlign: "center" },
+  sheetItemText: {
+    color: GLASS_TEXT,
+    fontSize: 15,
+  },
+
 
   unlockItem: {
     flexDirection: "row",
@@ -983,7 +1123,7 @@ const styles = StyleSheet.create({
   },
 
   unlockText: {
-    color: "#7d5df8",
+    color: "#F5C77A",
     fontWeight: "700",
     fontSize: 15,
     textAlign: "center",
@@ -994,25 +1134,27 @@ const styles = StyleSheet.create({
   error: { color: "#ff5c5c", marginTop: 10, textAlign: "center" },
 
   /* GENERATE BUTTON */
-  gnrbtn: {
-    position: "absolute",
-    bottom: 25,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   generateBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#8d69e0",
-    paddingVertical: 12,
+
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingVertical: 15,
     paddingHorizontal: 35,
-    borderRadius: 14,
-    gap: 3,
+    borderRadius: 16,
+    gap: 6,
+    width: "fitcontent",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
 
-  generateText: { color: "white", fontSize: 16 },
+
+  generateText: { color: "#F5C77A", fontSize: 16 },
 
   /* POPUP */
   popupOverlay: {
@@ -1024,33 +1166,37 @@ const styles = StyleSheet.create({
 
   popupBox: {
     width: 280,
-    backgroundColor: "#2a2736",
+    backgroundColor: "rgba(30,30,30,0.92)",
+    borderRadius: 18,
     padding: 22,
-    borderRadius: 14,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
   },
 
   popupTitle: {
-    color: "#fff",
+    color: GLASS_TEXT,
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 10,
-    textAlign: "center",
   },
 
+
   popupText: {
-    color: "#bbb",
+    color: GLASS_SUBTEXT,
     fontSize: 14,
-    marginBottom: 15,
     textAlign: "center",
+    marginBottom: 15
   },
 
   popupBtn: {
-    backgroundColor: "#7d5df8",
+    backgroundColor: "rgba(245,199,122,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(245,199,122,0.35)",
     paddingVertical: 10,
     paddingHorizontal: 30,
-    borderRadius: 10,
+    borderRadius: 14,
   },
+
 
   popupBtnText: {
     color: "#fff",
@@ -1065,9 +1211,17 @@ const styles = StyleSheet.create({
   },
   inputSeparator: {
     height: 2,
-    backgroundColor: "#2b2836",
+    backgroundColor: GLASS_BORDER,
     marginTop: 20,
     marginBottom: 0,
   },
+  gnrbtn: {
+    position: "absolute",
+    bottom: 25,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
 
 });

@@ -8,7 +8,8 @@ import {
   TextInput,
   Keyboard,
   Linking,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -73,7 +74,7 @@ const Settings = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }} />
+          <ActivityIndicator size="large" color="#F5C77A" style={{ transform: [{ scale: 2 }] }} />
         </View>
       </SafeAreaView>
     );
@@ -111,13 +112,63 @@ const Settings = () => {
     }
   };
 
-  const Item = ({ icon, title, onPress, showArrow = true, style }) => (
-    <Pressable style={[styles.row, style]} onPress={onPress}>
-      <Ionicons name={icon} size={18} color="#a08afcff" />
-      <Text style={styles.rowText}>{title}</Text>
-      {showArrow && <Ionicons name="chevron-forward" size={18} color="#777" />}
-    </Pressable>
-  );
+  const Item = ({ icon, title, onPress, showArrow = true, style }) => {
+    const scale = useRef(new Animated.Value(1)).current;
+    const opacity = useRef(new Animated.Value(1)).current;
+
+    const onPressIn = () => {
+      Animated.parallel([
+        Animated.spring(scale, {
+          toValue: 0.98,
+          friction: 7,
+          tension: 90,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
+
+    const onPressOut = () => {
+      Animated.parallel([
+        Animated.spring(scale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
+
+    return (
+      <Pressable
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+      >
+        <Animated.View
+          style={[
+            styles.iosRow,
+            style,
+            { transform: [{ scale }], opacity },
+          ]}
+        >
+          <Ionicons name={icon} size={18} color="#A1A1A6" />
+          <Text style={styles.rowText}>{title}</Text>
+          {showArrow && (
+            <Ionicons name="chevron-forward" size={18} color="#6f6f6f" />
+          )}
+        </Animated.View>
+      </Pressable>
+    );
+  };
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -139,7 +190,7 @@ const Settings = () => {
               <>
                 {/* Name + PRO Badge */}
                 <View style={styles.rows}>
-                  <Ionicons name="person-outline" size={18} color="#a08afcff" />
+                  <Ionicons name="person-outline" size={18} color="#A1A1A6" />
 
                   <TextInput
                     ref={nameInputRef}
@@ -154,7 +205,7 @@ const Settings = () => {
                     autoFocus={false}
                     returnKeyType="done"
                     style={{
-                      color: "white",
+                      color: "#EAEAEB",
                       fontSize: 16,
                       flex: 1,
                       marginLeft: 12,
@@ -167,17 +218,18 @@ const Settings = () => {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#4b007d",
+                        backgroundColor: "rgba(245,199,122,0.15)",
+                        borderColor: "rgba(245,199,122,0.6)",
                         borderRadius: 12,
                         paddingVertical: 4,
                         paddingHorizontal: 10,
                         marginRight: 20,
                         borderWidth: 1,
-                        borderColor: "#c77dff",
+
                       }}
                     >
-                      <Ionicons name="diamond-outline" size={14} color="#ffd700" style={{ marginRight: 4 }} />
-                      <Text style={{ color: "#ffd700", fontSize: 12, fontWeight: "700" }}>
+                      <Ionicons name="diamond-outline" size={14} color="#F5C77A" style={{ marginRight: 4 }} />
+                      <Text style={{ color: "#F5C77A", fontSize: 12, fontWeight: "700" }}>
                         PRO
                       </Text>
                     </View>
@@ -198,7 +250,7 @@ const Settings = () => {
                     <Ionicons
                       name={isEditing ? "checkmark" : "create-outline"}
                       size={20}
-                      color="#a08afcff"
+                      color="#A1A1A6"
                     />
                   </Pressable>
 
@@ -206,7 +258,7 @@ const Settings = () => {
 
                 {/* EMAIL */}
                 <View className="row" style={styles.row}>
-                  <Ionicons name="mail-outline" size={18} color="#a08afcff" />
+                  <Ionicons name="mail-outline" size={18} color="#A1A1A6" />
                   <Text style={styles.emailText}>{user.email}</Text>
                 </View>
               </>
@@ -225,7 +277,7 @@ const Settings = () => {
                 <Item
                   title="Register"
                   icon="person-add-outline"
-                  onPress={() => navigation.navigate("Register")}
+                  onPress={() => navigation.navigate("OtpScreen")}
                 />
               </>
             )}
@@ -243,8 +295,8 @@ const Settings = () => {
                     { borderBottomWidth: 0.8, borderBottomColor: "#383737ff" },
                   ]}
                 >
-                  <Ionicons name="diamond-outline" size={18} color="#faca2bff" />
-                  <Text style={[styles.rowText, { color: "#faca2bff", fontWeight: "600" }]}>PRO Member</Text>
+                  <Ionicons name="diamond-outline" size={18} color="#F5C77A" />
+                  <Text style={[styles.rowText, { color: "#F5C77A", fontWeight: "600" }]}>PRO Member</Text>
                 </View>
 
                 {/* Manage Subscription */}
@@ -314,11 +366,12 @@ const Settings = () => {
                 onPress={handleLogout}
                 style={({ pressed }) => [
                   styles.logoutBtn,
-                  pressed && { transform: [{ scale: 0.96 }], opacity: 0.8 },
+                  pressed && styles.logoutPressed,
                 ]}
               >
-                <Text style={styles.logoutText}>Logout</Text>
+                <Text style={styles.logoutText}>Log Out</Text>
               </Pressable>
+
             </View>
           )}
         </ScrollView>
@@ -330,7 +383,7 @@ const Settings = () => {
 export default Settings;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
+  safeArea: { flex: 1, backgroundColor: "#141414ff" },
   container: { flex: 1, paddingHorizontal: 12 },
   header: {
     flexDirection: "coloum",
@@ -349,12 +402,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
-  sectionTitle: { color: "#8A8A8D", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
+  sectionTitle: { color: "#9E9EA2", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
   sectionBox: {
-    backgroundColor: "#1F1D29",
-    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 16,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+
   },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -369,15 +430,50 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.8,
     borderBottomColor: "#383737ff",
   },
-  rowText: { flex: 1, fontSize: 15, color: "#dbd8d8ff", marginLeft: 18 },
+  rowText: { flex: 1, fontSize: 15, color: "#EAEAEB", marginLeft: 18 },
   emailText: { flex: 1, color: "#9e9e9e", fontSize: 16, opacity: 0.8, marginLeft: 18 },
   logoutWrapper: { marginTop: 25, alignItems: "center" },
   logoutBtn: {
-    backgroundColor: "#ce1f1fff",
-    paddingVertical: 12,
-    borderRadius: 12,
+    width: "50%",
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: "center",
-    width: "40%",
+    backgroundColor: "rgba(255, 69, 58, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 69, 58, 0.35)",
+    marginTop: 10,
   },
-  logoutText: { color: "#dbd8d8ff", fontSize: 16, fontWeight: "600" },
+
+  logoutPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.97 }],
+  },
+
+  logoutText: {
+    color: "#FF453A",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+
+
+  iosRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    backgroundColor: "transparent",
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(255,255,255,0.08)",
+
+    marginLeft: 52,
+  },
+  sectionBoxWrapper: {
+    marginBottom: 18,
+  },
+
+
+
 });

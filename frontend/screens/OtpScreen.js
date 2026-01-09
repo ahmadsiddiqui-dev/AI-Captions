@@ -6,6 +6,13 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { verifyOtp, resendOtp } from "../api/api";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const GLASS_ACCENT = "#F5C77A";
+
+
 const OtpScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -133,76 +140,86 @@ const OtpScreen = () => {
 export default OtpScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#1a1822ff" },
+  safeArea: { flex: 1, backgroundColor: "#141414ff" },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#1a1822ff",
+    backgroundColor: "#141414ff",
   },
 
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
-  title: {
-    color: "#dbd8d8ff",
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: "center",
-  },
+title: {
+  color: GLASS_TEXT,
+  fontSize: 18,
+  marginBottom: 20,
+  textAlign: "center",
+},
 
-  msg: {
-    marginBottom: 15,
-    fontSize: 15,
-    fontWeight: "500",
-    textAlign: "center",
-  },
 
-  success: { color: "#32D74B" },
-  error: { color: "#FF453A" },
+msg: {
+  marginBottom: 15,
+  fontSize: 15,
+  fontWeight: "500",
+  textAlign: "center",
+},
 
-  input: {
-    backgroundColor: "#1F1D29",
-    color: "white",
-    width: "80%",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 20,
-    fontSize: 16,
-    textAlign: "center",
-  },
+success: { color: GLASS_ACCENT },
+error: { color: GLASS_ACCENT },
 
-  button: {
-    backgroundColor: "#7d5df8",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    alignItems: "center",
-  },
 
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+input: {
+  backgroundColor: GLASS_BG,
+  color: GLASS_TEXT,
+  width: "80%",
+  padding: 14,
+  borderRadius: 14,
+  marginBottom: 20,
+  fontSize: 16,
+  textAlign: "center",
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
 
-  resend: {
-    color: "#7da8ff",
-    marginTop: 15,
-    fontSize: 14,
-  },
+button: {
+  backgroundColor: GLASS_BG,
+  paddingVertical: 15,
+  paddingHorizontal: 40,
+  borderRadius: 16,
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
+buttonText: {
+  color: GLASS_ACCENT,
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+
+resend: {
+  color: GLASS_SUBTEXT,
+  marginTop: 15,
+  fontSize: 14,
+},
+
   bgTop: {
     position: "absolute",
     top: -130,
     right: -110,
     width: 260,
     height: 260,
-    backgroundColor: "#35323fff",
+     backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
     opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -210,8 +227,10 @@ const styles = StyleSheet.create({
     left: -120,
     width: 300,
     height: 300,
-    backgroundColor: "#35323fff",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
-    opacity: 0.3,
+    opacity: 0.35,
+    borderWidth: 2,
+  borderColor: GLASS_BORDER,
   },
 });

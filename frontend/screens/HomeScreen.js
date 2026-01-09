@@ -21,6 +21,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getSubscriptionStatus } from "../api/api";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const ACCENT = "#F5C77A";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -33,13 +38,13 @@ const HomeScreen = () => {
   const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
 
   useEffect(() => {
-      const init = async () => {
-    try {
-      await getOrCreateDeviceId();
-    } catch {}
-  };
+    const init = async () => {
+      try {
+        await getOrCreateDeviceId();
+      } catch { }
+    };
 
-  init();
+    init();
 
     const checkSubscriptionPopup = async () => {
       const token = await AsyncStorage.getItem("token");
@@ -57,10 +62,10 @@ const HomeScreen = () => {
     };
 
     checkSubscriptionPopup();
-    
+
   }, []);
 
-  
+
 
   const pickImage = async () => {
     if (Platform.OS === "android") {
@@ -157,8 +162,14 @@ const HomeScreen = () => {
           </Text>
 
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Pressable style={styles.button} onPress={pickImage}>
-              <Ionicons name="folder-outline" size={35} color="white" />
+            <Pressable
+              onPress={pickImage}
+              style={({ pressed }) => [
+                styles.button,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons name="folder-outline" size={35} color="#F5C77A" />
               <Text style={styles.buttonText}>Select Photos</Text>
             </Pressable>
           </Animated.View>
@@ -217,7 +228,7 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1822ff" },
+  container: { flex: 1, backgroundColor: "#141414ff" },
 
   topRight: {
     position: "absolute",
@@ -263,20 +274,29 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#8d69e0ff",
+    backgroundColor: "rgba(255,255,255,0.08)",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 22,
     gap: 16,
     width: 240,
-    justifyContent: "right",
+    justifyContent: "center",
+
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
 
   buttonText: {
-    color: "white",
+    color: "#F5C77A",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
   },
+
 
   policy: {
     color: "#ffffff9f",
@@ -303,14 +323,16 @@ const styles = StyleSheet.create({
 
   popupBox: {
     width: 280,
-    backgroundColor: "#2a2736",
+    backgroundColor: "rgba(30,30,30,0.92)",
     padding: 22,
     borderRadius: 14,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: GLASS_BORDER,
   },
 
   popupTitle: {
-    color: "#fff",
+    color: GLASS_TEXT,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 10,
@@ -318,14 +340,16 @@ const styles = StyleSheet.create({
   },
 
   popupText: {
-    color: "#bbb",
+    color: GLASS_SUBTEXT,
     fontSize: 14,
     marginBottom: 15,
     textAlign: "center",
   },
 
   popupBtn: {
-    backgroundColor: "#7d5df8",
+     backgroundColor: "rgba(245,199,122,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(245,199,122,0.35)",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,

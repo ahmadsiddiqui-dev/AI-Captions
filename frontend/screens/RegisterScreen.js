@@ -22,6 +22,12 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const GLASS_ACCENT = "#F5C77A";
+
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
@@ -56,56 +62,116 @@ const RegisterScreen = () => {
   };
   const strength = getStrength();
 
-const handleRegister = async () => {
-  setErrorMessage("");
-  setLoading(true);
+  // const handleRegister = async () => {
+  //   setErrorMessage("");
+  //   setLoading(true);
 
-  if (!name || !email || !password || !confirmPassword) {
-    setErrorMessage("All fields are required !");
-    setLoading(false);
-    return;
-  }
+  //   if (!name || !email || !password || !confirmPassword) {
+  //     setErrorMessage("All fields are required !");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-  if (name.trim().length < 3) {
-    setErrorMessage("Name must be at least 3 characters long");
-    setLoading(false);
-    return;
-  }
+  //   if (name.trim().length < 3) {
+  //     setErrorMessage("Name must be at least 3 characters long");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-  if (!passwordRule.test(password)) {
-    setErrorMessage("Password must follow requirements");
-    setLoading(false);
-    return;
-  }
+  //   if (!passwordRule.test(password)) {
+  //     setErrorMessage("Password must follow requirements");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-  if (password !== confirmPassword) {
-    setErrorMessage("Passwords do not match");
-    setLoading(false);
-    return;
-  }
+  //   if (password !== confirmPassword) {
+  //     setErrorMessage("Passwords do not match");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-  try {
-    const deviceId = await getOrCreateDeviceId();
+  //   try {
+  //     const deviceId = await getOrCreateDeviceId();
 
-    const data = await registerUser(
-      { name, email, password },
-      deviceId 
-    );
+  //     const data = await registerUser(
+  //       { name, email, password },
+  //       deviceId 
+  //     );
 
-    if (data?.message?.toLowerCase().includes("successful")) {
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      navigation.navigate("Home");
+  //     if (data?.message?.toLowerCase().includes("successful")) {
+  //       await AsyncStorage.setItem("user", JSON.stringify(data.user));
+  //       navigation.navigate("Home");
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     setErrorMessage(data?.message || "Registration failed");
+  //  } catch (err) {
+  //   setError(err?.message || "Cannot connect to server");
+  // }
+
+
+  //   setLoading(false);
+  // };
+  const handleRegister = async () => {
+    setErrorMessage("");
+    setLoading(true);
+
+    if (!name || !email || !password || !confirmPassword) {
+      setErrorMessage("All fields are required !");
       setLoading(false);
       return;
     }
-    setErrorMessage(data?.message || "Registration failed");
- } catch (err) {
-  setError(err?.message || "Cannot connect to server");
-}
 
+    if (name.trim().length < 3) {
+      setErrorMessage("Name must be at least 3 characters long");
+      setLoading(false);
+      return;
+    }
 
-  setLoading(false);
-};
+    if (!passwordRule.test(password)) {
+      setErrorMessage("Password must follow requirements");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const deviceId = await getOrCreateDeviceId();
+
+      const data = await registerUser(
+        { name, email, password },
+        deviceId
+      );
+
+      if (data?.message?.toLowerCase().includes("successful")) {
+
+        if (data.token) {
+          await AsyncStorage.setItem("token", data.token);
+        }
+
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
+
+        setLoading(false);
+        return;
+      }
+
+      setErrorMessage(data?.message || "Registration failed");
+    } catch (err) {
+      setErrorMessage(err?.message || "Cannot connect to server");
+    }
+
+    setLoading(false);
+  };
 
 
 
@@ -205,7 +271,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name="person-outline"
                   size={18}
-                  color="#8a8a8d"
+                  color="#A1A1A6"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -228,7 +294,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color="#8a8a8d"
+                  color="#A1A1A6"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -247,7 +313,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color="#8a8a8d"
+                  color="#A1A1A6"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -279,7 +345,7 @@ const handleRegister = async () => {
                   <Ionicons
                     name={showPass ? "eye-off-outline" : "eye-outline"}
                     size={21}
-                    color="#b5b5b5"
+                    color="#A1A1A6"
                   />
                 </Pressable>
               </View>
@@ -289,7 +355,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color="#8a8a8d"
+                  color="#A1A1A6"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -307,7 +373,7 @@ const handleRegister = async () => {
                   <Ionicons
                     name={showConfirmPass ? "eye-off-outline" : "eye-outline"}
                     size={21}
-                    color="#b5b5b5"
+                    color="#A1A1A6"
                   />
                 </Pressable>
               </View>
@@ -323,7 +389,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name={showRequirements ? "chevron-up" : "chevron-down"}
                   size={20}
-                  color="#7da8ff"
+                  color= "#A1A1A6"
                 />
               </Pressable>
 
@@ -403,44 +469,117 @@ const handleRegister = async () => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1822ff", paddingHorizontal: 0 },
+  container: { flex: 1, backgroundColor: "#141414ff", paddingHorizontal: 0 },
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5 },
   backButton: { flexDirection: "row", alignItems: "center" },
   headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: { flex: 1, justifyContent: "center", paddingBottom: 50 },
-  topText: { color: "#dbd8d8ff", fontSize: 30, fontWeight: "600", alignSelf: "center", marginBottom: 30 },
+  // topText: { color: "#dbd8d8ff", fontSize: 30, fontWeight: "600", alignSelf: "center", marginBottom: 30 },
   box: { padding: 20, marginHorizontal: 16, paddingTop: 0, paddingBottom: 0 },
   label: { color: "#8a8a8d", fontSize: 14, marginBottom: 6, marginTop: 10 },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#1F1D29", borderRadius: 10, paddingHorizontal: 12, marginBottom: 10 },
-  passwordRow2: { flexDirection: "row", alignItems: "center", backgroundColor: "#1F1D29", borderRadius: 10, paddingHorizontal: 12, marginBottom: 10 },
+  inputRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: GLASS_BG,
+  borderRadius: 14,
+  paddingHorizontal: 14,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
+passwordRow2: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: GLASS_BG,
+  borderRadius: 14,
+  paddingHorizontal: 14,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
   inputIcon: { marginRight: 10 },
-  inputField: { flex: 1, color: "white", fontSize: 16, paddingVertical: 14 },
+  inputField: {
+  flex: 1,
+  color: GLASS_TEXT,
+  fontSize: 16,
+  paddingVertical: 14,
+},
+
   eye: { paddingLeft: 10 },
   strengthInline: { fontSize: 12, marginRight: 8 },
   dropdownHeader: { flexDirection: "row", alignItems: "center", marginBottom: 5, justifyContent: "flex-end" },
-  dropdownText: { color: "#7da8ff", fontSize: 15, marginRight: 5 },
-  requireBox: { backgroundColor: "#1F1D29", borderRadius: 10, padding: 12, marginBottom: 10 },
+  dropdownText: { color: GLASS_SUBTEXT, fontSize: 15, marginRight: 5 },
+  requireBox: {
+  backgroundColor: GLASS_BG,
+  borderRadius: 14,
+  padding: 12,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+},
+
   reqItem: { color: "#dbd8d8ff", fontSize: 14, marginBottom: 6 },
-  button: { backgroundColor: "#7d5df8", paddingVertical: 15, borderRadius: 12, alignItems: "center", marginTop: 10, marginBottom: 0 },
-  buttonText: { color: "white", fontSize: 16, fontWeight: "600" },
-  errorMsg: { color: "#ff6b6b", textAlign: "center", marginBottom: 0, fontSize: 14, fontWeight: "500" },
-  loginText: { color: "#b5b5b5", textAlign: "center", marginTop: 0, fontSize: 15 },
-  loginLink: { color: "#7da8ff", fontWeight: "600" },
+button: {
+  backgroundColor: GLASS_BG,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+  paddingVertical: 15,
+  borderRadius: 16,
+  alignItems: "center",
+  marginTop: 10,
+},
+
+buttonText: {
+  color: GLASS_ACCENT,
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+  errorMsg: { color: GLASS_ACCENT, textAlign: "center", marginBottom: 0, fontSize: 14, fontWeight: "500" },
+  topText: {
+  color: GLASS_TEXT,
+  fontSize: 30,
+  fontWeight: "600",
+  alignSelf: "center",
+  marginBottom: 30,
+},
+
+loginText: {
+  color: GLASS_SUBTEXT,
+  textAlign: "center",
+  fontSize: 15,
+},
+
+loginLink: {
+  color: GLASS_ACCENT,
+  fontWeight: "600",
+},
+
   or: { color: "#808080", marginVertical: 20, textAlign: "center" },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-    paddingVertical: 14,
-    borderRadius: 12,
-    width: "100%",
-    marginTop: -5,
-    marginBottom: 20,
-    borderWidth: 1,
-    gap: 20,
-  },
-  googleText: { color: "wblackhite", fontSize: 15, fontWeight: "600" },
-  bgTop: { position: "absolute", top: -135, right: -135, width: 260, height: 260, backgroundColor: "#35323fff", borderRadius: 200, opacity: 0.35 },
-  bgBottom: { position: "absolute", bottom: -160, left: -160, width: 300, height: 300, backgroundColor: "#35323fff", borderRadius: 200, opacity: 0.3 },
+googleButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: GLASS_BG,
+  borderWidth: 1,
+  borderColor: GLASS_BORDER,
+  paddingVertical: 14,
+  borderRadius: 16,
+  width: "100%",
+  marginBottom: 20,
+  gap: 12,
+},
+
+googleText: {
+  color: GLASS_TEXT,
+  fontSize: 15,
+  fontWeight: "600",
+},
+
+  bgTop: { position: "absolute", top: -135, right: -135, width: 260, height: 260, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.35,borderWidth: 2,
+  borderColor: GLASS_BORDER, },
+  bgBottom: { position: "absolute", bottom: -160, left: -160, width: 300, height: 300, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.3,borderWidth: 2,
+  borderColor: GLASS_BORDER, },
 });

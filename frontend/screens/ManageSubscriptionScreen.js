@@ -12,6 +12,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { getSubscriptionStatus } from "../api/api";
 
+const GLASS_BG = "rgba(255,255,255,0.08)";
+const GLASS_BORDER = "rgba(255,255,255,0.15)";
+const GLASS_TEXT = "#E5E5EA";
+const GLASS_SUBTEXT = "#A1A1A6";
+const ACCENT_GOLD = "#F5C77A";
+const DANGER_RED = "#ff5c5c";
+
 const ManageSubscriptionScreen = () => {
     const navigation = useNavigation();
 
@@ -21,30 +28,30 @@ const ManageSubscriptionScreen = () => {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [autoRenew, setAutoRenew] = useState("Enabled");
 
-useEffect(() => {
-  const load = async () => {
-    const status = await getSubscriptionStatus();
-    console.log("STATUS:", status);
+    useEffect(() => {
+        const load = async () => {
+            const status = await getSubscriptionStatus();
+            console.log("STATUS:", status);
 
-    setIsSubscribed(status?.isSubscribed || false);
-    setExpiryDate(status?.expiryDate || null);
+            setIsSubscribed(status?.isSubscribed || false);
+            setExpiryDate(status?.expiryDate || null);
 
-    const pid = status?.productId?.toLowerCase()?.replace(/[^a-z_]/g, ""); 
+            const pid = status?.productId?.toLowerCase()?.replace(/[^a-z_]/g, "");
 
-    let planName = "Premium Plan";
+            let planName = "Premium Plan";
 
-    if (pid?.includes("month")) planName = "Monthly Plan";
-    else if (pid?.includes("year")) planName = "Yearly Plan";
+            if (pid?.includes("month")) planName = "Monthly Plan";
+            else if (pid?.includes("year")) planName = "Yearly Plan";
 
-    setPlan(planName);
+            setPlan(planName);
 
-    setAutoRenew(status?.autoRenew === false ? "Disabled" : "Enabled");
+            setAutoRenew(status?.autoRenew === false ? "Disabled" : "Enabled");
 
-    setLoading(false);
-  };
+            setLoading(false);
+        };
 
-  load();
-}, []);
+        load();
+    }, []);
 
 
     const openGooglePlaySubscriptions = () => {
@@ -55,8 +62,8 @@ useEffect(() => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                          <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }}/>
-                        </View>
+                    <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }} />
+                </View>
             </SafeAreaView>
         );
     }
@@ -79,13 +86,13 @@ useEffect(() => {
 
                         {/* PLAN */}
                         <View style={styles.row}>
-                            <Ionicons name="star-outline" size={22} color="#ffd700" />
+                            <Ionicons name="star-outline" size={22} color="#F5C77A" />
                             <Text style={styles.value}>{plan}</Text>
                         </View>
 
                         {/* BILLING DATE */}
                         <View style={styles.row}>
-                            <Ionicons name="calendar-outline" size={22} color="#8d69e0" />
+                            <Ionicons name="calendar-outline" size={22} color="#A1A1A6" />
                             <Text style={styles.value}>
                                 Next Billing Date:{" "}
                                 {expiryDate ? new Date(expiryDate).toDateString() : "N/A"}
@@ -94,28 +101,33 @@ useEffect(() => {
 
                         {/* AUTO RENEW */}
                         <View style={styles.row}>
-                            <Ionicons name="sync-circle-outline" size={22} color="#8d69e0" />
+                            <Ionicons name="sync-circle-outline" size={22} color="#A1A1A6" />
                             <Text style={styles.value}>Auto-Renew: {autoRenew}</Text>
 
                             {/* Toggle Button (Always opens Google Play) */}
                             <Pressable
-                                style={[
-                                    styles.toggleBtn,
-                                    autoRenew === "Enabled" ? styles.toggleOn : styles.toggleOff
-                                ]}
                                 onPress={openGooglePlaySubscriptions}
+                                style={({ pressed }) => [
+                                    styles.toggleBtn,
+                                    autoRenew === "Enabled" ? styles.toggleOn : styles.toggleOff,
+                                    pressed && { opacity: 0.75 },
+                                ]}
                             >
                                 <Text style={styles.toggleText}>
                                     {autoRenew === "Enabled" ? "Disable" : "Enable"}
                                 </Text>
                             </Pressable>
+
                         </View>
 
 
                         {/* CANCEL SUBSCRIPTION BUTTON */}
                         <Pressable
-                            style={styles.cancelButton}
                             onPress={openGooglePlaySubscriptions}
+                            style={({ pressed }) => [
+                                styles.cancelButton,
+                                pressed && { opacity: 0.75 },
+                            ]}
                         >
                             <Text style={styles.cancelText}>Cancel Subscription</Text>
                         </Pressable>
@@ -153,7 +165,7 @@ export default ManageSubscriptionScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#1a1822ff",
+        backgroundColor: "#141414ff",
     },
 
     header: {
@@ -187,17 +199,33 @@ const styles = StyleSheet.create({
     },
 
     box: {
-        backgroundColor: "#1F1D29",
-        borderRadius: 16,
+        backgroundColor: GLASS_BG,
+        borderRadius: 18,
         padding: 18,
+        borderWidth: 1,
+        borderColor: GLASS_BORDER,
     },
 
+
     title: {
-        color: "white",
+        color: GLASS_TEXT,
         fontSize: 18,
         fontWeight: "700",
         marginBottom: 15,
     },
+
+    value: {
+        color: GLASS_TEXT,
+        marginLeft: 12,
+        fontSize: 15,
+    },
+
+    note: {
+        color: GLASS_SUBTEXT,
+        marginTop: 12,
+        fontSize: 13,
+    },
+
 
     row: {
         flexDirection: "row",
@@ -205,45 +233,38 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
 
-    value: {
-        color: "#dbd8d8ff",
-        marginLeft: 12,
-        fontSize: 15,
-    },
-
     cancelButton: {
-        backgroundColor: "#ce1f1f",
         paddingVertical: 12,
-        borderRadius: 10,
+        borderRadius: 12,
         marginTop: 20,
         alignItems: "center",
+        backgroundColor: "rgba(255, 69, 58, 0.08)",
+        borderWidth: 1,
+        borderColor: "rgba(255, 69, 58, 0.35)",
     },
 
     cancelText: {
-        color: "white",
+        color: "#FF453A",
         fontSize: 15,
         fontWeight: "600",
     },
 
-    note: {
-        color: "#aaa",
-        marginTop: 12,
-        fontSize: 13,
-    },
-
     upgradeBtn: {
-        backgroundColor: "#8d69e0",
+        backgroundColor: "rgba(245,199,122,0.18)",
         paddingVertical: 14,
-        borderRadius: 10,
+        borderRadius: 14,
         alignItems: "center",
         marginTop: 15,
+        borderWidth: 1,
+        borderColor: ACCENT_GOLD,
     },
 
     upgradeText: {
-        color: "white",
+        color: ACCENT_GOLD,
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: "700",
     },
+
     toggleBtn: {
         marginLeft: "auto",
         paddingVertical: 6,
@@ -252,7 +273,9 @@ const styles = StyleSheet.create({
     },
 
     toggleOn: {
-        backgroundColor: "#ce1f1f",
+        backgroundColor: "rgba(255, 69, 58, 0.08)",
+        borderWidth: 1,
+        borderColor: "rgba(255, 69, 58, 0.35)",
     },
 
     toggleOff: {
