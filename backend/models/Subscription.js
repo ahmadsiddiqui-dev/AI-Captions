@@ -27,12 +27,11 @@ const SubscriptionSchema = new mongoose.Schema(
     },
 
     
-    transactionId: { type: String },     // Google Play transaction ID
-    purchaseToken: { type: String },     // Google token used for renewal verification
-    autoRenew: { type: Boolean, default: true }, // Google auto-renew flag
-    platform: { type: String, default: "google_play" }, // Always store platform
-    cancelled: { type: Boolean, default: false }, // If user canceled but subscription is active until expiry
-
+    transactionId: { type: String },
+    purchaseToken: { type: String },
+    autoRenew: { type: Boolean, default: true }, 
+    platform: { type: String,}, 
+    cancelled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

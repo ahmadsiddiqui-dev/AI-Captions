@@ -188,7 +188,7 @@ const LoginScreen = () => {
                   pressed && !loading && { transform: [{ scale: 0.96 }] },
                 ]}
               >
-                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Login</Text>}
+                {loading ? <ActivityIndicator color="#F5C77A" /> : <Text style={styles.buttonText}>Login</Text>}
               </Pressable>
 
               <Text style={styles.or}>──────── OR ────────</Text>
@@ -201,7 +201,7 @@ const LoginScreen = () => {
                 ]}
               >
                 {googleLoading ? (
-                  <ActivityIndicator color="black" />
+                  <ActivityIndicator color="#F5C77A" />
                 ) : (
                   <>
                     <Image

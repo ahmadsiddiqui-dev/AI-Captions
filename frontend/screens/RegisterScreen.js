@@ -422,7 +422,7 @@ const RegisterScreen = () => {
                   pressed && !loading && { transform: [{ scale: 0.96 }] },
                 ]}
               >
-                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Create Account</Text>}
+                {loading ? <ActivityIndicator color="#F5C77A" /> : <Text style={styles.buttonText}>Create Account</Text>}
               </Pressable>
 
               {/* OR DIVIDER */}
@@ -438,7 +438,7 @@ const RegisterScreen = () => {
                 ]}
               >
                 {googleLoading ? (
-                  <ActivityIndicator color="black" />
+                  <ActivityIndicator color="#F5C77A" />
                 ) : (
                   <>
                     <Image
