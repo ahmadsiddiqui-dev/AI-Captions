@@ -277,7 +277,7 @@ const Settings = () => {
                 <Item
                   title="Register"
                   icon="person-add-outline"
-                  onPress={() => navigation.navigate("OtpScreen")}
+                  onPress={() => navigation.navigate("Register")}
                 />
               </>
             )}

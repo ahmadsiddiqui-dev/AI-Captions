@@ -37,6 +37,18 @@ exports.generateCaptions = (req, res) => {
 
       const user = await getUserFromReq(req);
 
+      
+      let isSubscribed = false;
+
+if (user) {
+  const sub = await Subscription.findOne({ userId: user._id });
+  const now = new Date();
+
+  if (sub?.isSubscribed && sub?.expiryDate > now) {
+    isSubscribed = true;
+  }
+}
+
       // ============================
       //  GET / CREATE GUEST (ALWAYS)
       // ============================
@@ -46,15 +58,17 @@ exports.generateCaptions = (req, res) => {
         guest = await Guest.create({ deviceId, freeCaptionCount: 0 });
       }
 
+
       // ============================
       //  CHECK GLOBAL LIMIT
       // ============================
-      if (guest.freeCaptionCount >= 2) {
-        return res.status(402).json({
-          requireSubscription: true,
-          message: "Subscription required",
-        });
-      }
+    if (!isSubscribed && guest.freeCaptionCount >= 2) {
+  return res.status(402).json({
+    requireSubscription: true,
+    message: "Subscription required",
+  });
+}
+
 
       // ============================
       //  GENERATE CAPTION

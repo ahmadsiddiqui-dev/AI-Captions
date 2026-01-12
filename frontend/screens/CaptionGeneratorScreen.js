@@ -818,6 +818,7 @@ const CaptionGeneratorScreen = () => {
           >
             <Text style={styles.popupTitle}>Content Required</Text>
             <Text style={styles.popupText}>
+
               Please add at least one photo or description to generate a caption.
             </Text>
 
@@ -1178,6 +1179,7 @@ sheet: {
     color: GLASS_TEXT,
     fontSize: 20,
     fontWeight: "700",
+    marginBottom: 8,
   },
 
 

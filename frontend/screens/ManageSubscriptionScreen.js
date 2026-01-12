@@ -62,7 +62,7 @@ const ManageSubscriptionScreen = () => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#8d69e0" style={{ transform: [{ scale: 2 }] }} />
+                    <ActivityIndicator size="large" color="#F5C77A" style={{ transform: [{ scale: 2 }] }} />
                 </View>
             </SafeAreaView>
         );

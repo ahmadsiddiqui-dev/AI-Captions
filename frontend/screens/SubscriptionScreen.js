@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: GLASS_BG,
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   popupBox: {
     width: 280,
