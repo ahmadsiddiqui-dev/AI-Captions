@@ -245,7 +245,8 @@ exports.register = async (req, res) => {
         freeTrialUsed: subscription.freeTrialUsed,
         freeCaptionCount: subscription.freeCaptionCount,
         expiryDate: subscription.expiryDate,
-        trialEnds: subscription.freeTrialEnd
+        trialEnds: subscription.freeTrialEnd,
+        appId: appId
       },
     });
 
@@ -363,7 +364,7 @@ exports.verifyOtp = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, appId } = req.body;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
@@ -376,12 +377,15 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid email or password" });
+    if (!appId) {
+      return res.status(400).json({ message: "Missing appId" });
+    }
 
     const token = generateToken(user._id);
 
     const subscription = await Subscription.findOneAndUpdate(
       { userId: user._id },
-      { userId: user._id },
+      { userId: user._id, appId },
       { upsert: true, new: true }
     );
 
@@ -408,6 +412,7 @@ exports.login = async (req, res) => {
         purchaseDate: subscription.purchaseDate,
         expiryDate: subscription.expiryDate,
         freeCaptionCount: subscription.freeCaptionCount,
+        appId: appId,
       }
     });
 
@@ -569,7 +574,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.googleAuth = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { idToken, appId } = req.body;
 
     if (!idToken) {
       return res.status(400).json({ message: "Missing idToken" });
@@ -589,6 +594,9 @@ exports.googleAuth = async (req, res) => {
     if (!email) {
       return res.status(400).json({ message: "Google account has no email" });
     }
+    if (!appId) {
+      return res.status(400).json({ message: "Missing appId" });
+    }
 
     // Find or create user
     let user = await User.findOne({ email });
@@ -601,13 +609,14 @@ exports.googleAuth = async (req, res) => {
         googleId: sub,
         isVerified: true,
         password: null,
+        appId,
       });
     }
 
     // Ensure subscription entry exists
     let subscription = await Subscription.findOneAndUpdate(
       { userId: user._id },
-      { userId: user._id },
+      { userId: user._id, appId },
       { upsert: true, new: true }
     );
 
@@ -638,6 +647,7 @@ exports.googleAuth = async (req, res) => {
         purchaseDate: subscription.purchaseDate,
         expiryDate: subscription.expiryDate,
         freeCaptionCount: subscription.freeCaptionCount,
+        appId: appId,
       }
     });
 
