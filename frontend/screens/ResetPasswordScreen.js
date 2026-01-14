@@ -14,12 +14,8 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { resetPassword, resendOtp } from "../api/api";
+import { useTheme } from "../src/theme/ThemeContext";
 
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const GLASS_ACCENT = "#F5C77A";
 
 if (
   Platform.OS === "android" &&
@@ -33,7 +29,8 @@ const ResetPasswordScreen = () => {
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const email = route.params?.email;
-
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -132,174 +129,174 @@ const ResetPasswordScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
 
-        <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ flexGrow: 1 }}
-             showsVerticalScrollIndicator={false} 
-          >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
 
-         
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
-          <Text style={styles.headerTitleb}>Back</Text>
-        </Pressable>
-      </View>
-      <View style={styles.container}>
 
-        {/* Background Decorations */}
-        <View style={styles.bgTop} pointerEvents="none" />
-        <View style={styles.bgBottom} pointerEvents="none" />
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={theme.ICON} />
+            <Text style={styles.headerTitleb}>Back</Text>
+          </Pressable>
+        </View>
+        <View style={styles.container}>
 
-        <Text style={styles.title}>Reset Password for {email}</Text>
+          {/* Background Decorations */}
+          <View style={styles.bgTop} pointerEvents="none" />
+          <View style={styles.bgBottom} pointerEvents="none" />
 
-        <View style={styles.inputRow}>
-          <Ionicons name="key-outline" size={18} color="#A1A1A6" style={styles.icon} />
-          <TextInput
-            style={[styles.inputField, { flex: 1 }]}
-            placeholder="Enter OTP"
-            placeholderTextColor="#808080"
-            keyboardType="number-pad"
-            maxLength={6}
-            value={otp}
-            onChangeText={setOtp}
-          />
+          <Text style={styles.title}>Reset Password for {email}</Text>
+
+          <View style={styles.inputRow}>
+            <Ionicons name="key-outline" size={18} color={theme.ICON} style={styles.icon} />
+            <TextInput
+              style={[styles.inputField, { flex: 1 }]}
+              placeholder="Enter OTP"
+              placeholderTextColor={theme.ICON}
+              keyboardType="number-pad"
+              maxLength={6}
+              value={otp}
+              onChangeText={setOtp}
+            />
+
+            <Pressable
+              onPress={handleResend}
+              disabled={!canResend}
+              style={{ opacity: canResend ? 1 : 0.4, paddingLeft: 8 }}
+            >
+              <Ionicons
+                name="refresh-outline"
+                size={22}
+                color={canResend ? theme.ICON : "#555"}
+              />
+              {!canResend && (
+                <Text style={{ color: "#555", fontSize: 11, textAlign: "center" }}>
+                  {timer}s
+                </Text>
+              )}
+            </Pressable>
+          </View>
+
+          <View style={styles.inputRow}>
+            <Ionicons name="lock-closed-outline" size={18} color={theme.ICON} style={styles.icon} />
+
+            <TextInput
+              style={[styles.inputField, { flex: 1 }]}
+              placeholder="New Password"
+              placeholderTextColor={theme.ICON}
+              secureTextEntry={!showPass}
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+
+            <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
+              <Ionicons
+                name={showPass ? "eye-off-outline" : "eye-outline"}
+                size={21}
+                color={theme.ICON}
+              />
+            </Pressable>
+          </View>
+
+          {strength !== "" && (
+            <Text
+              style={[
+                styles.strength,
+                strength === "Weak"
+                  ? { color: "#FF453A" }
+                  : strength === "Medium"
+                    ? { color: "#FFA500" }
+                    : { color: "#32D74B" },
+              ]}
+            >
+              Strength: {strength}
+            </Text>
+          )}
 
           <Pressable
-            onPress={handleResend}
-            disabled={!canResend}
-            style={{ opacity: canResend ? 1 : 0.4, paddingLeft: 8 }}
+            onPress={() => {
+              LayoutAnimation.easeInEaseOut();
+              setShowRequirements(!showRequirements);
+            }}
+            style={styles.dropdownHeader}
           >
+            <Text style={styles.dropdownText}>
+              {showRequirements ? "Hide Requirements" : "Show Requirements"}
+            </Text>
             <Ionicons
-              name="refresh-outline"
-              size={22}
-              color={canResend ? "#A1A1A6" : "#555"}
+              name={showRequirements ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={theme.ICON}
             />
-            {!canResend && (
-              <Text style={{ color: "#777", fontSize: 11, textAlign: "center" }}>
-                {timer}s
+          </Pressable>
+
+          {showRequirements && (
+            <View style={styles.requireBox}>
+              <Text style={[styles.reqItem, newPassword.length >= 8 && { color: "#32D74B" }]}>
+                {newPassword.length >= 8 ? "✓" : "✗"} 8+ characters
               </Text>
-            )}
-          </Pressable>
-        </View>
+              <Text style={[styles.reqItem, /[A-Z]/.test(newPassword) && { color: "#32D74B" }]}>
+                {/[A-Z]/.test(newPassword) ? "✓" : "✗"} One uppercase letter
+              </Text>
+              <Text style={[styles.reqItem, /\d/.test(newPassword) && { color: "#32D74B" }]}>
+                {/\d/.test(newPassword) ? "✓" : "✗"} One number
+              </Text>
+              <Text style={[styles.reqItem, /[@$!%*?&]/.test(newPassword) && { color: "#32D74B" }]}>
+                {/[@$!%*?&]/.test(newPassword) ? "✓" : "✗"} One special character
+              </Text>
+            </View>
+          )}
 
-        <View style={styles.inputRow}>
-          <Ionicons name="lock-closed-outline" size={18} color="#A1A1A6" style={styles.icon} />
+          {message.length > 0 && (
+            <Text style={[styles.msg, success ? styles.success : styles.error]}>
+              {message}
+            </Text>
+          )}
 
-          <TextInput
-            style={[styles.inputField, { flex: 1 }]}
-            placeholder="New Password"
-            placeholderTextColor="#808080"
-            secureTextEntry={!showPass}
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-
-          <Pressable onPress={() => setShowPass(!showPass)} style={styles.eye}>
-            <Ionicons
-              name={showPass ? "eye-off-outline" : "eye-outline"}
-              size={21}
-              color="#A1A1A6"
-            />
-          </Pressable>
-        </View>
-
-        {strength !== "" && (
-          <Text
-            style={[
-              styles.strength,
-              strength === "Weak"
-                ? { color: "#FF453A" }
-                : strength === "Medium"
-                  ? { color: "#FFA500" }
-                  : { color: "#32D74B" },
+          <Pressable
+            onPress={handleReset}
+            style={({ pressed }) => [
+              styles.button,
+              { transform: [{ scale: pressed ? 0.96 : 1 }] },
+              pressed && { opacity: 0.8 }
             ]}
           >
-            Strength: {strength}
-          </Text>
-        )}
+            <Text style={styles.buttonText}>Reset Password</Text>
+          </Pressable>
 
-        <Pressable
-          onPress={() => {
-            LayoutAnimation.easeInEaseOut();
-            setShowRequirements(!showRequirements);
-          }}
-          style={styles.dropdownHeader}
-        >
-          <Text style={styles.dropdownText}>
-            {showRequirements ? "Hide Requirements" : "Show Requirements"}
-          </Text>
-          <Ionicons
-            name={showRequirements ? "chevron-up" : "chevron-down"}
-            size={20}
-            color="#A1A1A6"
-          />
-        </Pressable>
-
-        {showRequirements && (
-          <View style={styles.requireBox}>
-            <Text style={[styles.reqItem, newPassword.length >= 8 && { color: "#32D74B" }]}>
-              {newPassword.length >= 8 ? "✓" : "✗"} 8+ characters
-            </Text>
-            <Text style={[styles.reqItem, /[A-Z]/.test(newPassword) && { color: "#32D74B" }]}>
-              {/[A-Z]/.test(newPassword) ? "✓" : "✗"} One uppercase letter
-            </Text>
-            <Text style={[styles.reqItem, /\d/.test(newPassword) && { color: "#32D74B" }]}>
-              {/\d/.test(newPassword) ? "✓" : "✗"} One number
-            </Text>
-            <Text style={[styles.reqItem, /[@$!%*?&]/.test(newPassword) && { color: "#32D74B" }]}>
-              {/[@$!%*?&]/.test(newPassword) ? "✓" : "✗"} One special character
-            </Text>
-          </View>
-        )}
-
-        {message.length > 0 && (
-          <Text style={[styles.msg, success ? styles.success : styles.error]}>
-            {message}
-          </Text>
-        )}
-
-        <Pressable
-          onPress={handleReset}
-          style={({ pressed }) => [
-            styles.button,
-            { transform: [{ scale: pressed ? 0.96 : 1 }] },
-            pressed && { opacity: 0.8 }
-          ]}
-        >
-          <Text style={styles.buttonText}>Reset Password</Text>
-        </Pressable>
-
-      </View>
-       </ScrollView>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default ResetPasswordScreen;
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.BG },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#141414ff",
+    backgroundColor: theme.BG,
   },
 
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
   backButton: { flexDirection: "row", alignItems: "center" },
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
-  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: theme.TEXT, marginTop: 14, paddingHorizontal: 14, },
+  headerTitleb: { color: theme.SUBTEXT, marginLeft: 1, fontSize: 15, fontWeight: "400" },
 
-title: {
-  color: GLASS_TEXT,
-  fontSize: 18,
-  marginBottom: 20,
-  textAlign: "center",
-},
+  title: {
+    color: theme.TEXT,
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
 
 
   msg: {
@@ -308,32 +305,32 @@ title: {
     fontWeight: "500",
     textAlign: "center",
   },
-  success: { color: "#F5C77A" },
-  error: { color: "#F5C77A" },
+  success: { color: theme.ACCENT },
+  error: { color: theme.ACCENT },
 
-inputRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: GLASS_BG,
-  width: "80%",
-  paddingHorizontal: 14,
-  borderRadius: 14,
-  marginBottom: 20,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.CARD_BG,
+    width: "80%",
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-icon: {
-  marginRight: 10,
-  color: GLASS_SUBTEXT,
-},
+  icon: {
+    marginRight: 10,
+    color: theme.ICON,
+  },
 
-inputField: {
-  flex: 1,
-  color: GLASS_TEXT,
-  fontSize: 16,
-  paddingVertical: 14,
-},
+  inputField: {
+    flex: 1,
+    color: theme.TEXT,
+    fontSize: 16,
+    paddingVertical: 12,
+  },
 
 
   eye: { paddingLeft: 10 },
@@ -348,45 +345,45 @@ inputField: {
     alignItems: "center",
     marginBottom: 15,
   },
-dropdownText: {
-  color: GLASS_SUBTEXT,
-  fontSize: 15,
-  marginRight: 5,
-},
+  dropdownText: {
+    color: theme.SUBTEXT,
+    fontSize: 15,
+    marginRight: 5,
+  },
 
 
-requireBox: {
-  width: "80%",
-  backgroundColor: GLASS_BG,
-  padding: 15,
-  borderRadius: 14,
-  marginBottom: 20,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  requireBox: {
+    width: "80%",
+    backgroundColor: theme.CARD_BG,
+    padding: 15,
+    borderRadius: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-reqItem: {
-  color: GLASS_TEXT,
-  marginBottom: 6,
-  fontSize: 14,
-},
+  reqItem: {
+    color: theme.SUBTEXT,
+    marginBottom: 6,
+    fontSize: 14,
+  },
 
 
-button: {
-  backgroundColor: GLASS_BG,
-  paddingVertical: 15,
-  paddingHorizontal: 40,
-  borderRadius: 16,
-  alignItems: "center",
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  button: {
+    backgroundColor: theme.CARD_BG,
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-buttonText: {
-  color: GLASS_ACCENT,
-  fontSize: 16,
-  fontWeight: "600",
-},
+  buttonText: {
+    color: theme.ACCENT,
+    fontSize: 16,
+    fontWeight: "600",
+  },
 
   bgTop: {
     position: "absolute",
@@ -394,11 +391,11 @@ buttonText: {
     right: -110,
     width: 260,
     height: 260,
-      backgroundColor: "rgba(245,199,122,0.08)",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -410,6 +407,6 @@ buttonText: {
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 });

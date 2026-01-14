@@ -21,19 +21,15 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
-
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const GLASS_ACCENT = "#F5C77A";
-
+import { useTheme } from "../src/theme/ThemeContext";
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [showRequirements, setShowRequirements] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -198,7 +194,7 @@ const RegisterScreen = () => {
         null;
 
       if (!idToken) {
-        setErrorMessage("Google Signup Failed: no idToken returned");
+        setErrorMessage("Google Login Failed. Try again.");
         setGoogleLoading(false);
         return;
       }
@@ -250,7 +246,7 @@ const RegisterScreen = () => {
       >
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+            <Ionicons name="chevron-back" size={24} color={theme.ICON} />
             <Text style={styles.headerTitleb}>Back</Text>
           </Pressable>
         </View>
@@ -271,12 +267,12 @@ const RegisterScreen = () => {
                 <Ionicons
                   name="person-outline"
                   size={18}
-                  color="#A1A1A6"
+                  color={theme.ICON}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   placeholder="Enter your name"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.ICON}
                   style={styles.inputField}
                   value={name}
                   onChangeText={(text) => {
@@ -294,12 +290,12 @@ const RegisterScreen = () => {
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color="#A1A1A6"
+                  color={theme.ICON}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   placeholder="Enter email"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.ICON}
                   style={styles.inputField}
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -313,12 +309,12 @@ const RegisterScreen = () => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color="#A1A1A6"
+                  color={theme.ICON}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   placeholder="Enter password"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.ICON}
                   style={[styles.inputField, { flex: 1 }]}
                   secureTextEntry={!showPass}
                   value={password}
@@ -345,7 +341,7 @@ const RegisterScreen = () => {
                   <Ionicons
                     name={showPass ? "eye-off-outline" : "eye-outline"}
                     size={21}
-                    color="#A1A1A6"
+                    color={theme.ICON}
                   />
                 </Pressable>
               </View>
@@ -355,12 +351,12 @@ const RegisterScreen = () => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color="#A1A1A6"
+                  color={theme.ICON}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   placeholder="Confirm password"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.ICON}
                   style={[styles.inputField, { flex: 1 }]}
                   secureTextEntry={!showConfirmPass}
                   value={confirmPassword}
@@ -373,7 +369,7 @@ const RegisterScreen = () => {
                   <Ionicons
                     name={showConfirmPass ? "eye-off-outline" : "eye-outline"}
                     size={21}
-                    color="#A1A1A6"
+                    color={theme.ICON}
                   />
                 </Pressable>
               </View>
@@ -389,7 +385,7 @@ const RegisterScreen = () => {
                 <Ionicons
                   name={showRequirements ? "chevron-up" : "chevron-down"}
                   size={20}
-                  color= "#A1A1A6"
+                  color={theme.ICON}
                 />
               </Pressable>
 
@@ -422,7 +418,7 @@ const RegisterScreen = () => {
                   pressed && !loading && { transform: [{ scale: 0.96 }] },
                 ]}
               >
-                {loading ? <ActivityIndicator color="#F5C77A" /> : <Text style={styles.buttonText}>Create Account</Text>}
+                {loading ? <ActivityIndicator color={theme.ACCENT} /> : <Text style={styles.buttonText}>Create Account</Text>}
               </Pressable>
 
               {/* OR DIVIDER */}
@@ -438,7 +434,7 @@ const RegisterScreen = () => {
                 ]}
               >
                 {googleLoading ? (
-                  <ActivityIndicator color="#F5C77A" />
+                  <ActivityIndicator color={theme.ACCENT} />
                 ) : (
                   <>
                     <Image
@@ -468,118 +464,122 @@ const RegisterScreen = () => {
 
 export default RegisterScreen;
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#141414ff", paddingHorizontal: 0 },
+const createStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.BG, paddingHorizontal: 0 },
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5 },
   backButton: { flexDirection: "row", alignItems: "center" },
-  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
+  headerTitleb: { color: theme.SUBTEXT, marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: { flex: 1, justifyContent: "center", paddingBottom: 50 },
-  // topText: { color: "#dbd8d8ff", fontSize: 30, fontWeight: "600", alignSelf: "center", marginBottom: 30 },
+  // topText: { color: theme.TEXT, fontSize: 30, fontWeight: "600", alignSelf: "center", marginBottom: 30 },
   box: { padding: 20, marginHorizontal: 16, paddingTop: 0, paddingBottom: 0 },
-  label: { color: "#8a8a8d", fontSize: 14, marginBottom: 6, marginTop: 10 },
+  label: { color: theme.TEXT, fontSize: 14, marginBottom: 6, marginTop: 10 },
   inputRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: GLASS_BG,
-  borderRadius: 14,
-  paddingHorizontal: 14,
-  marginBottom: 10,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.CARD_BG,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-passwordRow2: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: GLASS_BG,
-  borderRadius: 14,
-  paddingHorizontal: 14,
-  marginBottom: 10,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  passwordRow2: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.CARD_BG,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
   inputIcon: { marginRight: 10 },
   inputField: {
-  flex: 1,
-  color: GLASS_TEXT,
-  fontSize: 16,
-  paddingVertical: 14,
-},
+    flex: 1,
+    color: theme.TEXT,
+    fontSize: 16,
+    paddingVertical: 12,
+  },
 
   eye: { paddingLeft: 10 },
   strengthInline: { fontSize: 12, marginRight: 8 },
   dropdownHeader: { flexDirection: "row", alignItems: "center", marginBottom: 5, justifyContent: "flex-end" },
-  dropdownText: { color: GLASS_SUBTEXT, fontSize: 15, marginRight: 5 },
+  dropdownText: { color: theme.SUBTEXT, fontSize: 15, marginRight: 5 },
   requireBox: {
-  backgroundColor: GLASS_BG,
-  borderRadius: 14,
-  padding: 12,
-  marginBottom: 10,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+    backgroundColor: theme.CARD_BG,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-  reqItem: { color: "#dbd8d8ff", fontSize: 14, marginBottom: 6 },
-button: {
-  backgroundColor: GLASS_BG,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-  paddingVertical: 15,
-  borderRadius: 16,
-  alignItems: "center",
-  marginTop: 10,
-},
+  reqItem: { color: theme.SUBTEXT, fontSize: 14, marginBottom: 6 },
+  button: {
+    backgroundColor: theme.CARD_BG,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+    paddingVertical: 15,
+    borderRadius: 16,
+    alignItems: "center",
+    marginTop: 10,
+  },
 
-buttonText: {
-  color: GLASS_ACCENT,
-  fontSize: 16,
-  fontWeight: "600",
-},
+  buttonText: {
+    color: theme.ACCENT,
+    fontSize: 16,
+    fontWeight: "600",
+  },
 
-  errorMsg: { color: GLASS_ACCENT, textAlign: "center", marginBottom: 0, fontSize: 14, fontWeight: "500" },
+  errorMsg: { color: theme.ACCENT, textAlign: "center", marginBottom: 0, fontSize: 14, fontWeight: "500" },
   topText: {
-  color: GLASS_TEXT,
-  fontSize: 30,
-  fontWeight: "600",
-  alignSelf: "center",
-  marginBottom: 30,
-},
+    color: theme.TEXT,
+    fontSize: 30,
+    fontWeight: "600",
+    alignSelf: "center",
+    marginBottom: 30,
+  },
 
-loginText: {
-  color: GLASS_SUBTEXT,
-  textAlign: "center",
-  fontSize: 15,
-},
+  loginText: {
+    color: theme.SUBTEXT,
+    textAlign: "center",
+    fontSize: 15,
+  },
 
-loginLink: {
-  color: GLASS_ACCENT,
-  fontWeight: "600",
-},
+  loginLink: {
+    color: theme.ACCENT,
+    fontWeight: "600",
+  },
 
-  or: { color: "#808080", marginVertical: 20, textAlign: "center" },
-googleButton: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: GLASS_BG,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-  paddingVertical: 14,
-  borderRadius: 16,
-  width: "100%",
-  marginBottom: 20,
-  gap: 12,
-},
+  or: { color: theme.SUBTEXT, marginVertical: 20, textAlign: "center" },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.CARD_BG,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+    paddingVertical: 14,
+    borderRadius: 16,
+    width: "100%",
+    marginBottom: 20,
+    gap: 12,
+  },
 
-googleText: {
-  color: GLASS_TEXT,
-  fontSize: 15,
-  fontWeight: "600",
-},
+  googleText: {
+    color: theme.TEXT,
+    fontSize: 15,
+    fontWeight: "600",
+  },
 
-  bgTop: { position: "absolute", top: -135, right: -135, width: 260, height: 260, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.35,borderWidth: 2,
-  borderColor: GLASS_BORDER, },
-  bgBottom: { position: "absolute", bottom: -160, left: -160, width: 300, height: 300, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.3,borderWidth: 2,
-  borderColor: GLASS_BORDER, },
+  bgTop: {
+    position: "absolute", top: -135, right: -135, width: 260, height: 260, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.35, borderWidth: 2,
+    borderColor: theme.BORDER,
+  },
+  bgBottom: {
+    position: "absolute", bottom: -160, left: -160, width: 300, height: 300, backgroundColor: "rgba(245,199,122,0.08)", borderRadius: 200, opacity: 0.3, borderWidth: 2,
+    borderColor: theme.BORDER,
+  },
 });

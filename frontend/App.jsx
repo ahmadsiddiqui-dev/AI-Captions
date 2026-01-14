@@ -19,6 +19,8 @@ import CaptionGeneratorScreen from "./screens/CaptionGeneratorScreen";
 import SubscriptionScreen from "./screens/SubscriptionScreen";
 import ManageSubscriptionScreen from "./screens/ManageSubscriptionScreen";
 
+import { ThemeProvider } from "./src/theme/ThemeContext";
+
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -30,6 +32,7 @@ export default function App() {
   }, []);
 
   return (
+    <ThemeProvider>
     <SafeAreaProvider>
       <NavigationContainer>
         <>
@@ -76,5 +79,6 @@ export default function App() {
         </>
       </NavigationContainer>
     </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

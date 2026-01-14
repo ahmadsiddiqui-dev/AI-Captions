@@ -8,6 +8,8 @@ import {
   Pressable,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useTheme } from "../theme/ThemeContext";
+
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=YOUR_PACKAGE_NAME";
@@ -20,7 +22,8 @@ const ACCENT_GOLD = "#F5C77A";
 
 const RateAppModal = ({ visible, onClose }) => {
   const [rating, setRating] = useState(0);
-
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
   const handleRate = () => {
     Linking.openURL(PLAY_STORE_URL);
     onClose();
@@ -47,7 +50,7 @@ const RateAppModal = ({ visible, onClose }) => {
                 <Icon
                   name={rating >= i ? "star" : "star-outline"}
                   size={34}
-                  color={ACCENT_GOLD}
+                  color={theme.ACCENT}
                 />
               </Pressable>
             ))}
@@ -76,33 +79,33 @@ const RateAppModal = ({ visible, onClose }) => {
 };
 
 export default RateAppModal;
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+        backgroundColor: "rgba(0,0,0,0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
 
   box: {
     width: "78%",
-    backgroundColor: "rgba(30,30,30,0.92)",
+    backgroundColor: theme.cl,
     borderRadius: 18,
     padding: 22,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 
   title: {
-    color: GLASS_TEXT,
+    color:theme.TEXT,
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 4,
   },
 
   subtitle: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -120,17 +123,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     backgroundColor: "rgba(245,199,122,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(245,199,122,0.35)",
+    borderColor: theme.ACCENT,
   },
 
   buttonText: {
-    color: "#fff",
+    color: theme.TEXT,
     fontSize: 16,
     fontWeight: "700",
   },
 
   later: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
   },
 });

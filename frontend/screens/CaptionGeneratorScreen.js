@@ -26,6 +26,10 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { tryShowRatePopup } from '../src/utils/rateHelper';
 import { PermissionsAndroid } from "react-native";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
+import { useTheme } from "../src/theme/ThemeContext";
+
+
+
 
 const AnimatedPressable = ({
   children,
@@ -182,9 +186,10 @@ const GLASS_TEXT = "#E5E5EA";
 const GLASS_SUBTEXT = "#A1A1A6";
 
 /* Generate Button Animation */
-const AIButton = ({ loading, onPress }) => {
+const AIButton = ({ loading, onPress, styles }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (loading) {
@@ -219,28 +224,28 @@ const AIButton = ({ loading, onPress }) => {
   }, [loading]);
 
   return (
- <Pressable
-  onPress={onPress}
-  disabled={loading}
-  style={({ pressed }) => [
-    styles.generateBtn,
-    pressed && { opacity: 0.7, transform: [{ scale: 0.97 }] },
-    loading && { opacity: 0.6 },
-  ]}
->
-  <Animated.View
-    style={{
-      transform: [{ translateX: moveAnim }, { scale: pulseAnim }],
-      marginRight: loading ? 0 : 8,
-    }}
-  >
-    <Ionicons name="sparkles" size={22} color="#F5C77A" />
-  </Animated.View>
+    <Pressable
+      onPress={onPress}
+      disabled={loading}
+      style={({ pressed }) => [
+        styles.generateBtn,
+        pressed && { opacity: 0.7, transform: [{ scale: 0.97 }] },
+        loading && { opacity: 0.6 },
+      ]}
+    >
+      <Animated.View
+        style={{
+          transform: [{ translateX: moveAnim }, { scale: pulseAnim }],
+          marginRight: loading ? 0 : 8,
+        }}
+      >
+        <Ionicons name="sparkles" size={22} color={theme.ACCENT} />
+      </Animated.View>
 
-  {!loading && (
-    <Text style={styles.generateText}>Generate Captions</Text>
-  )}
-</Pressable>
+      {!loading && (
+        <Text style={styles.generateText}>Generate Captions</Text>
+      )}
+    </Pressable>
 
   );
 };
@@ -250,6 +255,8 @@ const CaptionGeneratorScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
 
 
   /* STATES */
@@ -531,90 +538,126 @@ const CaptionGeneratorScreen = () => {
 
     return (
       <Modal visible transparent animationType="none">
-        {/* Close when tapping outside */}
-        <TouchableOpacity
-          style={styles.sheetOverlay}
-          activeOpacity={1}
-          onPress={closeSheet}
-        />
+        <View style={{ flex: 1 }}>
+          {/* Overlay */}
+          <TouchableOpacity
+            style={styles.sheetOverlay}
+            activeOpacity={1}
+            onPress={closeSheet}
+          />
 
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>{title}</Text>
+          {/* Sheet Wrapper (anchors to bottom) */}
+          <View
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+            }}
+          >
+            <View style={styles.sheet}>
+              <Text style={styles.sheetTitle}>{title}</Text>
 
-          {/* Search bar only for mood & language */}
-          {(sheetType === "mood" || sheetType === "language") && (
-            <View style={styles.searchBox}>
-              <Ionicons name="search" size={18} color="#aaa" />
-              <TextInput
-                placeholder="Search..."
-                placeholderTextColor="#777"
-                style={styles.searchInput}
-                value={searchText}
-                onChangeText={setSearchText}
-              />
-            </View>
-          )}
-
-          {/* OPTIONS LIST */}
-          <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
-            {options.map((o, i) => {
-              const isSelected =
-                (sheetType === "mood" && o === moodOption) ||
-                (sheetType === "language" && o === language) ||
-                (sheetType === "emoji" && o === emojiCount) ||
-                (sheetType === "hashtag" && o === hashtagCount) ||
-                (sheetType === "length" && o === lengthOption);
-
-              return (
-                <Pressable
-                  key={i}
-                  style={styles.sheetItem}
-                  onPress={() => handleSelect(o)}
-                >
-                  <Text
-                    style={[
-                      styles.sheetItemText,
-                      isSelected && { color: "#F5C77A", fontWeight: "600" }
-                    ]}
-                  >
-                    {o}
-                  </Text>
-
-                  {isSelected && (
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color="#F5C77A"
-                      style={styles.checkIcon}
-                    />
-                  )}
-                </Pressable>
-              );
-            })}
-
-
-            {/* Only show Unlock All for FREE users (NOT for emoji/hashtag/length) */}
-            {!isPremium &&
-              sheetType !== "emoji" &&
-              sheetType !== "hashtag" &&
-              sheetType !== "length" && (
-                <Pressable
-                  style={styles.unlockItem}
-                  onPress={() => {
-                    closeSheet();
-                    navigation.navigate("Subscription");
-                  }}
-                >
-                  <Ionicons name="lock-open" size={18} color="#F5C77A" />
-                  <Text style={styles.unlockText}>Unlock all options</Text>
-                </Pressable>
+              {(sheetType === "mood" || sheetType === "language") && (
+                <View style={styles.searchBox}>
+                  <Ionicons name="search" size={18} color="#aaa" />
+                  <TextInput
+                    placeholder="Search..."
+                    placeholderTextColor="#777"
+                    style={styles.searchInput}
+                    value={searchText}
+                    onChangeText={setSearchText}
+                  />
+                </View>
               )}
-          </ScrollView>
+
+              <ScrollView
+                style={{ maxHeight: 300 }}
+                showsVerticalScrollIndicator={false}
+              >
+                {options.map((o, i) => {
+                  const isSelected =
+                    (sheetType === "mood" && o === moodOption) ||
+                    (sheetType === "language" && o === language) ||
+                    (sheetType === "emoji" && o === emojiCount) ||
+                    (sheetType === "hashtag" && o === hashtagCount) ||
+                    (sheetType === "length" && o === lengthOption);
+
+                  return (
+                    <Pressable
+                      key={i}
+                      style={styles.sheetItem}
+                      onPress={() => handleSelect(o)}
+                    >
+                      <Text
+                        style={[
+                          styles.sheetItemText,
+                          isSelected && {
+                            color: theme.ACCENT,
+                            fontWeight: "600",
+                          },
+                        ]}
+                      >
+                        {o}
+                      </Text>
+
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark"
+                          size={18}
+                          color={theme.ACCENT}
+                          style={styles.checkIcon}
+                        />
+                      )}
+                    </Pressable>
+                  );
+                })}
+
+                {!isPremium &&
+                  sheetType !== "emoji" &&
+                  sheetType !== "hashtag" &&
+                  sheetType !== "length" && (
+                    <Pressable
+                      style={styles.unlockItem}
+                      onPress={() => {
+                        closeSheet();
+                        navigation.navigate("Subscription");
+                      }}
+                    >
+                      <Ionicons
+                        name="lock-open"
+                        size={18}
+                        color={theme.ACCENT}
+                      />
+                      <Text style={styles.unlockText}>Unlock all options</Text>
+                    </Pressable>
+                  )}
+              </ScrollView>
+            </View>
+          </View>
         </View>
       </Modal>
+
     );
 
   };
+  const OptionRow = ({ label, value, onPress, loading }) => (
+    <AnimatedPressable
+      disabled={loading}
+      onPress={() => {
+        if (loading) return;
+        onPress();
+      }}
+    >
+      <View style={styles.rowCard}>
+        <Text style={styles.rowLeft}>{label}</Text>
+        <View style={styles.rowRightBox}>
+          <Text style={styles.rowRight}>{value}</Text>
+          <Ionicons name="chevron-forward" size={18} color={theme.ICON} />
+        </View>
+      </View>
+    </AnimatedPressable>
+  );
+
 
   /* MAIN UI */
   return (
@@ -640,7 +683,7 @@ const CaptionGeneratorScreen = () => {
             }}
           >
             <View style={styles.addBox}>
-              <Ionicons name="add" size={32} color="#F5C77A" />
+              <Ionicons name="add" size={32} color={theme.ACCENT} />
             </View>
           </AnimatedPressable>
 
@@ -699,7 +742,7 @@ const CaptionGeneratorScreen = () => {
               ]}
               onPress={() => copyToClipboard(c.text, idx)}
             >
-              <Ionicons name={copiedIndex === idx ? "checkmark" : "copy-outline"} size={18} color="#F5C77A" />
+              <Ionicons name={copiedIndex === idx ? "checkmark" : "copy-outline"} size={18} color={theme.ACCENT} />
               <Text style={styles.copyText}>{copiedIndex === idx ? "Copied" : "Copy"}</Text>
             </Pressable>
           </View>
@@ -709,87 +752,42 @@ const CaptionGeneratorScreen = () => {
         <Text style={styles.customizeTitle}>Customize (Optional)</Text>
 
         {/* ROWS */}
-      <AnimatedPressable
-  disabled={loading}
-  onPress={() => {
-    if (loading) return;
-    openSheet("length");
-  }}
->
-  <View style={styles.rowCard}>
-    <Text style={styles.rowLeft}>Caption Length</Text>
-    <View style={styles.rowRightBox}>
-      <Text style={styles.rowRight}>{lengthOption}</Text>
-      <Ionicons name="chevron-forward" size={18} color="#777" />
-    </View>
-  </View>
-</AnimatedPressable>
+        <View style={styles.optionWrapper}>
+          <OptionRow
+            label="Caption Length"
+            value={lengthOption}
+            loading={loading}
+            onPress={() => openSheet("length")}
+          />
 
-   <AnimatedPressable
-  disabled={loading}
-  onPress={() => {
-    if (loading) return;
-    openSheet("mood");
-  }}
->
-  <View style={styles.rowCard}>
-    <Text style={styles.rowLeft}>Mood</Text>
-    <View style={styles.rowRightBox}>
-      <Text style={styles.rowRight}>{moodOption}</Text>
-      <Ionicons name="chevron-forward" size={18} color="#777" />
-    </View>
-  </View>
-</AnimatedPressable>
+          <OptionRow
+            label="Mood"
+            value={moodOption}
+            loading={loading}
+            onPress={() => openSheet("mood")}
+          />
 
+          <OptionRow
+            label="Emojis"
+            value={String(emojiCount)}
+            loading={loading}
+            onPress={() => openSheet("emoji")}
+          />
 
-    <AnimatedPressable
-  disabled={loading}
-  onPress={() => {
-    if (loading) return;
-    openSheet("emoji");
-  }}
->
-  <View style={styles.rowCard}>
-    <Text style={styles.rowLeft}>Emojis</Text>
-    <View style={styles.rowRightBox}>
-      <Text style={styles.rowRight}>{String(emojiCount)}</Text>
-      <Ionicons name="chevron-forward" size={18} color="#777" />
-    </View>
-  </View>
-</AnimatedPressable>
+          <OptionRow
+            label="Hashtags"
+            value={String(hashtagCount)}
+            loading={loading}
+            onPress={() => openSheet("hashtag")}
+          />
 
-     <AnimatedPressable
-  disabled={loading}
-  onPress={() => {
-    if (loading) return;
-    openSheet("hashtag");
-  }}
->
-  <View style={styles.rowCard}>
-    <Text style={styles.rowLeft}>Hashtags</Text>
-    <View style={styles.rowRightBox}>
-      <Text style={styles.rowRight}>{String(hashtagCount)}</Text>
-      <Ionicons name="chevron-forward" size={18} color="#777" />
-    </View>
-  </View>
-</AnimatedPressable>
-
-
-      <AnimatedPressable
-  disabled={loading}
-  onPress={() => {
-    if (loading) return;
-    openSheet("language");
-  }}
->
-  <View style={styles.rowCard}>
-    <Text style={styles.rowLeft}>Language</Text>
-    <View style={styles.rowRightBox}>
-      <Text style={styles.rowRight}>{language}</Text>
-      <Ionicons name="chevron-forward" size={18} color="#777" />
-    </View>
-  </View>
-</AnimatedPressable>
+          <OptionRow
+            label="Language"
+            value={language}
+            loading={loading}
+            onPress={() => openSheet("language")}
+          />
+        </View>
 
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -799,7 +797,12 @@ const CaptionGeneratorScreen = () => {
 
       {/* GENERATE BUTTON */}
       <View style={[styles.gnrbtn, { bottom: 25 + insets.bottom }]}>
-        <AIButton loading={loading} onPress={generateCaptions} />
+        <AIButton
+          loading={loading}
+          onPress={generateCaptions}
+          styles={styles}
+        />
+
       </View>
 
 
@@ -879,8 +882,8 @@ const CaptionGeneratorScreen = () => {
 export default CaptionGeneratorScreen;
 
 /* STYLES */
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.BG },
 
   header: {
     flexDirection: "row",
@@ -894,7 +897,7 @@ const styles = StyleSheet.create({
   backbutton: { flexDirection: "row", alignItems: "center" },
 
   headerTitle: {
-    color: "#7c7a7aff",
+    color: theme.SUBTEXT,
     marginLeft: 1,
     fontSize: 15,
     fontWeight: "400",
@@ -909,9 +912,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.CARD_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -941,43 +944,43 @@ const styles = StyleSheet.create({
   },
 
   /* LABELS */
-  labelp: { color: "#dbd8d8ff", marginBottom: 6, fontSize: 15, fontWeight: "600" },
-  labelm: { color: "#7c7b7bff", marginBottom: 6, fontSize: 13 },
-  label: { color: "#dbd8d8ff", marginTop: 14, marginBottom: 6, fontSize: 15, fontWeight: "600" },
+  labelp: { color: theme.TEXT, marginBottom: 6, fontSize: 15, fontWeight: "600" },
+  labelm: { color: theme.SUBTEXT, marginBottom: 6, fontSize: 13 },
+  label: { color: theme.TEXT, marginTop: 14, marginBottom: 6, fontSize: 15, fontWeight: "600" },
 
   /* INPUT */
   input: {
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.CARD_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
     padding: 14,
     borderRadius: 14,
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     minHeight: 55,
   },
 
 
   /* CAPTION CARDS */
   captionCard: {
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: theme.CARD_BG,
     borderRadius: 16,
     padding: 16,
     marginTop: 30,
 
     borderWidth: 1,
-    borderColor: GLASS_BORDER
+    borderColor: theme.BORDER
   },
 
 
   captionTitle: {
-    color: "#A1A1A6",
+    color: theme.SUBTEXT,
     marginBottom: 6,
     fontSize: 13,
     fontWeight: "500",
   },
 
   captionText: {
-    color: "#FFFFFF",
+    color: theme.TEXT,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -988,9 +991,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
 
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.CARD_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
 
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -1001,14 +1004,14 @@ const styles = StyleSheet.create({
 
 
   copyText: {
-    color: "#F5C77A",
+    color: theme.ACCENT,
     marginLeft: 8,
     fontWeight: "700",
   },
 
   /* CUSTOMIZE */
   customizeTitle: {
-    color: "#dbd8d8ff",
+    color: theme.TEXT,
     marginTop: 25,
     marginBottom: 20,
     fontSize: 15,
@@ -1016,26 +1019,30 @@ const styles = StyleSheet.create({
   },
 
   rowCard: {
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.CARD_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 14,
-    marginBottom: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+
+  },
+  optionWrapper: {
+    gap: 10,
   },
 
 
+
   rowLeft: {
-    color: GLASS_TEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
   },
 
   rowRight: {
-    color: "#F5C77A",
+    color: theme.ACCENT,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -1050,28 +1057,29 @@ const styles = StyleSheet.create({
   /* SHEET */
   sheetOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
 
-sheet: {
-  backgroundColor: "rgba(30,30,30,0.92)",
-  borderTopLeftRadius: 22,
-  borderTopRightRadius: 22,
+  sheet: {
+    backgroundColor: theme.cl,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
 
-  borderTopWidth: 1,
-  borderLeftWidth: 1,
-  borderRightWidth: 1,
-  borderBottomWidth: 0,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
 
-  borderColor: GLASS_BORDER,
-  padding: 20,
-},
+    borderColor: theme.BORDER,
+    padding: 20,
+    overflow: "hidden"
+  },
 
 
   sheetTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "white",
+    color: theme.TEXT,
     marginBottom: 10,
   },
 
@@ -1079,9 +1087,9 @@ sheet: {
     flexDirection: "row",
     alignItems: "center",
 
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: theme.CARD_BG,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: theme.BORDER,
 
     paddingHorizontal: 12,
     paddingVertical: 0,
@@ -1090,7 +1098,7 @@ sheet: {
   },
 
   searchInput: {
-    color: "white",
+    color: theme.TEXT,
     marginLeft: 10,
     paddingVertical: 8,
     flex: 1,
@@ -1099,7 +1107,7 @@ sheet: {
   sheetItem: {
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(255,255,255,0.12)",
+    borderBottomColor: theme.BORDER,
     alignItems: "center",
   },
 
@@ -1110,7 +1118,7 @@ sheet: {
   },
 
   sheetItemText: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 15,
   },
 
@@ -1124,7 +1132,7 @@ sheet: {
   },
 
   unlockText: {
-    color: "#F5C77A",
+    color: theme.ACCENT,
     fontWeight: "700",
     fontSize: 15,
     textAlign: "center",
@@ -1139,14 +1147,14 @@ sheet: {
     flexDirection: "row",
     alignItems: "center",
 
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: theme.CARD_BG,
     paddingVertical: 15,
     paddingHorizontal: 35,
     borderRadius: 16,
     gap: 6,
     width: "fitcontent",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    borderColor: theme.BORDER,
 
     shadowColor: "#000",
     shadowOpacity: 0.25,
@@ -1155,28 +1163,28 @@ sheet: {
   },
 
 
-  generateText: { color: "#F5C77A", fontSize: 16 },
+  generateText: { color: theme.ACCENT, fontSize: 16 },
 
   /* POPUP */
   popupOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
 
   popupBox: {
     width: 280,
-    backgroundColor: "rgba(30,30,30,0.92)",
+    backgroundColor: theme.cl,
     borderRadius: 18,
     padding: 22,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 
   popupTitle: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 8,
@@ -1184,7 +1192,7 @@ sheet: {
 
 
   popupText: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
     textAlign: "center",
     marginBottom: 15
@@ -1193,7 +1201,7 @@ sheet: {
   popupBtn: {
     backgroundColor: "rgba(245,199,122,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(245,199,122,0.35)",
+    borderColor: theme.ACCENT,
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 14,
@@ -1201,19 +1209,19 @@ sheet: {
 
 
   popupBtnText: {
-    color: "#fff",
+    color: theme.TEXT,
     fontSize: 16,
     fontWeight: "700",
   },
 
   popupCancel: {
-    color: "#bbb",
+    color: theme.SUBTEXT,
     fontSize: 14,
     marginTop: 15,
   },
   inputSeparator: {
     height: 2,
-    backgroundColor: GLASS_BORDER,
+    backgroundColor: theme.BORDER,
     marginTop: 20,
     marginBottom: 0,
   },

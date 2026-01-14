@@ -16,14 +16,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { showRatePopup } from '../src/utils/rateHelper';
-
 import { logoutUser, updateName, getSubscriptionStatus } from "../api/api";
+
+import { useTheme } from "../src/theme/ThemeContext";
 
 const Settings = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const nameInputRef = useRef(null);
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
 
   const [tempName, setTempName] = useState("");
   const isNameValid = (tempName || "").trim().length >= 3;
@@ -74,7 +77,7 @@ const Settings = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#F5C77A" style={{ transform: [{ scale: 2 }] }} />
+          <ActivityIndicator size="large" color={theme.ACCENT} style={{ transform: [{ scale: 2 }] }} />
         </View>
       </SafeAreaView>
     );
@@ -112,7 +115,7 @@ const Settings = () => {
     }
   };
 
-  const Item = ({ icon, title, onPress, showArrow = true, style }) => {
+  const Item = ({ icon, title, onPress, showArrow = true, right, style }) => {
     const scale = useRef(new Animated.Value(1)).current;
     const opacity = useRef(new Animated.Value(1)).current;
 
@@ -147,11 +150,7 @@ const Settings = () => {
     };
 
     return (
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-      >
+      <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
         <Animated.View
           style={[
             styles.iosRow,
@@ -159,10 +158,12 @@ const Settings = () => {
             { transform: [{ scale }], opacity },
           ]}
         >
-          <Ionicons name={icon} size={18} color="#A1A1A6" />
+          <Ionicons name={icon} size={18} color={theme.ICON} />
+
           <Text style={styles.rowText}>{title}</Text>
-          {showArrow && (
-            <Ionicons name="chevron-forward" size={18} color="#6f6f6f" />
+
+          {right ? right : showArrow && (
+            <Ionicons name="chevron-forward" size={18} color={theme.ICON} />
           )}
         </Animated.View>
       </Pressable>
@@ -170,12 +171,13 @@ const Settings = () => {
   };
 
 
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* HEADER */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Ionicons name="chevron-back" size={24} color={theme.ICON} />
           <Text style={styles.headerTitleb}>Back</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Settings</Text>
@@ -190,7 +192,7 @@ const Settings = () => {
               <>
                 {/* Name + PRO Badge */}
                 <View style={styles.rows}>
-                  <Ionicons name="person-outline" size={18} color="#A1A1A6" />
+                  <Ionicons name="person-outline" size={18} color={theme.ICON} />
 
                   <TextInput
                     ref={nameInputRef}
@@ -205,7 +207,7 @@ const Settings = () => {
                     autoFocus={false}
                     returnKeyType="done"
                     style={{
-                      color: "#EAEAEB",
+                      color: theme.TEXT,
                       fontSize: 16,
                       flex: 1,
                       marginLeft: 12,
@@ -219,7 +221,7 @@ const Settings = () => {
                         flexDirection: "row",
                         alignItems: "center",
                         backgroundColor: "rgba(245,199,122,0.15)",
-                        borderColor: "rgba(245,199,122,0.6)",
+                        borderColor: theme.ACCENT,
                         borderRadius: 12,
                         paddingVertical: 4,
                         paddingHorizontal: 10,
@@ -228,8 +230,8 @@ const Settings = () => {
 
                       }}
                     >
-                      <Ionicons name="diamond-outline" size={14} color="#F5C77A" style={{ marginRight: 4 }} />
-                      <Text style={{ color: "#F5C77A", fontSize: 12, fontWeight: "700" }}>
+                      <Ionicons name="diamond-outline" size={14} color={theme.ACCENT} style={{ marginRight: 4 }} />
+                      <Text style={{ color: theme.ACCENT, fontSize: 12, fontWeight: "700" }}>
                         PRO
                       </Text>
                     </View>
@@ -250,7 +252,7 @@ const Settings = () => {
                     <Ionicons
                       name={isEditing ? "checkmark" : "create-outline"}
                       size={20}
-                      color="#A1A1A6"
+                      color={theme.ICON}
                     />
                   </Pressable>
 
@@ -258,7 +260,7 @@ const Settings = () => {
 
                 {/* EMAIL */}
                 <View className="row" style={styles.row}>
-                  <Ionicons name="mail-outline" size={18} color="#A1A1A6" />
+                  <Ionicons name="mail-outline" size={18} color={theme.ICON} />
                   <Text style={styles.emailText}>{user.email}</Text>
                 </View>
               </>
@@ -269,7 +271,7 @@ const Settings = () => {
                   icon="log-in-outline"
                   style={{
                     borderBottomWidth: 0.8,
-                    borderBottomColor: "#383737ff",
+                    borderBottomColor: theme.BORDER,
                   }}
                   onPress={() => navigation.navigate("Login")}
                 />
@@ -282,6 +284,62 @@ const Settings = () => {
               </>
             )}
           </View>
+          <Text style={styles.sectionTitle}>Theme</Text>
+          <View style={styles.sectionBox}>
+            <Item
+              icon="color-palette-outline"
+              title={theme.mode === "dark" ? "Dark Mode" : "Light Mode"}
+              onPress={toggleTheme}
+              showArrow={false}
+              style={{ paddingVertical: 5 }}
+              right={
+                <View
+                  style={{
+                    width: 80,
+                    height: 39,
+                    borderRadius: 20,
+                    backgroundColor: theme.BG,
+                    borderWidth: 1,
+                    borderColor: theme.BORDER,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 5,
+                    position: "relative",
+                  }}
+                >
+                  {/* Moon */}
+                  <Ionicons
+                    name="moon"
+                    size={23}
+                    color={theme.mode === "dark" ? theme.ACCENT : "#999"}
+                    style={{ position: "absolute", left: 10, zIndex: 2, }}
+                  />
+
+                  {/* Sun */}
+                  <Ionicons
+                    name="sunny"
+                    size={23}
+                    color={theme.mode === "light" ? theme.ACCENT : "#999"}
+                    style={{ position: "absolute", right: 10, zIndex: 2, }}
+                  />
+
+                  {/* Knob */}
+                  <View
+                    style={{
+                      width: 32,
+                      height: 31,
+                      borderRadius: 15,
+                      backgroundColor: theme.CARD_BG,
+                      borderWidth: 1,
+                      borderColor: theme.BORDER,
+                      transform: [{ translateX: theme.mode === "light" ? 35.3 : 0 }],
+                    }}
+                  />
+                </View>
+              }
+            />
+          </View>
+
 
           {/* SUBSCRIPTION SECTION */}
           <Text style={styles.sectionTitle}>Subscription</Text>
@@ -292,11 +350,11 @@ const Settings = () => {
                 <View
                   style={[
                     styles.row,
-                    { borderBottomWidth: 0.8, borderBottomColor: "#383737ff" },
+                    { borderBottomWidth: 0.8, borderBottomColor: theme.BORDER },
                   ]}
                 >
-                  <Ionicons name="diamond-outline" size={18} color="#F5C77A" />
-                  <Text style={[styles.rowText, { color: "#F5C77A", fontWeight: "600" }]}>PRO Member</Text>
+                  <Ionicons name="diamond-outline" size={18} color={theme.ACCENT} />
+                  <Text style={[styles.rowText, { color: theme.ACCENT, fontWeight: "600" }]}>PRO Member</Text>
                 </View>
 
                 {/* Manage Subscription */}
@@ -314,7 +372,7 @@ const Settings = () => {
                   onPress={() => navigation.navigate("Subscription")}
                   style={{
                     borderBottomWidth: 0.8,
-                    borderBottomColor: "#383737ff",
+                    borderBottomColor: theme.BORDER,
                   }}
                 />
                 <Item title="Restore Purchases" icon="refresh-outline" />
@@ -330,7 +388,7 @@ const Settings = () => {
               icon="star-outline"
               style={{
                 borderBottomWidth: 0.8,
-                borderBottomColor: "#383737ff",
+                borderBottomColor: theme.BORDER,
               }}
               onPress={showRatePopup}
             />
@@ -347,17 +405,18 @@ const Settings = () => {
 
           {/* PRIVACY */}
           <Text style={styles.sectionTitle}>Privacy & Legal</Text>
-          <View style={styles.sectionBox}>
+          <View style={[styles.sectionBox, { marginBottom: 25 }]}>
             <Item
               title="Privacy Policy"
               icon="shield-checkmark-outline"
               style={{
                 borderBottomWidth: 0.8,
-                borderBottomColor: "#383737ff",
+                borderBottomColor: theme.BORDER,
               }}
             />
             <Item title="Terms of Service" icon="document-text-outline" />
           </View>
+
 
           {/* LOGOUT */}
           {user && (
@@ -382,8 +441,8 @@ const Settings = () => {
 
 export default Settings;
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.BG },
   container: { flex: 1, paddingHorizontal: 12 },
   header: {
     flexDirection: "coloum",
@@ -397,18 +456,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#dbd8d8ff",
+    color: theme.TEXT,
     marginTop: 14,
     paddingHorizontal: 14,
   },
-  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
-  sectionTitle: { color: "#9E9EA2", fontSize: 14, marginTop: 20, marginBottom: 10, marginLeft: 5 },
+  headerTitleb: { color: theme.SUBTEXT, marginLeft: 1, fontSize: 15, fontWeight: "400" },
+  sectionTitle: { color: theme.SUBTEXT, fontSize: 14, marginTop: 15, marginBottom: 10, marginLeft: 5 },
   sectionBox: {
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: theme.CARD_BG,
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
+    borderColor: theme.BORDER,
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -419,20 +478,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
+    paddingVertical: 12,
     paddingHorizontal: 15,
   },
   rows: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
+    paddingVertical: 12,
     paddingHorizontal: 15,
     borderBottomWidth: 0.8,
-    borderBottomColor: "#383737ff",
+    borderBottomColor: theme.BORDER,
   },
-  rowText: { flex: 1, fontSize: 15, color: "#EAEAEB", marginLeft: 18 },
-  emailText: { flex: 1, color: "#9e9e9e", fontSize: 16, opacity: 0.8, marginLeft: 18 },
-  logoutWrapper: { marginTop: 25, alignItems: "center" },
+  rowText: { flex: 1, fontSize: 15, color: theme.TEXT, marginLeft: 18 },
+  emailText: { flex: 1, color: theme.ICON, fontSize: 16, opacity: 0.8, marginLeft: 18 },
+  logoutWrapper: { marginTop: 0, alignItems: "center" },
   logoutBtn: {
     width: "50%",
     paddingVertical: 14,
@@ -442,6 +501,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 69, 58, 0.35)",
     marginTop: 10,
+    marginBottom: 40
   },
 
   logoutPressed: {
@@ -460,7 +520,7 @@ const styles = StyleSheet.create({
   iosRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 15,
     backgroundColor: "transparent",
   },

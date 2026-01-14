@@ -94,7 +94,6 @@ const sendOtpEmail = async (email, otp, name, type) => {
   }
 };
 
-
 // ===================== REGISTER =====================
 // exports.register = async (req, res) => {
 //   try {
@@ -187,7 +186,7 @@ const sendOtpEmail = async (email, otp, name, type) => {
 // };
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, appId, } = req.body;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
@@ -207,10 +206,15 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    if (!appId) {
+      return res.status(400).json({ message: "Missing appId" });
+    }
+
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
+      appId,
     });
 
     await newUser.save();
@@ -218,7 +222,7 @@ exports.register = async (req, res) => {
     // CREATE SUBSCRIPTION ENTRY
     const subscription = await Subscription.findOneAndUpdate(
       { userId: newUser._id },
-      { userId: newUser._id },
+      { userId: newUser._id, appId },
       { upsert: true, new: true }
     );
 
@@ -231,7 +235,7 @@ exports.register = async (req, res) => {
 
     return res.status(201).json({
       message: "Registration successful",
-      token, 
+      token,
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -252,9 +256,6 @@ exports.register = async (req, res) => {
     });
   }
 };
-
-
-
 
 // ===================== VERIFY OTP =====================
 exports.verifyOtp = async (req, res) => {

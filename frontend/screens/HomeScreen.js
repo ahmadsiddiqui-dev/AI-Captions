@@ -20,12 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getSubscriptionStatus } from "../api/api";
 import { getOrCreateDeviceId } from "../src/utils/deviceId";
-
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const ACCENT = "#F5C77A";
+import { useTheme } from "../src/theme/ThemeContext";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -33,6 +28,10 @@ const HomeScreen = () => {
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
+
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
+
 
   const permissionDeniedOnceRef = useRef(false);
   const [permissionPopupVisible, setPermissionPopupVisible] = useState(false);
@@ -128,7 +127,7 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={[styles.topRight, { top: insets.top + 10 }]}>
         <Pressable onPress={() => navigation.push("Settings")}>
-          <Ionicons name="cog-outline" size={30} color="#b3b1b1ff" />
+          <Ionicons name="cog-outline" size={30} color={theme.SUBTEXT} />
         </Pressable>
       </View>
 
@@ -169,7 +168,7 @@ const HomeScreen = () => {
                 pressed && { opacity: 0.75 },
               ]}
             >
-              <Ionicons name="folder-outline" size={35} color="#F5C77A" />
+              <Ionicons name="folder-outline" size={35} color={theme.ACCENT} />
               <Text style={styles.buttonText}>Select Photos</Text>
             </Pressable>
           </Animated.View>
@@ -227,14 +226,14 @@ const HomeScreen = () => {
 
 export default HomeScreen;
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.BG },
 
   topRight: {
     position: "absolute",
     right: 20,
     zIndex: 20,
-    backgroundColor: "#1F1D29",
+    backgroundColor: theme.CARD_BG,
     borderRadius: 20,
     padding: 1,
   },
@@ -264,7 +263,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: "#f3f3f3ff",
+    color: theme.TEXT,
     fontSize: 28,
     textAlign: "center",
     lineHeight: 34,
@@ -274,7 +273,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: theme.mbbg,
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 22,
@@ -283,7 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    borderColor: theme.BORDER,
 
     shadowColor: "#000",
     shadowOpacity: 0.25,
@@ -292,47 +291,47 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: "#F5C77A",
+    color: theme.ACCENT,
     fontSize: 16,
     fontWeight: "600",
   },
 
 
   policy: {
-    color: "#ffffff9f",
+    color: theme.TEXT,
     fontSize: 14,
     textAlign: "center",
     borderBottomWidth: 0.2,
-    borderBottomColor: "#ffffff38",
+    borderBottomColor: theme.BORDER,
     paddingBottom: 20,
     paddingHorizontal: 10,
   },
 
   linkText: {
-    color: "#ffffffa4",
+    color: theme.TEXT,
     fontSize: 16,
     fontWeight: "500",
   },
 
   popupOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
 
   popupBox: {
     width: 280,
-    backgroundColor: "rgba(30,30,30,0.92)",
+    backgroundColor: theme.cl,
     padding: 22,
     borderRadius: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 
   popupTitle: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 10,
@@ -340,29 +339,29 @@ const styles = StyleSheet.create({
   },
 
   popupText: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
     marginBottom: 15,
     textAlign: "center",
   },
 
   popupBtn: {
-     backgroundColor: "rgba(245,199,122,0.12)",
+    backgroundColor: "rgba(245,199,122,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(245,199,122,0.35)",
+    borderColor: theme.ACCENT,
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
   },
 
   popupBtnText: {
-    color: "#fff",
+    color: theme.TEXT,
     fontSize: 16,
     fontWeight: "700",
   },
 
   popupCancel: {
-    color: "#bbb",
+    color: theme.SUBTEXT,
     fontSize: 14,
     marginTop: 15,
   },

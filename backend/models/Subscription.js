@@ -8,6 +8,8 @@ const SubscriptionSchema = new mongoose.Schema(
       required: true,
     },
 
+    appId: { type: String, required: true },
+
     isSubscribed: { type: Boolean, default: false },
 
     freeTrialEnabled: { type: Boolean, default: false },
@@ -30,7 +32,9 @@ const SubscriptionSchema = new mongoose.Schema(
     transactionId: { type: String },
     purchaseToken: { type: String },
     autoRenew: { type: Boolean, default: true }, 
-    platform: { type: String,}, 
+    platform: { type: String,
+
+    }, 
     cancelled: { type: Boolean, default: false },
   },
   { timestamps: true }

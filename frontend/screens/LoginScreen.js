@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  ScrollView, 
+  ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,12 +20,8 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import { useTheme } from "../src/theme/ThemeContext";
 
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const ACCENT = "#F5C77A";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -37,6 +33,8 @@ const LoginScreen = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
 
 
   useEffect(() => {
@@ -79,7 +77,7 @@ const LoginScreen = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      setErrorMessage(""); 
+      setErrorMessage("");
       setGoogleLoading(true);
 
       await GoogleSignin.hasPlayServices();
@@ -119,12 +117,12 @@ const LoginScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }} 
+        contentContainerStyle={{ flexGrow: 1 }}
       >
 
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+            <Ionicons name="chevron-back" size={24} color={theme.ICON} />
             <Text style={styles.headerTitleb}>Back</Text>
           </Pressable>
         </View>
@@ -142,10 +140,10 @@ const LoginScreen = () => {
             <View style={styles.box}>
               {/* EMAIL */}
               <View style={styles.inputRow}>
-                <Ionicons name="mail-outline" size={18} color="#A1A1A6" style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={18} color={theme.ICON} style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter your email"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.SUBTEXT}
                   style={styles.inputField}
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -156,10 +154,10 @@ const LoginScreen = () => {
 
               {/* PASSWORD */}
               <View style={styles.passwordRow2}>
-                <Ionicons name="lock-closed-outline" size={18} color="#A1A1A6" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={18} color={theme.ICON} style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter password"
-                  placeholderTextColor="#8a8a8d"
+                  placeholderTextColor={theme.SUBTEXT}
                   style={[styles.inputField, { flex: 1 }]}
                   secureTextEntry={!showPass}
                   value={password}
@@ -169,7 +167,7 @@ const LoginScreen = () => {
                   <Ionicons
                     name={showPass ? "eye-off-outline" : "eye-outline"}
                     size={22}
-                    color="#b5b5b5"
+                    color={theme.ICON}
                   />
                 </Pressable>
               </View>
@@ -188,7 +186,7 @@ const LoginScreen = () => {
                   pressed && !loading && { transform: [{ scale: 0.96 }] },
                 ]}
               >
-                {loading ? <ActivityIndicator color="#F5C77A" /> : <Text style={styles.buttonText}>Login</Text>}
+                {loading ? <ActivityIndicator color={theme.ACCENT} /> : <Text style={styles.buttonText}>Login</Text>}
               </Pressable>
 
               <Text style={styles.or}>──────── OR ────────</Text>
@@ -201,7 +199,7 @@ const LoginScreen = () => {
                 ]}
               >
                 {googleLoading ? (
-                  <ActivityIndicator color="#F5C77A" />
+                  <ActivityIndicator color={theme.ACCENT} />
                 ) : (
                   <>
                     <Image
@@ -231,89 +229,89 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.BG },
   header: { flexDirection: "row", paddingVertical: 10, paddingHorizontal: 5 },
   backButton: { flexDirection: "row", alignItems: "center" },
-  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
+  headerTitleb: { color: theme.SUBTEXT, marginLeft: 1, fontSize: 15, fontWeight: "400" },
   centerWrapper: { flex: 1, justifyContent: "center" },
   topText: {
-    color: "#dbd8d8ff",
+    color: theme.TEXT,
     fontSize: 30,
     fontWeight: "600",
     alignSelf: "center",
     marginBottom: 30,
   },
   box: { paddingHorizontal: 20, marginHorizontal: 16, marginBottom: 20 },
-inputRow: {
-  flexDirection: "row",
-  backgroundColor: GLASS_BG,
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  alignItems: "center",
-  marginBottom: 15,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  inputRow: {
+    flexDirection: "row",
+    backgroundColor: theme.CARD_BG,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-passwordRow2: {
-  flexDirection: "row",
-  backgroundColor: GLASS_BG,
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  alignItems: "center",
-  marginBottom: 15,
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+  passwordRow2: {
+    flexDirection: "row",
+    backgroundColor: theme.CARD_BG,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
   inputIcon: { marginRight: 10 },
   inputField: {
-  flex: 1,
-  color: GLASS_TEXT,
-  fontSize: 16,
-  paddingVertical: 14,
-},
+    flex: 1,
+    color: theme.TEXT,
+    fontSize: 16,
+    paddingVertical: 12,
+  },
 
   eye: { paddingLeft: 10 },
-  forgot: { color: GLASS_SUBTEXT, marginBottom: 10, fontSize: 14 },
+  forgot: { color: theme.SUBTEXT, marginBottom: 10, fontSize: 14 },
   button: {
-  backgroundColor: GLASS_BG,
-  paddingVertical: 15,
-  borderRadius: 14,
-  alignItems: "center",
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
+    backgroundColor: theme.CARD_BG,
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
 
-buttonText: {
-  color: ACCENT,
-  fontSize: 16,
-  fontWeight: "600",
-},
+  buttonText: {
+    color: theme.ACCENT,
+    fontSize: 16,
+    fontWeight: "600",
+  },
 
-  errorMsg: { color: ACCENT, textAlign: "center", marginBottom: 10 },
-  or: { color: "#808080", textAlign: "center", marginVertical: 20 },
+  errorMsg: { color: theme.ACCENT, textAlign: "center", marginBottom: 10 },
+  or: { color: theme.SUBTEXT, textAlign: "center", marginVertical: 20 },
   googleButton: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.CARD_BG,
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
     gap: 10,
     marginBottom: 20,
     borderWidth: 1,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
   googleText: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 15,
     fontWeight: "600",
   },
-  registerText: { color: GLASS_SUBTEXT, textAlign: "center", marginTop: 0, fontSize: 15 },
-  registerLink: { color: ACCENT, fontWeight: "600" },
+  registerText: { color: theme.SUBTEXT, textAlign: "center", marginTop: 0, fontSize: 15 },
+  registerLink: { color: theme.ACCENT, fontWeight: "600" },
 
   bgTop: {
     position: "absolute",
@@ -325,7 +323,7 @@ buttonText: {
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -337,6 +335,6 @@ buttonText: {
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 });

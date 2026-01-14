@@ -7,6 +7,8 @@ const AUTH_URL = "https://my-ai-captions.onrender.com/api/auth";
 const CAPTION_URL = "https://my-ai-captions.onrender.com/api/captions";
 const SUB_URL = "https://my-ai-captions.onrender.com/api/subscription";
 
+export const APP_ID = "6757748357";
+
 
 // ========== Register User ==========
 export const registerUser = async (data, deviceId = null) => {
@@ -22,7 +24,10 @@ export const registerUser = async (data, deviceId = null) => {
     const res = await fetch(`${AUTH_URL}/register`, {
       method: "POST",
       headers,
-      body: JSON.stringify(data),
+       body: JSON.stringify({
+        ...data,
+        appId: APP_ID,
+      }),
     });
 
     return await res.json();
@@ -55,7 +60,10 @@ export const loginUser = async (data) => {
       "Content-Type": "application/json",
       "x-device-id": deviceId,
     },
-    body: JSON.stringify(data),
+     body: JSON.stringify({
+      ...data,
+      appId: APP_ID,
+    }),
   });
 
   return res.json();
@@ -168,7 +176,7 @@ export const googleAuth = async (idToken) => {
         "Content-Type": "application/json",
         "x-device-id": deviceId, 
       },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify({ idToken, appId: APP_ID, }),
     });
 
     return await res.json();

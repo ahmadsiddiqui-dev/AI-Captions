@@ -13,16 +13,14 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TouchableWithoutFeedback } from "react-native";
-
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const ACCENT = "#F5C77A";
+import { Platform } from "react-native";
+import { useTheme } from "../src/theme/ThemeContext";
 
 const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const [modalKey, setModalKey] = useState(0);
+
 
   const [selectedPlan, setSelectedPlan] = useState("1");
   const [loginPopup, setLoginPopup] = useState(false);
@@ -30,10 +28,14 @@ const SubscriptionScreen = ({ autoOpen = true, onClose }) => {
   const [successPopup, setSuccessPopup] = useState(false);
   const [policyVisible, setPolicyVisible] = useState(false);
   const [policyType, setPolicyType] = useState(null);
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
   const openPolicy = (type) => {
     setPolicyType(type);
+    setModalKey(k => k + 1);
     setPolicyVisible(true);
   };
+
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -168,7 +170,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
           purchaseToken: "TEST",
           transactionId: "TEST",
           expiryDate,
-          platform: "test_mode",
+          platform: Platform.OS
         }),
       });
 
@@ -193,8 +195,23 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
     }
   };
 
+  const sheetTranslateY = useRef(new Animated.Value(800)).current;
+
+  useEffect(() => {
+    if (policyVisible) {
+      sheetTranslateY.setValue(800);
+      Animated.spring(sheetTranslateY, {
+        toValue: 0,
+        damping: 20,
+        stiffness: 220,
+        mass: 0.8,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [policyVisible]);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#141414ff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.BG }}>
 
       {/* SAFE CLOSE BUTTON */}
       <View
@@ -206,7 +223,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
         }}
       >
         <Pressable style={styles.closeBtn} onPress={onClose || (() => navigation.goBack())}>
-          <Ionicons name="close" size={28} color="#b5b5b5" />
+          <Ionicons name="close" size={28} color={theme.ICON} />
         </Pressable>
       </View>
 
@@ -234,7 +251,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
             "Priority response speed",
           ].map((item, index) => (
             <View key={index} style={styles.featureRow}>
-              <Ionicons name="checkmark-circle" size={20} color="#F5C77A" style={{ marginRight: 8 }} />
+              <Ionicons name="checkmark-circle" size={20} color={theme.ACCENT} style={{ marginRight: 8 }} />
               <Text style={styles.featureText}>{item}</Text>
             </View>
           ))}
@@ -246,7 +263,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
 
         <View style={[styles.trialRow, trialEnabled && {
           backgroundColor: "rgba(245,199,122,0.22)",
-          borderColor: ACCENT,
+          borderColor: theme.ACCENT,
         }]}>
           <Text style={styles.trialTextLeft}>Enable Free Trial</Text>
 
@@ -270,7 +287,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
                 styles.planCard,
                 selectedPlan === plan.id && selectedPlan === plan.id && {
                   backgroundColor: "rgba(245,199,122,0.22)",
-                  borderColor: ACCENT,
+                  borderColor: theme.ACCENT,
                 }
               ]}
               onPress={() => setSelectedPlan(plan.id)}
@@ -321,26 +338,28 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
           </Pressable>
         </View>
       </View>
-
       <Modal
+        key={modalKey}
         visible={policyVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setPolicyVisible(false)}
       >
         <View style={styles.policyOverlay}>
-
-          {/* OUTSIDE TAP AREA */}
+          {/* OVERLAY */}
           <Pressable
             style={styles.policyBackdrop}
             onPress={() => setPolicyVisible(false)}
           />
 
-          {/* BOTTOM SHEET */}
-          <View
+          {/* SLIDING SHEET */}
+          <Animated.View
             style={[
               styles.policySheet,
-              { paddingBottom: insets.bottom + 16 },
+              {
+                paddingBottom: insets.bottom + 16,
+                transform: [{ translateY: sheetTranslateY }],
+              },
             ]}
           >
             <Text style={styles.policyTitle}>
@@ -355,11 +374,9 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
                 {policyType === "terms" ? TERMS_TEXT : PRIVACY_TEXT}
               </Text>
             </ScrollView>
-          </View>
-
+          </Animated.View>
         </View>
       </Modal>
-
 
       {/* POPUPS */}
       <Modal visible={loginPopup} transparent animationType="fade">
@@ -385,7 +402,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
             </Pressable>
 
             <Pressable onPress={() => setLoginPopup(false)} style={{ marginTop: 10 }}>
-              <Text style={{ color: "#bbb" }}>Cancel</Text>
+              <Text style={{ color: theme.SUBTEXT }}>Cancel</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -410,7 +427,7 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
               },
             ]}
           >
-            <Ionicons name="checkmark-circle" size={60} color="#F5C77A" />
+            <Ionicons name="checkmark-circle" size={60} color={theme.ACCENT} />
             <Text style={styles.successText}>Subscription Activated!</Text>
           </Animated.View>
         </View>
@@ -422,10 +439,9 @@ If you have questions, contact Phonato Studios at support@phonatostudios.com.
 
 export default SubscriptionScreen;
 
-
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
-    backgroundColor: "#141414ff",
+    backgroundColor: theme.BG,
     paddingHorizontal: 20,
     justifyContent: "flex-start",
     paddingTop: 50,
@@ -437,8 +453,8 @@ const styles = StyleSheet.create({
   },
   freeTrial: {
     alignSelf: "center",
-    backgroundColor: GLASS_BG,
-    borderColor: ACCENT,
+    backgroundColor: theme.BG,
+    borderColor: theme.ACCENT,
     borderWidth: 1,
     paddingHorizontal: 20,
     paddingVertical: 6,
@@ -446,13 +462,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  freeTrialText: { color: "#F5C77A", fontSize: 13, fontWeight: "700" },
+  freeTrialText: { color: theme.ACCENT, fontSize: 13, fontWeight: "700" },
   headerBox: { alignItems: "center", marginVertical: 20 },
-  title: { color: "white", fontSize: 32, fontWeight: "700", marginBottom: 4 },
-  subtitle: { color: "#b5b5b5", fontSize: 15 },
-  featureBox: { marginBottom: 20, marginTop: 0, color: GLASS_TEXT, },
+  title: { color: theme.TEXT, fontSize: 32, fontWeight: "700", marginBottom: 4 },
+  subtitle: { color: theme.SUBTEXT, fontSize: 15 },
+  featureBox: { marginBottom: 20, marginTop: 0, color: theme.TEXT, },
   featureRow: { flexDirection: "row", alignItems: "center", marginVertical: 6 },
-  featureText: { color: "white", fontSize: 14 },
+  featureText: { color: theme.TEXT, fontSize: 14 },
 
   trialRow: {
     flexDirection: "row",
@@ -460,14 +476,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     width: "100%",
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.BG,
     paddingVertical: 13,
     borderRadius: 14,
     borderWidth: 1.2,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
     paddingHorizontal: 15,
   },
-  trialTextLeft: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  trialTextLeft: { color: theme.TEXT, fontSize: 16, fontWeight: "700" },
 
   switchTrack: {
     width: 50,
@@ -476,7 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 0,
   },
-  switchTrackOn: { backgroundColor: "#F5C77A" },
+  switchTrackOn: { backgroundColor: theme.ACCENT },
   switchTrackOff: { backgroundColor: "#555" },
   switchThumb: {
     width: 24,
@@ -492,26 +508,26 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 16,
     marginBottom: 12,
-    backgroundColor: GLASS_BG,
+    backgroundColor: theme.BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 
   planTitle: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 17,
     fontWeight: "600",
   },
 
   planPrice: {
-    color: ACCENT,
+    color: theme.ACCENT,
     fontSize: 22,
     fontWeight: "700",
     marginTop: 3,
   },
 
   planPeriod: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
   },
 
@@ -524,72 +540,72 @@ const styles = StyleSheet.create({
   },
   tagText: { color: "black", fontSize: 12, fontWeight: "700" },
 
- subscribeBtn: {
-  backgroundColor: GLASS_BG,
-  borderColor: GLASS_BORDER,
-  borderWidth: 1,
-  paddingVertical: 14,
-  borderRadius: 14,
-  alignItems: "center",
-  marginTop: 20
-},
+  subscribeBtn: {
+    backgroundColor: theme.BG,
+    borderColor: theme.BORDER,
+    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 20
+  },
 
-  subscribeText: { color: "#F5C77A", fontSize: 17, fontWeight: "700" },
-  restoreText: { color: "#ffffffd2", textAlign: "center", marginTop: 12, },
+  subscribeText: { color: theme.ACCENT, fontSize: 17, fontWeight: "700" },
 
   popupOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.25)",
+
   },
   popupBox: {
     width: 280,
     padding: 20,
     borderRadius: 12,
-    backgroundColor: "rgba(30,30,30,0.92)",
+    backgroundColor: theme.BG,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
-  popupTitle: { color: "#fff", fontSize: 20, fontWeight: "700", marginBottom: 8 },
-  popupDesc: { color: "#bbb", fontSize: 14, textAlign: "center", marginBottom: 15 },
+  popupTitle: { color: theme.TEXT, fontSize: 20, fontWeight: "700", marginBottom: 8 },
+  popupDesc: { color: theme.SUBTEXT, fontSize: 14, textAlign: "center", marginBottom: 15 },
   loginBtn: {
     backgroundColor: "rgba(245,199,122,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(245,199,122,0.35)",
+    borderColor: theme.ACCENT,
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
   },
-  loginBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  loginBtnText: { color: theme.TEXT, fontWeight: "700", fontSize: 16 },
   successOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.25)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999,
   },
   successBox: {
-    backgroundColor: "rgba(30,30,30,0.92)",
+    backgroundColor: theme.BG,
     padding: 30,
     borderRadius: 20,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
   successText: {
-    color: "white",
+    color: theme.TEXT,
     fontSize: 20,
     fontWeight: "700",
     marginTop: 10,
   },
   bottomPolicyContainer: {
-    backgroundColor: "#141414ff",
+    backgroundColor: theme.BG,
     paddingTop: 8,
   },
 
@@ -601,13 +617,13 @@ const styles = StyleSheet.create({
   },
 
   bottomPolicyText: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 12,
     fontWeight: "600",
   },
 
   bottomPolicyBullet: {
-    color: "#9b9b9b",
+    color: theme.SUBTEXT,
     marginHorizontal: 10,
     fontSize: 14,
   },
@@ -618,23 +634,27 @@ const styles = StyleSheet.create({
   policyBackdrop: {
     flex: 1,
   },
-policySheet: {
-  height: "80%",
-  backgroundColor: "#141414ff",
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  padding: 20,
-  borderTopWidth: 1,
-  borderLeftWidth: 1,
-  borderRightWidth: 1,
-  borderBottomWidth: 0,
-  borderColor: "#F5C77A",
-},
+  policySheet: {
+    height: "80%",
+    backgroundColor: theme.BG,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: theme.ACCENT,
+  },
 
-
+  policyOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
 
   policyTitle: {
-    color: GLASS_TEXT,
+    color: theme.TEXT,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 10,
@@ -642,7 +662,7 @@ policySheet: {
   },
 
   policyContent: {
-    color: GLASS_SUBTEXT,
+    color: theme.SUBTEXT,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -651,12 +671,6 @@ policySheet: {
     marginTop: 15,
     alignItems: "center",
     paddingVertical: 12,
-  },
-
-  policyCloseText: {
-    color: "#7d5df8",
-    fontSize: 16,
-    fontWeight: "700",
   },
 
 });

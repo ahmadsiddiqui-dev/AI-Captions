@@ -5,12 +5,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { verifyOtp, resendOtp } from "../api/api";
-
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
-const GLASS_ACCENT = "#F5C77A";
+import { useTheme } from "../src/theme/ThemeContext";
 
 
 const OtpScreen = () => {
@@ -18,6 +13,8 @@ const OtpScreen = () => {
   const route = useRoute();
   const email = route.params?.email;
   const insets = useSafeAreaInsets();
+  const { theme, toggleTheme } = useTheme();
+  const styles = createStyles(theme);
 
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
@@ -82,7 +79,7 @@ const OtpScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#7c7a7aff" />
+          <Ionicons name="chevron-back" size={24} color={theme.ICON} />
           <Text style={styles.headerTitleb}>Back</Text>
         </Pressable>
       </View>
@@ -97,7 +94,7 @@ const OtpScreen = () => {
         <TextInput
           style={styles.input}
           placeholder="Enter OTP"
-          placeholderTextColor="#808080"
+          placeholderTextColor={theme.ICON}
           keyboardType="number-pad"
           value={otp}
           onChangeText={setOtp}
@@ -139,75 +136,75 @@ const OtpScreen = () => {
 
 export default OtpScreen;
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#141414ff" },
+const createStyles = (theme) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.BG },
 
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#141414ff",
+    backgroundColor: theme.BG,
   },
 
   header: { flexDirection: "coloum", alignItems: "left", paddingVertical: 10, paddingHorizontal: 5, },
   backButton: { flexDirection: "row", alignItems: "center" },
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#dbd8d8ff", marginTop: 14, paddingHorizontal: 14, },
-  headerTitleb: { color: "#7c7a7aff", marginLeft: 1, fontSize: 15, fontWeight: "400" },
-title: {
-  color: GLASS_TEXT,
-  fontSize: 18,
-  marginBottom: 20,
-  textAlign: "center",
-},
+  headerTitle: { fontSize: 28, fontWeight: "bold", color: theme.TEXT, marginTop: 14, paddingHorizontal: 14, },
+  headerTitleb: { color: theme.SUBTEXT, marginLeft: 1, fontSize: 15, fontWeight: "400" },
+  title: {
+    color: theme.TEXT,
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
 
 
-msg: {
-  marginBottom: 15,
-  fontSize: 15,
-  fontWeight: "500",
-  textAlign: "center",
-},
+  msg: {
+    marginBottom: 15,
+    fontSize: 15,
+    fontWeight: "500",
+    textAlign: "center",
+  },
 
-success: { color: GLASS_ACCENT },
-error: { color: GLASS_ACCENT },
-
-
-input: {
-  backgroundColor: GLASS_BG,
-  color: GLASS_TEXT,
-  width: "80%",
-  padding: 14,
-  borderRadius: 14,
-  marginBottom: 20,
-  fontSize: 16,
-  textAlign: "center",
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
-
-button: {
-  backgroundColor: GLASS_BG,
-  paddingVertical: 15,
-  paddingHorizontal: 40,
-  borderRadius: 16,
-  alignItems: "center",
-  borderWidth: 1,
-  borderColor: GLASS_BORDER,
-},
-
-buttonText: {
-  color: GLASS_ACCENT,
-  fontSize: 16,
-  fontWeight: "600",
-},
+  success: { color: theme.ACCENT },
+  error: { color: theme.ACCENT },
 
 
-resend: {
-  color: GLASS_SUBTEXT,
-  marginTop: 15,
-  fontSize: 14,
-},
+  input: {
+    backgroundColor: theme.CARD_BG,
+    color: theme.TEXT,
+    width: "80%",
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 20,
+    fontSize: 16,
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
+
+  button: {
+    backgroundColor: theme.CARD_BG,
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.BORDER,
+  },
+
+  buttonText: {
+    color: theme.ACCENT,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+
+  resend: {
+    color: theme.SUBTEXT,
+    marginTop: 15,
+    fontSize: 14,
+  },
 
   bgTop: {
     position: "absolute",
@@ -215,11 +212,11 @@ resend: {
     right: -110,
     width: 260,
     height: 260,
-     backgroundColor: "rgba(245,199,122,0.08)",
+    backgroundColor: "rgba(245,199,122,0.08)",
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
   bgBottom: {
     position: "absolute",
@@ -231,6 +228,6 @@ resend: {
     borderRadius: 200,
     opacity: 0.35,
     borderWidth: 2,
-  borderColor: GLASS_BORDER,
+    borderColor: theme.BORDER,
   },
 });

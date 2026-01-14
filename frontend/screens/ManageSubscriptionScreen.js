@@ -11,13 +11,9 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { getSubscriptionStatus } from "../api/api";
+import { useTheme } from "../src/theme/ThemeContext";
 
-const GLASS_BG = "rgba(255,255,255,0.08)";
-const GLASS_BORDER = "rgba(255,255,255,0.15)";
-const GLASS_TEXT = "#E5E5EA";
-const GLASS_SUBTEXT = "#A1A1A6";
 const ACCENT_GOLD = "#F5C77A";
-const DANGER_RED = "#ff5c5c";
 
 const ManageSubscriptionScreen = () => {
     const navigation = useNavigation();
@@ -27,6 +23,8 @@ const ManageSubscriptionScreen = () => {
     const [expiryDate, setExpiryDate] = useState(null);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [autoRenew, setAutoRenew] = useState("Enabled");
+    const { theme, toggleTheme } = useTheme();
+    const styles = createStyles(theme);
 
     useEffect(() => {
         const load = async () => {
@@ -62,7 +60,7 @@ const ManageSubscriptionScreen = () => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#F5C77A" style={{ transform: [{ scale: 2 }] }} />
+                    <ActivityIndicator size="large" color={theme.ACCENT} style={{ transform: [{ scale: 2 }] }} />
                 </View>
             </SafeAreaView>
         );
@@ -86,13 +84,13 @@ const ManageSubscriptionScreen = () => {
 
                         {/* PLAN */}
                         <View style={styles.row}>
-                            <Ionicons name="star-outline" size={22} color="#F5C77A" />
+                            <Ionicons name="star-outline" size={22} color={theme.ACCENT} />
                             <Text style={styles.value}>{plan}</Text>
                         </View>
 
                         {/* BILLING DATE */}
                         <View style={styles.row}>
-                            <Ionicons name="calendar-outline" size={22} color="#A1A1A6" />
+                            <Ionicons name="calendar-outline" size={22} color={theme.ICON} />
                             <Text style={styles.value}>
                                 Next Billing Date:{" "}
                                 {expiryDate ? new Date(expiryDate).toDateString() : "N/A"}
@@ -101,7 +99,7 @@ const ManageSubscriptionScreen = () => {
 
                         {/* AUTO RENEW */}
                         <View style={styles.row}>
-                            <Ionicons name="sync-circle-outline" size={22} color="#A1A1A6" />
+                            <Ionicons name="sync-circle-outline" size={22} color={theme.ICON} />
                             <Text style={styles.value}>Auto-Renew: {autoRenew}</Text>
 
                             {/* Toggle Button (Always opens Google Play) */}
@@ -162,10 +160,10 @@ export default ManageSubscriptionScreen;
                         STYLES
 ========================================================== */
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#141414ff",
+        backgroundColor: theme.BG,
     },
 
     header: {
@@ -184,12 +182,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: "bold",
-        color: "#dbd8d8ff",
+        color: theme.TEXT,
         marginTop: 10,
     },
 
     headerTitleb: {
-        color: "#7c7a7aff",
+        color: theme.SUBTEXT,
         marginLeft: 1,
         fontSize: 15,
     },
@@ -199,29 +197,29 @@ const styles = StyleSheet.create({
     },
 
     box: {
-        backgroundColor: GLASS_BG,
+        backgroundColor: theme.CARD_BG,
         borderRadius: 18,
         padding: 18,
         borderWidth: 1,
-        borderColor: GLASS_BORDER,
+        borderColor: theme.BORDER,
     },
 
 
     title: {
-        color: GLASS_TEXT,
+        color: theme.TEXT,
         fontSize: 18,
         fontWeight: "700",
         marginBottom: 15,
     },
 
     value: {
-        color: GLASS_TEXT,
+        color: theme.TEXT,
         marginLeft: 12,
         fontSize: 15,
     },
 
     note: {
-        color: GLASS_SUBTEXT,
+        color: theme.SUBTEXT,
         marginTop: 12,
         fontSize: 13,
     },
@@ -283,7 +281,7 @@ const styles = StyleSheet.create({
     },
 
     toggleText: {
-        color: "white",
+        color: theme.TEXT,
         fontSize: 13,
         fontWeight: "600",
     },
